@@ -1,22 +1,29 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html> <!-- このファイルがHTML5で書かれていることをブラウザに伝える -->
 
-    <title>ペット生活管理</title>
+<html lang="ja"> <!-- HTML全体の開始。ページの言語を日本語に設定する -->
 
+<head> <!-- ページの設定情報を書く部分 -->
+
+    <meta charset="UTF-8"> <!-- 日本語などの文字化けを防ぐため、文字コードをUTF-8に指定する -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホなどでも画面幅に合わせて表示できるようにする -->
+
+    <title>ペット生活管理</title> <!-- ブラウザのタブに表示されるタイトルを設定する -->
+
+    <!-- static/css/style.cssを読み込み、このページにCSSのデザインを適用する -->
     <link
         rel="stylesheet"
         href="{{ url_for('static', filename='css/style.css') }}"
     >
+
 </head>
 
-<body>
+<body> <!-- ブラウザ上に表示される内容を書く部分 -->
 
-    <h1>ペットの生活をまとめて管理するアプリ</h1>
+    <h1>ペットの生活をまとめて管理するアプリ</h1> <!-- ページの大見出しを表示する -->
 
-    <p>開発中です。</p>
+    <p>開発中です。</p> <!-- 通常の文章を表示する -->
 
 </body>
+
 </html>

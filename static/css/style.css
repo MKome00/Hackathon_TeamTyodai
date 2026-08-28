@@ -1,8 +1,13 @@
-body {
-    font-family: sans-serif;
-    margin: 40px;
+body { /* ページ全体の見た目を設定する */
+
+    font-family: sans-serif; /* ページ全体の文字をゴシック系の読みやすいフォントにする */
+
+    margin: 40px; /* 画面の端と内容の間に40pxの余白を作る */
+
 }
 
-h1 {
-    font-size: 32px;
+h1 { /* h1タグで書かれた大見出しの見た目を設定する */
+
+    font-size: 32px; /* 大見出しの文字サイズを32pxにする */
+
 }
