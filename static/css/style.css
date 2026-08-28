@@ -8,13 +8,11 @@ body { /* ページ全体の基本デザインを設定する */
 
 }
 
-
 .page-content { /* 各ページのメイン表示領域を設定する */
 
     padding: 24px 16px 100px; /* 上左右に余白を作り、下部ナビと重ならないよう下側を広く空ける */
 
 }
-
 
 .page-content h1 { /* ページ名として表示するh1の見た目を設定する */
 
@@ -24,44 +22,129 @@ body { /* ページ全体の基本デザインを設定する */
 
 }
 
+.bottom-nav { /* 画面下部に表示するナビゲーション全体の見た目を設定する */
 
-.bottom-nav { /* 画面下部のナビゲーション全体を設定する */
+    position: fixed; /* ページをスクロールしてもナビゲーションを画面下部に固定する */
 
-    position: fixed; /* スクロールしても画面下部に固定する */
+    bottom: 12px; /* 画面の一番下から12pxだけ離して配置する */
 
-    bottom: 0; /* 画面の一番下に配置する */
+    left: 50%; /* ナビゲーションの左端を画面中央の位置まで移動する */
 
-    left: 0; /* 画面の左端から配置する */
+    transform: translateX(-50%); /* ナビゲーション自身の横幅の半分だけ左へ戻し、画面中央に配置する */
 
-    width: 100%; /* ナビゲーションの横幅を画面いっぱいにする */
+    width: calc(100% - 24px); /* スマホ画面の左右に12pxずつ余白を残した横幅にする */
 
-    display: flex; /* 5つのリンクを横並びにする */
+    max-width: 600px; /* PCで表示したときにナビゲーションが横に広がりすぎないよう最大幅を設定する */
 
-    justify-content: space-around; /* 5つのリンクを均等な間隔で配置する */
+    display: flex; /* 5つのナビゲーション項目を横並びにする */
 
-    align-items: center; /* リンクを縦方向の中央に揃える */
+    justify-content: space-around; /* 5つの項目を均等な間隔で配置する */
 
-    background-color: #ffffff; /* ナビゲーションの背景色を白にする */
+    align-items: center; /* 各項目を縦方向の中央に揃える */
 
-    border-top: 1px solid #cccccc; /* 上側に薄い境界線を付けて本文と区切る */
+    background-color: #ffffff; /* ナビゲーション全体の背景を白色にする */
 
-    padding: 12px 0; /* ナビゲーションの上下に12pxの余白を作る */
+    border: 1px solid #909090; /* ナビゲーション全体を薄いグレーの線で囲む */
 
-    box-sizing: border-box; /* paddingを含めてwidthが100%になるようにする */
+    border-radius: 18px; /* ナビゲーション全体の四隅を丸くする */
+
+    padding: 8px; /* 四角の内側と各項目の間に余白を作る */
+
+    box-sizing: border-box; /* borderやpaddingを含めたサイズで横幅を計算する */
+
+}
+
+.bottom-nav { /* 下部ナビゲーション全体の見た目を設定する */
+
+    position: fixed; /* スクロールしても画面下部にナビゲーションを固定する */
+
+    bottom: 12px; /* 画面下端から12pxだけ離して配置する */
+
+    left: 50%; /* ナビゲーションの左端を画面中央に移動する */
+
+    transform: translateX(-50%); /* ナビゲーション自身の半分だけ左へ戻して中央揃えにする */
+
+    width: calc(100% - 24px); /* 画面左右に12pxずつ余白を残す */
+
+    max-width: 600px; /* PCで表示したときに横に広がりすぎないようにする */
+
+    display: flex; /* 5つのナビゲーション項目を横並びにする */
+
+    align-items: center; /* 各項目を縦方向の中央に揃える */
+
+    background-color: #ffffff; /* ナビゲーション全体の背景を白にする */
+
+    border: 1px solid #dddddd; /* ナビゲーション全体を薄い線で囲む */
+
+    border-radius: 18px; /* ナビゲーション全体の角を丸くする */
+
+    padding: 8px; /* ナビゲーションの内側に余白を作る */
+
+    box-sizing: border-box; /* paddingやborderを含めた大きさで計算する */
+
+    overflow: hidden; /* 移動する背景がナビゲーションの外にはみ出さないようにする */
 
 }
 
 
 .bottom-nav a { /* 下部ナビゲーション内の各リンクを設定する */
 
-    flex: 1; /* 5つのリンクが同じ横幅になるようにする */
+    flex: 1; /* 5つの項目を同じ横幅にする */
 
-    text-align: center; /* リンク内の文字を中央揃えにする */
+    position: relative; /* 文字を移動背景より手前に表示するための基準を作る */
 
-    text-decoration: none; /* リンクに標準で付く下線を消す */
+    z-index: 2; /* 移動する背景よりも文字を前面に表示する */
 
-    color: #333333; /* 文字色を濃いグレーにする */
+    text-align: center; /* 文字を中央揃えにする */
 
-    font-size: 14px; /* ナビゲーション文字のサイズを14pxにする */
+    text-decoration: none; /* リンクの下線を消す */
+
+    color: #333333; /* 通常時の文字色を設定する */
+
+    font-size: 14px; /* ナビゲーションの文字サイズを設定する */
+
+    font-weight: 700; /* ナビゲーションの文字を太字にする */
+
+    padding: 10px 0; /* 文字の上下に余白を付ける */
+
+}
+
+
+.bottom-nav a span { /* 各ナビゲーションの文字部分を設定する */
+
+    position: relative; /* 文字を背景より前面に表示できるようにする */
+
+    z-index: 2; /* 黄色の背景よりも文字を手前に表示する */
+
+}
+
+
+.nav-indicator { /* 選択中の項目を示す、滑らかに動く背景を設定する */
+
+    position: absolute; /* ナビゲーション内の好きな位置へ配置できるようにする */
+
+    top: 8px; /* ナビゲーション上端から8pxの位置に配置する */
+
+    height: calc(100% - 16px); /* 上下に8pxずつ余白を残した高さにする */
+
+    background-color: #c2c2c2; /* 選択中を示す背景を薄黄色にする */
+
+    border-radius: 12px; /* 背景の角を丸くする */
+
+    z-index: 1; /* 文字より後ろに表示する */
+
+    transition: left 0.3s ease, width 0.3s ease; /* 位置と横幅が0.3秒かけて滑らかに変化するようにする */
+
+}
+
+.bottom-nav a.active span { /* 現在選択しているページの文字だけに適用する */
+
+    color: #ffffff; /* 選択中の文字色を白にする */
+
+    text-shadow:
+        -1px -1px 0 #000000, /* 左上方向に黒い影を付ける */
+         1px -1px 0 #000000, /* 右上方向に黒い影を付ける */
+        -1px  1px 0 #000000, /* 左下方向に黒い影を付ける */
+         1px  1px 0 #000000; /* 右下方向に黒い影を付ける */
 
 }

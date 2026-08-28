@@ -123,4 +123,7 @@
 
 # 使用技術
 
-未定
+- バックエンド：Python / Flask
+- フロントエンド：HTML / CSS
+- データベース：SQLite
+- バージョン管理：Git / GitHub

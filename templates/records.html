@@ -13,31 +13,45 @@
     <!-- 共通のCSSファイルを読み込む -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
-</head> <!-- head部分の終了 -->
+</head>
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
 
     <main class="page-content"> <!-- 各ページのメイン表示領域を作る -->
 
-        <h1>記録</h1> <!-- 現在のページ名を表示する -->
+        <h1>ホーム</h1> <!-- 現在のページ名を表示する -->
 
-    </main> <!-- メイン表示領域の終了 -->
+    </main>
 
+    <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体 -->
 
-    <nav class="bottom-nav"> <!-- 画面下部に表示する共通ナビゲーションを作る -->
+        <div class="nav-indicator"></div> <!-- 選択中のタブの後ろを滑らかに移動する角丸背景を作る -->
 
-        <a href="{{ url_for('home') }}">ホーム</a> <!-- ホーム画面へ移動するリンク -->
+        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホームへ移動するリンク -->
+            <span>ホーム</span> <!-- ナビゲーションに表示する文字 -->
+        </a>
 
-        <a href="{{ url_for('pets') }}">ペット</a> <!-- ペット画面へ移動するリンク -->
+        <a href="{{ url_for('pets') }}" data-index="1"> <!-- ペットページへ移動するリンク -->
+            <span>ペット</span> <!-- ナビゲーションに表示する文字 -->
+        </a>
 
-        <a href="{{ url_for('schedule') }}">予定</a> <!-- 予定画面へ移動するリンク -->
+        <a href="{{ url_for('schedule') }}" data-index="2"> <!-- 予定ページへ移動するリンク -->
+            <span>予定</span> <!-- ナビゲーションに表示する文字 -->
+        </a>
 
-        <a href="{{ url_for('records') }}">記録</a> <!-- 記録画面へ移動するリンク -->
+        <a href="{{ url_for('records') }}" class="active" data-index="3"> <!-- 記録ページへ移動するリンク。現在のページなのでactiveを付ける -->
+            <span>記録</span> <!-- ナビゲーションに表示する文字 -->
+        </a>
 
-        <a href="{{ url_for('mypage') }}">マイページ</a> <!-- マイページへ移動するリンク -->
+        <a href="{{ url_for('mypage') }}" data-index="4"> <!-- マイページへ移動するリンク -->
+            <span>マイページ</span> <!-- ナビゲーションに表示する文字 -->
+        </a>
 
     </nav> <!-- 下部ナビゲーションの終了 -->
 
-</body> <!-- body部分の終了 -->
+    <!-- 下部ナビゲーションを滑らかに動かすJavaScriptファイルを読み込む -->
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
 
-</html> <!-- HTML全体の終了 -->
+</body>
+
+</html>
