@@ -1,13 +1,67 @@
-body { /* ページ全体の見た目を設定する */
+body { /* ページ全体の基本デザインを設定する */
 
-    font-family: sans-serif; /* ページ全体の文字をゴシック系の読みやすいフォントにする */
+    margin: 0; /* ブラウザが最初から持っている外側の余白をなくす */
 
-    margin: 40px; /* 画面の端と内容の間に40pxの余白を作る */
+    font-family: sans-serif; /* ページ全体の文字を読みやすいゴシック系フォントにする */
+
+    background-color: #ffffff; /* ページ全体の背景色を白にする */
 
 }
 
-h1 { /* h1タグで書かれた大見出しの見た目を設定する */
 
-    font-size: 32px; /* 大見出しの文字サイズを32pxにする */
+.page-content { /* 各ページのメイン表示領域を設定する */
+
+    padding: 24px 16px 100px; /* 上左右に余白を作り、下部ナビと重ならないよう下側を広く空ける */
+
+}
+
+
+.page-content h1 { /* ページ名として表示するh1の見た目を設定する */
+
+    margin: 0; /* h1が最初から持っている外側の余白をなくす */
+
+    font-size: 28px; /* ページ名の文字サイズを28pxにする */
+
+}
+
+
+.bottom-nav { /* 画面下部のナビゲーション全体を設定する */
+
+    position: fixed; /* スクロールしても画面下部に固定する */
+
+    bottom: 0; /* 画面の一番下に配置する */
+
+    left: 0; /* 画面の左端から配置する */
+
+    width: 100%; /* ナビゲーションの横幅を画面いっぱいにする */
+
+    display: flex; /* 5つのリンクを横並びにする */
+
+    justify-content: space-around; /* 5つのリンクを均等な間隔で配置する */
+
+    align-items: center; /* リンクを縦方向の中央に揃える */
+
+    background-color: #ffffff; /* ナビゲーションの背景色を白にする */
+
+    border-top: 1px solid #cccccc; /* 上側に薄い境界線を付けて本文と区切る */
+
+    padding: 12px 0; /* ナビゲーションの上下に12pxの余白を作る */
+
+    box-sizing: border-box; /* paddingを含めてwidthが100%になるようにする */
+
+}
+
+
+.bottom-nav a { /* 下部ナビゲーション内の各リンクを設定する */
+
+    flex: 1; /* 5つのリンクが同じ横幅になるようにする */
+
+    text-align: center; /* リンク内の文字を中央揃えにする */
+
+    text-decoration: none; /* リンクに標準で付く下線を消す */
+
+    color: #333333; /* 文字色を濃いグレーにする */
+
+    font-size: 14px; /* ナビゲーション文字のサイズを14pxにする */
 
 }

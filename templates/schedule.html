@@ -1,0 +1,43 @@
+<!DOCTYPE html> <!-- このファイルがHTML5であることをブラウザに伝える -->
+
+<html lang="ja"> <!-- HTML全体の開始。ページの言語を日本語に設定する -->
+
+<head> <!-- ページの設定情報を書く部分 -->
+
+    <meta charset="UTF-8"> <!-- 日本語の文字化けを防ぐために文字コードをUTF-8に設定する -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも正しい幅で表示できるようにする -->
+
+    <title>予定</title> <!-- ブラウザのタブに表示されるタイトルを設定する -->
+
+    <!-- 共通のCSSファイルを読み込む -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head> <!-- head部分の終了 -->
+
+<body> <!-- ブラウザに表示する内容を書く部分 -->
+
+    <main class="page-content"> <!-- 各ページのメイン表示領域を作る -->
+
+        <h1>予定</h1> <!-- 現在のページ名を表示する -->
+
+    </main> <!-- メイン表示領域の終了 -->
+
+
+    <nav class="bottom-nav"> <!-- 画面下部に表示する共通ナビゲーションを作る -->
+
+        <a href="{{ url_for('home') }}">ホーム</a> <!-- ホーム画面へ移動するリンク -->
+
+        <a href="{{ url_for('pets') }}">ペット</a> <!-- ペット画面へ移動するリンク -->
+
+        <a href="{{ url_for('schedule') }}">予定</a> <!-- 予定画面へ移動するリンク -->
+
+        <a href="{{ url_for('records') }}">記録</a> <!-- 記録画面へ移動するリンク -->
+
+        <a href="{{ url_for('mypage') }}">マイページ</a> <!-- マイページへ移動するリンク -->
+
+    </nav> <!-- 下部ナビゲーションの終了 -->
+
+</body> <!-- body部分の終了 -->
+
+</html> <!-- HTML全体の終了 -->
