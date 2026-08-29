@@ -21,13 +21,15 @@ if (nav && indicator && activeLink) { // 必要なナビゲーション要素が
     indicator.style.width = `${previousLink.offsetWidth}px`; // 黄色背景の開始時の横幅を前のタブと同じ幅にする
 
 
-    requestAnimationFrame(() => { // ブラウザが開始位置を描画した直後に、次の処理を実行する
+    requestAnimationFrame(() => { // ブラウザが開始位置を描画した直後に次の処理を実行する
 
-        requestAnimationFrame(() => { // CSSのtransitionが確実に働くよう、さらに次の描画タイミングまで待つ
+        requestAnimationFrame(() => { // CSSのtransitionを確実に動かすため、さらに次の描画タイミングまで待つ
 
-            indicator.style.left = `${activeLink.offsetLeft}px`; // 黄色背景を現在選択されているタブの位置まで移動する
+            indicator.style.left = `${activeLink.offsetLeft}px`; // 背景を現在選択されているタブの位置まで移動する
 
-            indicator.style.width = `${activeLink.offsetWidth}px`; // 黄色背景の横幅を現在のタブと同じ幅に変更する
+            indicator.style.width = `${activeLink.offsetWidth}px`; // 背景の横幅を現在のタブと同じ幅に変更する
+
+            sessionStorage.setItem("previousNavIndex", currentIndex); // 移動完了後は現在のタブ番号を記録し、同じページの再読み込み時に強調表示が再び動かないようにする
 
         }); // 2回目のrequestAnimationFrame処理を終了する
 

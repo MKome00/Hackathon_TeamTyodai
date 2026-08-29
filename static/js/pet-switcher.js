@@ -1,139 +1,39 @@
-const pets = { // デモ用として、登録されているペットごとのプロフィール情報をJavaScript内に用意する
+const switchButton = document.getElementById("pet-switch-button"); // 右上に表示されているペット切り替えボタンを取得する
 
-    pochi: { // ポチのプロフィール情報をまとめる
+const dropdown = document.getElementById("pet-dropdown"); // 登録済みペット一覧を表示するプルダウンメニューを取得する
 
-        name: "ポチ", // ポチの名前を設定する
-
-        type: "柴犬", // ポチの種類を設定する
-
-        age: 3, // ポチの年齢を設定する
-
-        weight: 8.5, // ポチの体重を設定する
-
-        note: "元気で散歩が大好きです", // ポチのその他の基本情報を設定する
-
-        icon: "🐕" // 写真がない場合に表示する仮の絵文字を設定する
-
-    }, // ポチのプロフィール情報を終了する
-
-
-    mike: { // ミケのプロフィール情報をまとめる
-
-        name: "ミケ", // ミケの名前を設定する
-
-        type: "三毛猫", // ミケの種類を設定する
-
-        age: 5, // ミケの年齢を設定する
-
-        weight: 4.2, // ミケの体重を設定する
-
-        note: "少し人見知りです", // ミケのその他の基本情報を設定する
-
-        icon: "🐈" // 写真がない場合に表示する仮の絵文字を設定する
-
-    }, // ミケのプロフィール情報を終了する
-
-
-    coco: { // ココのプロフィール情報をまとめる
-
-        name: "ココ", // ココの名前を設定する
-
-        type: "トイプードル", // ココの種類を設定する
-
-        age: 2, // ココの年齢を設定する
-
-        weight: 3.1, // ココの体重を設定する
-
-        note: "アレルギーに注意", // ココのその他の基本情報を設定する
-
-        icon: "🐩" // 写真がない場合に表示する仮の絵文字を設定する
-
-    } // ココのプロフィール情報を終了する
-
-}; // デモ用ペット情報の定義を終了する
-
-
-const switchButton = document.getElementById("pet-switch-button"); // 右上に表示するペット切り替えボタンを取得する
-
-const dropdown = document.getElementById("pet-dropdown"); // ペット一覧を表示するプルダウンを取得する
-
-const currentPetName = document.getElementById("current-pet-name"); // 現在選択中のペット名を表示する部分を取得する
-
-const petOptions = document.querySelectorAll(".pet-option"); // プルダウン内の登録済みペット選択肢をすべて取得する
+const petOptions = document.querySelectorAll(".pet-option"); // データベースから生成されたすべてのペット選択ボタンを取得する
 
 const addPetButton = document.getElementById("add-pet-button"); // 「ペットを追加」ボタンを取得する
 
-const nameInput = document.getElementById("pet-name"); // 名前入力欄を取得する
 
-const typeInput = document.getElementById("pet-type"); // 種類入力欄を取得する
-
-const ageInput = document.getElementById("pet-age"); // 年齢入力欄を取得する
-
-const weightInput = document.getElementById("pet-weight"); // 体重入力欄を取得する
-
-const noteInput = document.getElementById("pet-note"); // その他の基本情報入力欄を取得する
-
-const photoPlaceholder = document.querySelector(".pet-photo-placeholder"); // 写真未登録時に表示する絵文字部分を取得する
-
-
-switchButton.addEventListener("click", () => { // 右上のペット名ボタンがクリックされたときの処理を設定する
+switchButton.addEventListener("click", () => { // 右上のペット切り替えボタンがクリックされたときの処理を設定する
 
     dropdown.classList.toggle("open"); // openクラスを付け外ししてプルダウンの表示と非表示を切り替える
 
 }); // ペット切り替えボタンのクリック処理を終了する
 
 
-petOptions.forEach((option) => { // 登録されているすべてのペット選択肢を1つずつ処理する
+petOptions.forEach((option) => { // 登録されているペット選択ボタンを1つずつ順番に処理する
 
-    option.addEventListener("click", () => { // ペット名がクリックされたときの処理を設定する
+    option.addEventListener("click", () => { // プルダウン内のペット名がクリックされたときの処理を設定する
 
-        const petId = option.dataset.petId; // クリックされたボタンのdata-pet-idからペットを識別するIDを取得する
+        const petUrl = option.dataset.petUrl; // HTMLのdata-pet-urlに保存されている、そのペット専用のURLを取得する
 
-        const selectedPet = pets[petId]; // IDを使って対応するペットのプロフィール情報を取得する
+        window.location.href = petUrl; // 選択されたペットID付きのURLへ移動し、Flaskにプロフィールを読み込ませる
 
+    }); // 1匹分のペット選択ボタンのクリック処理を終了する
 
-        currentPetName.textContent = selectedPet.name; // 右上のボタンに表示する名前を選択されたペット名へ変更する
-
-        nameInput.value = selectedPet.name; // 名前入力欄を選択されたペットの名前へ変更する
-
-        typeInput.value = selectedPet.type; // 種類入力欄を選択されたペットの種類へ変更する
-
-        ageInput.value = selectedPet.age; // 年齢入力欄を選択されたペットの年齢へ変更する
-
-        weightInput.value = selectedPet.weight; // 体重入力欄を選択されたペットの体重へ変更する
-
-        noteInput.value = selectedPet.note; // その他の基本情報を選択されたペットの内容へ変更する
-
-        photoPlaceholder.textContent = selectedPet.icon; // 写真部分の仮表示を選択されたペットの絵文字へ変更する
+}); // 登録済みペットすべてへのクリック処理設定を終了する
 
 
-        dropdown.classList.remove("open"); // ペットを選択した後にプルダウンを閉じる
+addPetButton.addEventListener("click", () => { // 「ペットを追加」ボタンがクリックされたときの処理を設定する
 
-    }); // 1つのペット選択肢に対するクリック処理を終了する
+    const addUrl = addPetButton.dataset.addUrl; // HTMLのdata-add-urlから新規ペット登録用のURLを取得する
 
-}); // すべてのペット選択肢への設定を終了する
+    window.location.href = addUrl; // pet_idを付けずにペットページへ移動し、新規登録状態にする
 
-
-addPetButton.addEventListener("click", () => { // 「ペットを追加」がクリックされたときの処理を設定する
-
-    currentPetName.textContent = "新しいペット"; // 右上の表示を新しいペットへ変更する
-
-    nameInput.value = ""; // 名前入力欄を空にする
-
-    typeInput.value = ""; // 種類入力欄を空にする
-
-    ageInput.value = ""; // 年齢入力欄を空にする
-
-    weightInput.value = ""; // 体重入力欄を空にする
-
-    noteInput.value = ""; // その他の基本情報入力欄を空にする
-
-    photoPlaceholder.textContent = "🐾"; // 写真部分を新規ペット用の足跡絵文字に変更する
-
-
-    dropdown.classList.remove("open"); // 新規ペット入力画面へ切り替えた後にプルダウンを閉じる
-
-}); // ペット追加ボタンのクリック処理を終了する
+}); // 「ペットを追加」ボタンのクリック処理を終了する
 
 
 document.addEventListener("click", (event) => { // ページ内のどこかがクリックされたときの処理を設定する
@@ -142,6 +42,66 @@ document.addEventListener("click", (event) => { // ページ内のどこかが�
 
         dropdown.classList.remove("open"); // 開いているプルダウンを閉じる
 
-    } // ペット切り替え領域外かどうかの判定を終了する
+    } // ペット切り替え領域の外側かどうかの判定を終了する
 
 }); // ページ全体のクリック処理を終了する
+
+const photoInput = document.getElementById("pet-photo"); // 「写真を選ぶ」で使用している画像ファイル入力欄を取得する
+
+const photoBox = document.querySelector(".pet-photo-box"); // ペット写真を表示している枠全体を取得する
+
+
+photoInput.addEventListener("change", () => { // ユーザーが写真を選択したときの処理を設定する
+
+    const selectedFile = photoInput.files[0]; // 選択された画像ファイルの1つ目を取得する
+
+
+    if (!selectedFile) { // 画像が選択されていない場合
+
+        return; // プレビュー処理を行わずここで終了する
+
+    } // 画像が選択されているかどうかの判定を終了する
+
+
+    const reader = new FileReader(); // 選択された画像ファイルをブラウザ上で読み込むためのFileReaderを作成する
+
+
+    reader.addEventListener("load", () => { // 画像ファイルの読み込みが完了したときの処理を設定する
+
+        photoBox.innerHTML = ""; // 現在表示されている犬の絵文字や以前の写真を一度すべて削除する
+
+
+        const previewImage = document.createElement("img"); // プレビュー画像を表示するためのimg要素を新しく作成する
+
+        previewImage.className = "pet-profile-photo"; // 既存のプロフィール写真用CSSを適用するためクラス名を設定する
+
+        previewImage.src = reader.result; // 読み込んだ画像データをimg要素の表示画像として設定する
+
+        previewImage.alt = "選択したペットの写真"; // 画像が表示できない場合の説明文を設定する
+
+
+        photoBox.appendChild(previewImage); // 作成したプレビュー画像を写真枠の中へ追加する
+
+    }); // 画像読み込み完了時の処理を終了する
+
+
+    reader.readAsDataURL(selectedFile); // 選択された画像ファイルをブラウザで表示できるデータ形式として読み込む
+
+}); // 写真選択時の処理を終了する
+
+const petForm = document.querySelector('form[action="/pets"]'); // ペット情報を送信するフォームを取得する
+
+const saveButton = document.querySelector(".pet-save-button"); // 保存ボタンを取得する
+
+
+if (petForm && saveButton) { // フォームと保存ボタンの両方が存在する場合だけ処理する
+
+    petForm.addEventListener("submit", () => { // 保存フォームが送信された瞬間の処理を設定する
+
+        saveButton.textContent = "保存中..."; // ボタンの文字を「保存中...」へ変更する
+
+        saveButton.disabled = true; // 二重クリックによる重複送信を防ぐためボタンを無効にする
+
+    }); // フォーム送信時の処理を終了する
+
+}
