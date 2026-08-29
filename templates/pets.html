@@ -6,52 +6,214 @@
 
     <meta charset="UTF-8"> <!-- 日本語の文字化けを防ぐために文字コードをUTF-8に設定する -->
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも正しい幅で表示できるようにする -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも画面幅に合わせて表示する -->
 
-    <title>マイページ</title> <!-- ブラウザのタブに表示されるタイトルを設定する -->
+    <title>ペット</title> <!-- ブラウザのタブに表示するタイトルを設定する -->
 
-    <!-- 共通のCSSファイルを読み込む -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- 共通のCSSファイルを読み込む -->
 
-</head>
+</head> <!-- head部分を終了する -->
+
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
 
-    <main class="page-content"> <!-- 各ページのメイン表示領域を作る -->
 
-        <h1>🐕ペット</h1> <!-- 現在のページ名を表示する -->
+    <main class="page-content"> <!-- ペットページ全体のメイン表示領域を作る -->
 
-    </main>
+        <div class="pet-page-header"> <!-- ペットページのタイトルとペット切り替えボタンを横並びにする領域を作る -->
+
+            <h1>🐕ペット</h1> <!-- ページ左上に現在のページ名を表示する -->
+
+
+            <div class="pet-switcher"> <!-- 複数のペットを切り替えるための領域を作る -->
+
+                <button id="pet-switch-button" class="pet-switch-button" type="button"> <!-- 現在選択されているペット名を表示するボタンを作る -->
+
+                    <span id="current-pet-name">ポチ</span> <!-- 現在選択されているペットの名前を表示する -->
+
+                    <span class="pet-switch-arrow">▼</span> <!-- プルダウンを開けることを示す矢印を表示する -->
+
+                </button> <!-- ペット切り替えボタンを終了する -->
+
+
+                <div id="pet-dropdown" class="pet-dropdown"> <!-- ペット一覧を表示するプルダウンメニューを作る -->
+
+                    <button class="pet-option" type="button" data-pet-id="pochi">ポチ</button> <!-- ポチのプロフィールへ切り替える選択肢を作る -->
+
+                    <button class="pet-option" type="button" data-pet-id="mike">ミケ</button> <!-- ミケのプロフィールへ切り替える選択肢を作る -->
+
+                    <button class="pet-option" type="button" data-pet-id="coco">ココ</button> <!-- ココのプロフィールへ切り替える選択肢を作る -->
+
+
+                    <div class="pet-dropdown-divider"></div> <!-- 既存ペットと追加ボタンの間に区切り線を表示する -->
+
+
+                    <button id="add-pet-button" class="add-pet-option" type="button"> <!-- 新しいペットを追加するための選択肢を作る -->
+
+                        ＋ ペットを追加 <!-- 一覧の一番下に必ずペット追加を表示する -->
+
+                    </button> <!-- ペット追加ボタンを終了する -->
+
+                </div> <!-- プルダウンメニューを終了する -->
+
+            </div> <!-- ペット切り替え領域を終了する -->
+
+        </div> <!-- ページ上部のヘッダー領域を終了する -->
+
+
+        <section class="pet-profile-card"> <!-- ペットの写真と基本情報をまとめるカードを作る -->
+
+
+            <div class="pet-photo-area"> <!-- ペット写真を表示する領域を作る -->
+
+
+                <div class="pet-photo-box"> <!-- ペット写真を表示する四角い枠を作る -->
+
+                    <span class="pet-photo-placeholder">🐕</span> <!-- 写真がまだない場合に犬の絵文字を仮表示する -->
+
+                </div> <!-- ペット写真の枠を終了する -->
+
+
+                <label class="photo-select-button" for="pet-photo"> <!-- 写真選択用のボタンとして表示するラベルを作る -->
+
+                    写真を選ぶ <!-- ボタンに表示する文字 -->
+
+                </label> <!-- 写真選択ボタンを終了する -->
+
+
+                <input id="pet-photo" class="pet-photo-input" type="file" accept="image/*"> <!-- ペット写真を選択するためのファイル入力欄を作る -->
+
+
+            </div> <!-- ペット写真領域を終了する -->
+
+
+            <div class="pet-info-area"> <!-- ペットの基本情報を入力する領域を作る -->
+
+
+                <div class="pet-input-group"> <!-- 名前の入力欄を1つのグループとしてまとめる -->
+
+                    <label for="pet-name">名前</label> <!-- 名前入力欄の説明を表示する -->
+
+                    <input id="pet-name" type="text" placeholder="例：ポチ"> <!-- ペットの名前を入力する欄を作る -->
+
+                </div> <!-- 名前入力グループを終了する -->
+
+
+                <div class="pet-input-group"> <!-- 種類の入力欄を1つのグループとしてまとめる -->
+
+                    <label for="pet-type">種類</label> <!-- 種類入力欄の説明を表示する -->
+
+                    <input id="pet-type" type="text" placeholder="例：柴犬"> <!-- 犬種や猫種などを入力する欄を作る -->
+
+                </div> <!-- 種類入力グループを終了する -->
+
+
+                <div class="pet-input-row"> <!-- 年齢と体重を横並びにするための領域を作る -->
+
+
+                    <div class="pet-input-group"> <!-- 年齢入力欄を1つのグループとしてまとめる -->
+
+                        <label for="pet-age">年齢</label> <!-- 年齢入力欄の説明を表示する -->
+
+                        <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+
+                            <input id="pet-age" type="number" min="0" placeholder="3"> <!-- ペットの年齢を入力する欄を作る -->
+
+                            <span>歳</span> <!-- 年齢の単位を表示する -->
+
+                        </div> <!-- 年齢入力欄と単位の領域を終了する -->
+
+                    </div> <!-- 年齢入力グループを終了する -->
+
+
+                    <div class="pet-input-group"> <!-- 体重入力欄を1つのグループとしてまとめる -->
+
+                        <label for="pet-weight">体重</label> <!-- 体重入力欄の説明を表示する -->
+
+                        <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+
+                            <input id="pet-weight" type="number" min="0" step="0.1" placeholder="8.5"> <!-- ペットの体重を入力する欄を作る -->
+
+                            <span>kg</span> <!-- 体重の単位を表示する -->
+
+                        </div> <!-- 体重入力欄と単位の領域を終了する -->
+
+                    </div> <!-- 体重入力グループを終了する -->
+
+
+                </div> <!-- 年齢と体重をまとめた横並び領域を終了する -->
+
+
+                <div class="pet-input-group pet-note-group"> <!-- その他の基本情報入力欄を、余った高さまで伸ばせる専用グループとして設定する -->
+
+                    <label for="pet-note">その他の基本情報</label> <!-- その他の情報入力欄の説明を表示する -->
+
+                    <textarea id="pet-note" placeholder="性格・アレルギー・注意事項など"></textarea> <!-- ペットに関する補足情報を入力する欄を作る -->
+
+                </div> <!-- その他の基本情報入力グループを終了する -->
+
+
+                <button class="pet-save-button" type="button">保存する</button> <!-- 後から保存機能を追加する予定のボタンを配置する -->
+
+
+            </div> <!-- ペット基本情報入力領域を終了する -->
+
+
+        </section> <!-- ペットプロフィールカードを終了する -->
+
+
+    </main> <!-- ページのメイン表示領域を終了する -->
+
 
     <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体を作る -->
 
-        <div class="nav-indicator"></div> <!-- 選択中のタブの後ろを滑らかに移動する背景を作る -->
 
-        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンク -->
-            <span>ホーム</span> <!-- ナビゲーションにホームと表示する -->
-        </a>
+        <div class="nav-indicator"></div> <!-- 現在選択中のタブの後ろに表示する移動背景を作る -->
 
-        <a href="{{ url_for('pets') }}" class="active" data-index="1"> <!-- ペット画面へ移動するリンク -->
-            <span>ペット</span> <!-- ナビゲーションにペットと表示する -->
-        </a>
 
-        <a href="{{ url_for('calendar') }}" data-index="2"> <!-- カレンダー画面へ移動するリンク -->
-            <span>カレンダー</span> <!-- ナビゲーションにカレンダーと表示する -->
-        </a>
+        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンクを作る -->
 
-        <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンク -->
-            <span>記録</span> <!-- ナビゲーションに記録と表示する -->
-        </a>
+            <span>ホーム</span> <!-- ホームという文字を表示する -->
 
-        <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンク -->
-            <span>予約</span> <!-- ナビゲーションに予約と表示する -->
-        </a>
+        </a> <!-- ホームリンクを終了する -->
+
+
+        <a href="{{ url_for('pets') }}" class="active" data-index="1"> <!-- 現在表示しているペット画面へのリンクを作る -->
+
+            <span>ペット</span> <!-- ペットという文字を表示する -->
+
+        </a> <!-- ペットリンクを終了する -->
+
+
+        <a href="{{ url_for('calendar') }}" data-index="2"> <!-- カレンダー画面へ移動するリンクを作る -->
+
+            <span>カレンダー</span> <!-- カレンダーという文字を表示する -->
+
+        </a> <!-- カレンダーリンクを終了する -->
+
+
+        <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンクを作る -->
+
+            <span>記録</span> <!-- 記録という文字を表示する -->
+
+        </a> <!-- 記録リンクを終了する -->
+
+
+        <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンクを作る -->
+
+            <span>予約</span> <!-- 予約という文字を表示する -->
+
+        </a> <!-- 予約リンクを終了する -->
+
 
     </nav> <!-- 下部ナビゲーションを終了する -->
 
-    <!-- 下部ナビゲーションを滑らかに動かすJavaScriptファイルを読み込む -->
-    <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
 
-</body>
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- 下部ナビゲーションを動かすJavaScriptを読み込む -->
 
-</html>
+    <script src="{{ url_for('static', filename='js/pet-switcher.js') }}"></script> <!-- ペットプロフィールの切り替え処理を行うJavaScriptを読み込む -->
+
+</body> <!-- body部分を終了する -->
+
+
+</html> <!-- HTML全体を終了する -->

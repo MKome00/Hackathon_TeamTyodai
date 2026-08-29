@@ -74,7 +74,7 @@ body { /* ページ全体の基本デザインを設定する */
 
     background-color: #ffffff; /* ナビゲーション全体の背景を白にする */
 
-    border: 1px solid #dddddd; /* ナビゲーション全体を薄い線で囲む */
+    border: 1px solid #bbbbbb; /* ナビゲーション全体を薄い線で囲む */
 
     border-radius: 18px; /* ナビゲーション全体の角を丸くする */
 
@@ -146,5 +146,494 @@ body { /* ページ全体の基本デザインを設定する */
          1px -1px 0 #000000, /* 右上方向に黒い影を付ける */
         -1px  1px 0 #000000, /* 左下方向に黒い影を付ける */
          1px  1px 0 #000000; /* 右下方向に黒い影を付ける */
+
+}
+
+.pet-profile-card { /* ペット写真と基本情報をまとめて表示するカードを設定する */
+
+    display: flex; /* 写真と入力欄を横並びにする */
+
+    gap: 16px; /* 写真と入力欄の間隔を少し狭くする */
+
+    margin-top: 16px; /* ページタイトルとの間隔を少し詰める */
+
+    padding: 16px; /* カード内側の余白を少し小さくする */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 20px; /* カードの四隅を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+    align-items: flex-start; /* 写真側と情報側を上端に揃える */
+
+}
+
+
+.pet-photo-area { /* ペット写真に関する部分をまとめる領域を設定する */
+
+    width: 35%; /* カード全体の約42％を写真側に使用する */
+
+    display: flex; /* 写真とボタンをflexで配置する */
+
+    flex-direction: column; /* 写真とボタンを縦方向に並べる */
+
+    align-items: center; /* 写真とボタンを中央揃えにする */
+
+    gap: 12px; /* 写真とボタンの間に余白を作る */
+
+}
+
+
+.pet-photo-box { /* ペット写真を表示する枠を設定する */
+
+    width: 100%; /* 写真枠を写真領域いっぱいの横幅にする */
+
+    aspect-ratio: 1 / 1; /* 写真枠を正方形にして縦に長くなりすぎないようにする */
+
+    display: flex; /* 中の仮画像を中央配置できるようにする */
+
+    justify-content: center; /* 仮画像を横方向の中央に配置する */
+
+    align-items: center; /* 仮画像を縦方向の中央に配置する */
+
+    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
+
+    border: 2px dashed #bbbbbb; /* 写真未登録であることが分かるよう破線の枠を付ける */
+
+    border-radius: 16px; /* 写真枠の角を丸くする */
+
+    box-sizing: border-box; /* borderを含めてサイズを計算する */
+
+    overflow: hidden; /* 写真が枠からはみ出さないようにする */
+
+}
+
+
+.pet-photo-placeholder { /* 写真未登録時に表示する犬の絵文字を設定する */
+
+    font-size: 64px; /* 犬の絵文字を大きく表示する */
+
+}
+
+
+.photo-select-button { /* 写真を選択するためのボタンを設定する */
+
+    width: 100%; /* 写真枠と同じ横幅にする */
+
+    padding: 10px; /* ボタンの内側に余白を作る */
+
+    text-align: center; /* 文字を中央揃えにする */
+
+    background-color: #eeeeee; /* ボタンの背景を薄いグレーにする */
+
+    border-radius: 10px; /* ボタンの角を丸くする */
+
+    font-size: 14px; /* ボタン文字の大きさを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリックできることを示す */
+
+    box-sizing: border-box; /* paddingを含めて横幅を計算する */
+
+}
+
+
+.pet-photo-input { /* 本来のファイル選択入力欄を設定する */
+
+    display: none; /* 標準のファイル選択欄を非表示にする */
+
+}
+
+
+.pet-info-area { /* 名前や年齢などの基本情報入力領域を設定する */
+
+    flex: 1; /* 写真領域以外の残った横幅を使用する */
+
+    display: flex; /* 入力欄をflexで配置する */
+
+    flex-direction: column; /* 各入力欄を縦方向に並べる */
+
+    gap: 10px; /* 入力欄同士の縦間隔を小さくする */
+
+    align-self: stretch; /* 左側の写真エリアと同じ高さまで情報エリアを伸ばす */
+
+}
+
+
+.pet-input-group { /* 1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+    flex: initial; /* 必要以上に縦方向へ伸びないようにする */
+
+}
+
+
+.pet-input-group label { /* 入力欄の上に表示する項目名を設定する */
+
+    font-size: 14px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+
+.pet-input-group input { /* 名前や年齢などの入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 12px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 10px; /* 入力欄の角を丸くする */
+
+    font-size: 16px; /* スマホでも読みやすい文字サイズにする */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+
+.pet-input-group textarea { /* その他の情報を入力する複数行入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 12px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 10px; /* 入力欄の角を丸くする */
+
+    font-family: sans-serif; /* ページ全体と同じゴシック系フォントを使用する */
+
+    font-size: 16px; /* 入力文字を読みやすい大きさにする */
+
+    resize: vertical; /* 必要に応じて縦方向だけサイズ変更できるようにする */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+
+.pet-input-group input:focus { /* 入力欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+
+.pet-input-group textarea:focus { /* その他情報欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+
+.pet-input-row { /* 年齢と体重を横並びにする領域を設定する */
+
+    display: flex; /* 年齢と体重を横方向に並べる */
+
+    gap: 12px; /* 年齢と体重の間隔を設定する */
+
+    align-items: flex-start; /* 年齢と体重の入力欄を上端に揃える */
+
+}
+
+
+.input-with-unit { /* 数字の入力欄と歳やkgなどの単位をまとめる */
+
+    display: flex; /* 入力欄と単位を横方向に並べる */
+
+    align-items: center; /* 入力欄と単位を縦方向の中央に揃える */
+
+    gap: 6px; /* 入力欄と単位の間に余白を作る */
+
+}
+
+
+.input-with-unit input { /* 単位付き数値入力欄を設定する */
+
+    flex: 1; /* 単位以外の残った横幅を入力欄として使用する */
+
+    min-width: 0; /* 小さい画面でも入力欄がはみ出さないようにする */
+
+}
+
+
+.input-with-unit span { /* 歳やkgなどの単位表示を設定する */
+
+    font-size: 14px; /* 単位の文字サイズを設定する */
+
+    color: #555555; /* 単位の文字色を濃いグレーにする */
+
+    white-space: nowrap; /* 単位が途中で改行されないようにする */
+
+}
+
+
+.pet-save-button { /* ペット情報を保存するためのボタンの見た目を設定する */
+
+    width: 100%; /* 入力領域いっぱいの横幅にする */
+
+    padding: 13px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 12px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景を濃い色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 15px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+
+@media (max-width: 480px) { /* 画面幅が480px以下のスマホ向けデザインを設定する */
+
+    .pet-profile-card { /* スマホではペットプロフィール全体の配置を変更する */
+
+        flex-direction: column; /* 写真と基本情報を横並びではなく縦並びにする */
+
+        gap: 16px; /* 写真と基本情報の間に適度な余白を作る */
+
+        padding: 14px; /* スマホ画面でカード内の余白が広すぎないようにする */
+
+    }
+
+    .pet-photo-area { /* スマホでの写真領域を設定する */
+
+        width: 100%; /* 写真領域をカードの横幅いっぱいまで広げる */
+
+    }
+
+    .pet-photo-box { /* スマホでの写真表示枠を設定する */
+
+        width: 100%; /* 写真枠を写真領域いっぱいまで広げる */
+
+        aspect-ratio: 4 / 3; /* スマホでは少し横長にして縦に場所を取りすぎないようにする */
+
+    }
+
+    .pet-info-area { /* スマホでの基本情報入力領域を設定する */
+
+        width: 100%; /* 基本情報入力欄もカードの横幅いっぱいまで広げる */
+
+    }
+
+    .pet-input-row { /* 年齢と体重の入力欄を設定する */
+
+        flex-direction: row; /* 年齢と体重はスマホでも横並びのまま表示する */
+
+    }
+
+}
+
+.pet-note-group { /* その他の基本情報を入力するグループだけに適用する */
+
+    flex: 1; /* 情報エリア内で余っている縦方向のスペースをすべて使用する */
+
+    min-height: 0; /* flexで高さを自動調整するときに不要なはみ出しを防ぐ */
+
+}
+
+
+.pet-note-group textarea { /* その他の基本情報の入力欄だけに適用する */
+
+    flex: 1; /* グループ内で余っている高さまで入力欄を伸ばす */
+
+    min-height: 120px; /* 小さくなりすぎないよう最低限の高さを設定する */
+
+}
+
+.pet-page-header { /* ペットページ上部のタイトルと切り替えボタンを設定する */
+
+    display: flex; /* タイトルとボタンを横並びにする */
+
+    justify-content: space-between; /* タイトルを左、切り替えボタンを右に配置する */
+
+    align-items: center; /* タイトルとボタンを縦方向の中央に揃える */
+
+    position: relative; /* プルダウンメニューを配置するときの基準を作る */
+
+}
+
+
+.pet-switcher { /* ペット切り替え機能全体をまとめる領域を設定する */
+
+    position: relative; /* プルダウンをボタンの真下に配置するための基準にする */
+
+}
+
+
+.pet-switch-button { /* 現在選択中のペット名を表示するボタンを設定する */
+
+    display: flex; /* ペット名と矢印を横並びにする */
+
+    align-items: center; /* ペット名と矢印を縦方向の中央に揃える */
+
+    gap: 8px; /* ペット名と矢印の間に余白を作る */
+
+    padding: 10px 16px; /* ボタンの内側に上下左右の余白を作る */
+
+    background-color: #ffffff; /* ボタンの背景を白色にする */
+
+    border: 1px solid #bbbbbb; /* ボタンの周囲に薄いグレーの線を付ける */
+
+    border-radius: 12px; /* ボタンの角を丸くする */
+
+    font-size: 15px; /* ペット名の文字サイズを設定する */
+
+    font-weight: 700; /* ペット名を太字にする */
+
+    color: #333333; /* ペット名の文字色を濃いグレーにする */
+
+    cursor: pointer; /* マウスを乗せたときクリックできることを示す */
+
+}
+
+
+.pet-switch-arrow { /* ペット切り替えボタン内の矢印を設定する */
+
+    font-size: 10px; /* 矢印をペット名より少し小さく表示する */
+
+}
+
+
+.pet-dropdown { /* ペット一覧を表示するプルダウンメニューを設定する */
+
+    display: none; /* 最初はプルダウンを非表示にする */
+
+    position: absolute; /* ボタンの位置を基準にメニューを配置する */
+
+    top: calc(100% + 8px); /* ボタンの8px下からプルダウンを表示する */
+
+    right: 0; /* プルダウンの右端をボタンの右端に揃える */
+
+    width: 180px; /* プルダウンメニューの横幅を設定する */
+
+    background-color: #ffffff; /* プルダウンの背景を白色にする */
+
+    border: 1px solid #cccccc; /* プルダウンの周囲に薄いグレーの線を付ける */
+
+    border-radius: 12px; /* プルダウンの角を丸くする */
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* プルダウンが浮いて見えるように薄い影を付ける */
+
+    overflow: hidden; /* 中の項目が角丸の外にはみ出さないようにする */
+
+    z-index: 10; /* プロフィールカードより前面に表示する */
+
+}
+
+
+.pet-dropdown.open { /* JavaScriptによってopenが付いたときのプルダウンを設定する */
+
+    display: block; /* プルダウンメニューを表示する */
+
+}
+
+
+.pet-option { /* 登録済みペットの選択肢を設定する */
+
+    width: 100%; /* 選択肢をプルダウンの横幅いっぱいまで広げる */
+
+    padding: 12px 14px; /* 選択肢の内側に余白を作る */
+
+    background-color: #ffffff; /* 通常時の背景を白色にする */
+
+    border: none; /* ボタン標準の枠線を消す */
+
+    text-align: left; /* ペット名を左揃えにする */
+
+    font-size: 14px; /* ペット名の文字サイズを設定する */
+
+    cursor: pointer; /* クリック可能であることを示す */
+
+}
+
+
+.pet-option:hover { /* 登録済みペットの選択肢にマウスを重ねたときの見た目を設定する */
+
+    background-color: #f3f3f3; /* 選択している場所が分かるよう背景を薄いグレーにする */
+
+}
+
+
+.pet-dropdown-divider { /* ペット一覧と追加ボタンの間の区切り線を設定する */
+
+    height: 1px; /* 区切り線を1pxの高さにする */
+
+    background-color: #dddddd; /* 区切り線を薄いグレーにする */
+
+}
+
+
+.add-pet-option { /* ペットを追加する選択肢を設定する */
+
+    width: 100%; /* プルダウンの横幅いっぱいまで広げる */
+
+    padding: 12px 14px; /* ボタンの内側に余白を作る */
+
+    background-color: #ffffff; /* 背景を白色にする */
+
+    border: none; /* 標準の枠線を消す */
+
+    text-align: left; /* 文字を左揃えにする */
+
+    font-size: 14px; /* 文字サイズを設定する */
+
+    font-weight: 700; /* 「ペットを追加」を太字にする */
+
+    color: #6f88e8; /* 通常のペット選択肢と区別できるよう青系の文字色にする */
+
+    cursor: pointer; /* クリック可能であることを示す */
+
+}
+
+
+.add-pet-option:hover { /* ペット追加ボタンにマウスを重ねたときの見た目を設定する */
+
+    background-color: #f3f3f3; /* 背景を薄いグレーにする */
+
+}
+
+
+@media (max-width: 480px) { /* 画面幅が480px以下のスマホ向けデザインを設定する */
+
+    .pet-switch-button { /* スマホでのペット切り替えボタンを設定する */
+
+        padding: 8px 12px; /* スマホではボタンを少し小さくする */
+
+        font-size: 14px; /* スマホではペット名を少し小さくする */
+
+    }
+
+
+    .pet-dropdown { /* スマホでのプルダウンメニューを設定する */
+
+        width: 160px; /* 小さい画面に合わせてプルダウンの横幅を少し小さくする */
+
+    }
 
 }
