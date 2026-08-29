@@ -8,7 +8,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも正しい幅で表示できるようにする -->
 
-    <title>ホーム</title> <!-- ブラウザのタブに表示されるタイトルを設定する -->
+    <title>カレンダー</title> <!-- ブラウザのタブにカレンダーと表示する -->
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- 共通のCSSファイルを読み込む -->
 
@@ -16,9 +16,9 @@
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
 
-    <main class="page-content"> <!-- 各ページのメイン表示領域を作る -->
+    <main class="page-content"> <!-- カレンダーページのメイン表示領域を作る -->
 
-        <h1>🏠ホーム</h1> <!-- 現在のページ名としてホームを表示する -->
+        <h1>📅カレンダー</h1> <!-- 現在のページ名としてカレンダーを表示する -->
 
     </main> <!-- メイン表示領域を終了する -->
 
@@ -26,7 +26,7 @@
 
         <div class="nav-indicator"></div> <!-- 選択中のタブの後ろを滑らかに移動する背景を作る -->
 
-        <a href="{{ url_for('home') }}" class="active" data-index="0"> <!-- ホーム画面へ移動するリンク -->
+        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンク -->
             <span>ホーム</span> <!-- ナビゲーションにホームと表示する -->
         </a>
 
@@ -34,7 +34,7 @@
             <span>ペット</span> <!-- ナビゲーションにペットと表示する -->
         </a>
 
-        <a href="{{ url_for('calendar') }}" data-index="2"> <!-- カレンダー画面へ移動するリンク -->
+        <a href="{{ url_for('calendar') }}" class="active" data-index="2"> <!-- カレンダー画面へ移動するリンク -->
             <span>カレンダー</span> <!-- ナビゲーションにカレンダーと表示する -->
         </a>
 
@@ -48,7 +48,7 @@
 
     </nav> <!-- 下部ナビゲーションを終了する -->
 
-    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション背景を滑らかに動かすJavaScriptを読み込む -->
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション用JavaScriptを読み込む -->
 
 </body> <!-- body部分を終了する -->
 
