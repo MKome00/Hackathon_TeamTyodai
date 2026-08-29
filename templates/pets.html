@@ -14,9 +14,7 @@
 
 </head> <!-- head部分を終了する -->
 
-
 <body> <!-- ブラウザに表示する内容を書く部分 -->
-
 
     <main class="page-content"> <!-- ペットページ全体のメイン表示領域を作る -->
 
@@ -33,7 +31,6 @@
             {% endif %} <!-- エラーメッセージの有無による表示切り替えを終了する -->
 
             <h1>🐕ペット</h1> <!-- ページ左上に現在のページ名を表示する -->
-
 
             <div class="pet-switcher"> <!-- 複数のペットを切り替えるための領域を作る -->
 
@@ -121,9 +118,7 @@
 
             <section class="pet-profile-card"> <!-- ペットの写真と基本情報をまとめるカードを作る -->
 
-
                 <div class="pet-photo-area"> <!-- ペット写真を表示する領域を作る -->
-
 
                     <div class="pet-photo-box"> <!-- ペット写真を表示する四角い枠を作る -->
 
@@ -143,22 +138,17 @@
 
                     </div> <!-- ペット写真の枠を終了する -->
 
-
                     <label class="photo-select-button" for="pet-photo"> <!-- 写真選択用のボタンとして表示するラベルを作る -->
 
                         写真を選ぶ <!-- ボタンに表示する文字 -->
 
                     </label> <!-- 写真選択ボタンを終了する -->
 
-
                     <input id="pet-photo" name="photo" class="pet-photo-input" type="file" accept="image/png,image/jpeg,image/webp"> <!-- ペット写真を選択し、photoという名前でFlaskへ送信する -->
-
 
                 </div> <!-- ペット写真領域を終了する -->
 
-
                 <div class="pet-info-area"> <!-- ペットの基本情報を入力する領域を作る -->
-
 
                     <div class="pet-input-group"> <!-- 名前の入力欄を1つのグループとしてまとめる -->
 
@@ -176,7 +166,6 @@
 
                     </div> <!-- 名前入力グループを終了する -->
 
-
                     <div class="pet-input-group"> <!-- 種類の入力欄を1つのグループとしてまとめる -->
 
                         <label for="pet-type">種類</label> <!-- 種類入力欄の説明を表示する -->
@@ -192,9 +181,7 @@
 
                     </div> <!-- 種類入力グループを終了する -->
 
-
                     <div class="pet-input-row"> <!-- 年齢と体重を横並びにするための領域を作る -->
-
 
                         <div class="pet-input-group"> <!-- 年齢入力欄を1つのグループとしてまとめる -->
 
@@ -219,7 +206,6 @@
 
                         </div> <!-- 年齢入力グループを終了する -->
 
-
                         <div class="pet-input-group"> <!-- 体重入力欄を1つのグループとしてまとめる -->
 
                             <label for="pet-weight">体重</label> <!-- 体重入力欄の説明を表示する -->
@@ -243,9 +229,7 @@
 
                         </div> <!-- 体重入力グループを終了する -->
 
-
                     </div> <!-- 年齢と体重をまとめた横並び領域を終了する -->
-
 
                     <div class="pet-input-group pet-note-group"> <!-- その他の基本情報入力欄を、余った高さまで伸ばせる専用グループとして設定する -->
 
@@ -260,9 +244,7 @@
 
                     </div> <!-- その他の基本情報入力グループを終了する -->
 
-
                     <button class="pet-save-button" type="submit">保存する</button> <!-- 入力されたペット情報をフォームからFlaskへ送信し、SQLiteへ保存する -->
-
 
                 </div> <!-- ペット基本情報入力領域を終了する -->
 
@@ -289,15 +271,11 @@
 
         {% endif %} <!-- 既存ペットが選択されている場合の表示処理を終了する -->
 
-
     </main> <!-- ページのメイン表示領域を終了する -->
-
 
     <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体を作る -->
 
-
         <div class="nav-indicator"></div> <!-- 現在選択中のタブの後ろに表示する移動背景を作る -->
-
 
         <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンクを作る -->
 
@@ -305,13 +283,11 @@
 
         </a> <!-- ホームリンクを終了する -->
 
-
         <a href="{{ url_for('pets') }}" class="active" data-index="1"> <!-- 現在表示しているペット画面へのリンクを作る -->
 
             <span>ペット</span> <!-- ペットという文字を表示する -->
 
         </a> <!-- ペットリンクを終了する -->
-
 
         <a href="{{ url_for('calendar') }}" data-index="2"> <!-- カレンダー画面へ移動するリンクを作る -->
 
@@ -319,13 +295,11 @@
 
         </a> <!-- カレンダーリンクを終了する -->
 
-
         <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンクを作る -->
 
             <span>記録</span> <!-- 記録という文字を表示する -->
 
         </a> <!-- 記録リンクを終了する -->
-
 
         <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンクを作る -->
 
@@ -333,9 +307,7 @@
 
         </a> <!-- 予約リンクを終了する -->
 
-
     </nav> <!-- 下部ナビゲーションを終了する -->
-
 
     <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- 下部ナビゲーションを動かすJavaScriptを読み込む -->
 
@@ -352,7 +324,6 @@
                 message.style.opacity = "0"; // メッセージを透明にして見えなくする
 
                 message.style.transition = "opacity 0.5s ease"; // 0.5秒かけてゆっくり透明になるようにする
-
 
                 setTimeout(() => { // フェードアウトが終わるまで0.5秒待つ
 

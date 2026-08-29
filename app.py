@@ -142,7 +142,6 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
             connection = get_db_connection()  # ペット一覧を再表示するためSQLiteへ接続する
 
-
             pet_list = connection.execute(  # 登録済みのペットをすべて取得する
 
                 """
@@ -153,9 +152,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
             ).fetchall()  # SQLの検索結果をすべて取得する
 
-
             selected_pet = None  # 新規登録の場合に備えて、選択中ペットを一度空にする
-
 
             if pet_id:  # 既存ペットの編集中だった場合
 
@@ -171,9 +168,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
                 ).fetchone()  # 条件に一致するペット1匹分を取得する
 
-
             connection.close()  # SQLiteとの接続を終了する
-
 
             return render_template(
                 "pets.html",  # ペットページを再表示する
@@ -267,7 +262,6 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
     selected_pet = None  # 最初は選択中のペットが存在しない状態にしておく
 
-
     if mode != "new":  # 「ペットを追加」から開いた新規登録画面ではない場合
 
         if selected_pet_id:  # URLにペットIDが指定されている場合
@@ -283,7 +277,6 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
                 (selected_pet_id,)  # URLから取得したペットIDをSQLへ渡す
 
             ).fetchone()  # 条件に一致したペット1匹分を取得する
-
 
         else:  # URLにpet_idが指定されていない場合
 
@@ -311,7 +304,6 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
     connection = get_db_connection()  # 削除するペット情報を取得するためSQLiteへ接続する
 
-
     pet = connection.execute(  # 指定されたIDのペット情報をデータベースから取得する
 
         """
@@ -324,11 +316,9 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
     ).fetchone()  # 条件に一致したペット1匹分の情報を取得する
 
-
     previous_pet = None  # 削除対象より前のペット情報を保存する変数を用意する
 
     next_pet = None  # 削除対象より後のペット情報を保存する変数を用意する
-
 
     if pet:  # 指定されたIDのペットが実際に存在する場合だけ削除処理を行う
 
@@ -346,7 +336,6 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
         ).fetchone()  # 条件に一致する直前のペットを取得する
 
-
         if previous_pet is None:  # 削除するペットより前のペットが存在しない場合
 
             next_pet = connection.execute(  # 削除するペットよりIDが大きい中で最も近いペットを探す
@@ -363,16 +352,13 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
             ).fetchone()  # 条件に一致する次のペットを取得する
 
-
         if pet["photo"]:  # 削除するペットにプロフィール写真が登録されている場合
 
             photo_path = os.path.join(UPLOAD_FOLDER, pet["photo"])  # 保存されている写真ファイルの場所を作成する
 
-
             if os.path.exists(photo_path):  # 実際に写真ファイルが存在する場合
 
                 os.remove(photo_path)  # static/images/pets内の写真ファイルを削除する
-
 
         connection.execute(  # petsテーブルから指定されたペットを削除する
 
@@ -385,24 +371,19 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
         )  # DELETE処理を終了する
 
-
         connection.commit()  # ペット削除の変更内容をSQLiteへ正式に保存する
 
         flash("ペットを削除しました。", "success")  # 削除完了メッセージを一時保存する
 
-
     connection.close()  # SQLiteとの接続を終了する
-
 
     if previous_pet:  # 削除したペットより前に別のペットが存在した場合
 
         return redirect(url_for("pets", pet_id=previous_pet["id"]))  # 直前のペットを表示する
 
-
     if next_pet:  # 前のペットが存在せず、後ろに別のペットが存在した場合
 
         return redirect(url_for("pets", pet_id=next_pet["id"]))  # 直後のペットを表示する
-
 
     return redirect(url_for("pets", mode="new"))  # ペットが1匹も残っていない場合は新規登録画面を表示する
 

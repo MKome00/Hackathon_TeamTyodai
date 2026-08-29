@@ -6,7 +6,6 @@ const links = document.querySelectorAll(".bottom-nav a"); // 下部ナビゲー�
 
 const activeLink = document.querySelector(".bottom-nav a.active"); // 現在開いているページに対応するactive付きリンクを取得する
 
-
 if (nav && indicator && activeLink) { // 必要なナビゲーション要素がすべて存在する場合だけ、以下の処理を実行する
 
     const currentIndex = Number(activeLink.dataset.index); // 現在選択されているタブの番号を数値として取得する
@@ -15,11 +14,9 @@ if (nav && indicator && activeLink) { // 必要なナビゲーション要素が
 
     const previousLink = links[previousIndex]; // 前に選択されていたタブのリンク要素を取得する
 
-
     indicator.style.left = `${previousLink.offsetLeft}px`; // 黄色背景の開始位置を前のタブの左端に設定する
 
     indicator.style.width = `${previousLink.offsetWidth}px`; // 黄色背景の開始時の横幅を前のタブと同じ幅にする
-
 
     requestAnimationFrame(() => { // ブラウザが開始位置を描画した直後に次の処理を実行する
 
@@ -34,7 +31,6 @@ if (nav && indicator && activeLink) { // 必要なナビゲーション要素が
         }); // 2回目のrequestAnimationFrame処理を終了する
 
     }); // 1回目のrequestAnimationFrame処理を終了する
-
 
     links.forEach((link) => { // 下部ナビゲーションの5つのリンクを1つずつ順番に処理する
 
