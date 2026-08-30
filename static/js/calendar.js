@@ -12,6 +12,13 @@ document.addEventListener("DOMContentLoaded", () => { // HTML全体の読み込�
 
     const eventDateInput = document.getElementById("event-date"); // 予定の日付を入力する欄を取得する
 
+    const calendarEventsData = document.getElementById("calendar-events-data"); // FlaskがHTMLへ埋め込んだ保存済み予定のJSONデータを取得する
+
+    const calendarEvents = calendarEventsData // 予定JSONを保持する要素が存在するか確認する
+
+        ? JSON.parse(calendarEventsData.textContent) // 存在する場合はJSON文字列をJavaScriptの配列へ変換する
+
+        : []; // 存在しない場合は空の予定一覧として扱う
 
     const calendar = new FullCalendar.Calendar(calendarElement, { // calendar要素を使ってFullCalendar本体を作成する
 
@@ -24,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => { // HTML全体の読み込�
         firstDay: 0, // 1週間の最初を日曜日にする
 
         height: "auto", // カレンダーの高さを内容に合わせて自動調整する
+
+        events: calendarEvents,
 
 
         headerToolbar: { // カレンダー上部の操作ボタンと年月タイトルの配置を設定する

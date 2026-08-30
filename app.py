@@ -77,6 +77,23 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
     )  # recordsテーブル作成処理を終了する
 
+    connection.execute(  # calendar_eventsテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS calendar_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pet_id INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            event_date TEXT NOT NULL,
+            start_time TEXT,
+            end_time TEXT,
+            note TEXT,
+            FOREIGN KEY (pet_id) REFERENCES pets (id)
+        )
+        """  # ペットごとの病院・トリミングなどの予定を保存するテーブルを定義する
+
+    )  # calendar_eventsテーブル作成処理を終了する
+
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
     connection.close()  # データベースとの接続を終了する
@@ -627,10 +644,279 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
 
     return redirect(url_for("pets", mode="new"))  # ペットが1匹も残っていない場合は新規登録画面を表示する
 
-@app.route("/calendar")  # 「/calendar」にアクセスされたときの処理を指定する
-def calendar():  # カレンダー画面を表示する関数を定義する
+@app.route("/calendar", methods=["GET", "POST"])  # カレンダー画面の表示と予定保存の両方を受け付ける
+def calendar():  # カレンダー画面の表示と予定追加を行う関数を定義する
 
-    return render_template("calendar.html")  # templatesフォルダ内のcalendar.htmlを表示する
+    if request.method == "POST":  # 予定追加フォームからPOSTで送信された場合
+
+        pet_id = request.form.get("pet_id")  # 予定対象として選択されたペットIDを取得する
+
+        category = request.form.get("category", "").strip()  # 病院・トリミング・その他の予定種類を取得する
+
+        event_date_text = request.form.get("event_date", "").strip()  # 予定日を文字列として取得する
+
+        start_time = request.form.get("start_time", "").strip()  # 開始時間を取得する
+
+        end_time = request.form.get("end_time", "").strip()  # 終了時間を取得する
+
+        note = request.form.get("note", "").strip()  # 詳細メモを取得し、前後の余分な空白を削除する
+
+
+        error_message = None  # 入力内容に問題がある場合のエラーメッセージを保存する変数を用意する
+
+
+        allowed_categories = [  # カレンダーで登録可能な予定種類を定義する
+
+            "hospital",  # 病院
+
+            "trimming",  # トリミング
+
+            "other"  # その他
+
+        ]  # 予定種類一覧の定義を終了する
+
+
+        if not pet_id:  # ペットが選択されていない場合
+
+            error_message = "予定を登録するペットを選択してください。"  # ペット選択を促す
+
+
+        elif category not in allowed_categories:  # 予定種類が未選択または不正な値の場合
+
+            error_message = "予定の種類を選択してください。"  # 予定種類の選択を促す
+
+
+        elif not event_date_text:  # 予定日が入力されていない場合
+
+            error_message = "予定の日付を選択してください。"  # 日付入力を促す
+
+
+        elif len(note) > 500:  # 詳細メモが500文字を超えている場合
+
+            error_message = "詳細メモは500文字以内で入力してください。"  # メモの文字数制限を知らせる
+
+
+        event_date = None  # 正しく変換できた予定日を保存する変数を用意する
+
+
+        if not error_message:  # ここまで入力エラーがない場合
+
+            try:  # 日付をPythonの日付型へ変換できるか確認する
+
+                event_date = date.fromisoformat(event_date_text)  # YYYY-MM-DD形式の文字列をdate型へ変換する
+
+            except ValueError:  # 日付として解釈できなかった場合
+
+                error_message = "予定の日付を正しく選択してください。"  # 日付入力が不正であることを知らせる
+
+
+        if not error_message and start_time and end_time:  # 開始時間と終了時間の両方が入力されている場合
+
+            if end_time <= start_time:  # 終了時間が開始時間以前になっている場合
+
+                error_message = "終了時間は開始時間より後にしてください。"  # 時間の順序が不正であることを知らせる
+
+
+        if not error_message:  # ここまで入力エラーがない場合
+
+            connection = get_db_connection()  # ペットIDが実際に存在するか確認するためSQLiteへ接続する
+
+
+            pet = connection.execute(  # 選択されたペットIDに一致するペットを取得する
+
+                """
+                SELECT id
+                FROM pets
+                WHERE id = ?
+                """,  # 指定されたIDのペットが存在するか確認するSQLを書く
+
+                (pet_id,)  # フォームから送られたペットIDをSQLへ渡す
+
+            ).fetchone()  # 条件に一致するペットを1件取得する
+
+
+            connection.close()  # ペット存在確認が終わったのでSQLiteとの接続を終了する
+
+
+            if pet is None:  # 指定されたペットIDがデータベースに存在しなかった場合
+
+                error_message = "選択されたペットが見つかりません。"  # 不正なペットIDであることを知らせる
+
+
+        if error_message:  # 入力内容にエラーがあった場合
+
+            connection = get_db_connection()  # カレンダー画面を再表示するためSQLiteへ接続する
+
+
+            pet_list = connection.execute(  # ペット選択欄を再表示するため登録済みペットを取得する
+
+                """
+                SELECT id, name
+                FROM pets
+                ORDER BY id
+                """
+
+            ).fetchall()  # 登録済みペットをすべて取得する
+
+
+            connection.close()  # SQLiteとの接続を終了する
+
+
+            return render_template(
+                "calendar.html",  # カレンダー画面を再表示する
+                pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
+                calendar_events=[],  # 入力エラー時はいったん予定表示用データを空にする
+                error_message=error_message  # 入力エラーをHTMLへ渡す
+            )  # 保存せずカレンダー画面へ戻る
+
+
+        connection = get_db_connection()  # 新しい予定を保存するためSQLiteへ接続する
+
+
+        connection.execute(  # 入力された予定をcalendar_eventsテーブルへ登録する
+
+            """
+            INSERT INTO calendar_events (
+                pet_id,
+                category,
+                event_date,
+                start_time,
+                end_time,
+                note
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,  # 1件分の予定を保存するSQLを書く
+
+            (
+                pet_id,  # 予定対象のペットID
+                category,  # 病院・トリミング・その他
+                event_date.isoformat(),  # YYYY-MM-DD形式の予定日
+                start_time if start_time else None,  # 開始時間が未入力ならNULL
+                end_time if end_time else None,  # 終了時間が未入力ならNULL
+                note if note else None  # メモが未入力ならNULL
+            )
+
+        )  # 予定追加のINSERT処理を終了する
+
+
+        connection.commit()  # 新しい予定をSQLiteへ正式に保存する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+
+        flash("予定を保存しました。", "success")  # 保存完了メッセージを次の画面表示まで一時保存する
+
+
+        return redirect(url_for("calendar"))  # POST後にカレンダー画面へ戻る
+
+
+    connection = get_db_connection()  # GETでカレンダーを表示するためSQLiteへ接続する
+
+
+    pet_list = connection.execute(  # 予定追加画面のペット選択欄に表示するペットを取得する
+
+        """
+        SELECT id, name
+        FROM pets
+        ORDER BY id
+        """
+
+    ).fetchall()  # 登録済みペットをすべて取得する
+
+
+    event_rows = connection.execute(  # 保存済み予定とペット名をまとめて取得する
+
+        """
+        SELECT
+            calendar_events.id,
+            calendar_events.pet_id,
+            calendar_events.category,
+            calendar_events.event_date,
+            calendar_events.start_time,
+            calendar_events.end_time,
+            calendar_events.note,
+            pets.name AS pet_name
+        FROM calendar_events
+        INNER JOIN pets
+            ON calendar_events.pet_id = pets.id
+        ORDER BY
+            calendar_events.event_date ASC,
+            calendar_events.start_time ASC
+        """
+
+    ).fetchall()  # 保存されている予定をすべて取得する
+
+
+    connection.close()  # 必要なデータを取得し終わったのでSQLiteとの接続を終了する
+
+
+    category_labels = {  # データベースに保存している英語値を画面表示用の日本語へ変換する
+
+        "hospital": "病院",
+
+        "trimming": "トリミング",
+
+        "other": "その他"
+
+    }  # 種類名変換表の定義を終了する
+
+
+    calendar_events = []  # FullCalendarへ渡す予定データを追加していくリストを用意する
+
+
+    for event in event_rows:  # データベースから取得した予定を1件ずつ処理する
+
+        event_title = f"{event['pet_name']}・{category_labels.get(event['category'], '予定')}"  # カレンダー上に表示する予定名を作る
+
+
+        if event["start_time"]:  # 開始時間が登録されている場合
+
+            event_start = f"{event['event_date']}T{event['start_time']}"  # 日付と開始時間をFullCalendar用の形式につなげる
+
+        else:  # 開始時間が登録されていない場合
+
+            event_start = event["event_date"]  # 日付だけを開始日時として使用する
+
+
+        calendar_event = {  # FullCalendarへ渡す1件分の予定データを作る
+
+            "id": event["id"],  # calendar_eventsテーブルの予定ID
+
+            "title": event_title,  # 「ペット名・病院」のような予定名
+
+            "start": event_start,  # 予定の開始日時
+
+            "allDay": not bool(event["start_time"]),  # 開始時間が無い予定は終日予定として扱う
+
+            "extendedProps": {  # FullCalendar標準項目以外の追加情報を保存する
+
+                "petId": event["pet_id"],  # 予定対象のペットID
+
+                "petName": event["pet_name"],  # ペット名
+
+                "category": event["category"],  # 予定種類
+
+                "note": event["note"] or ""  # 詳細メモ
+
+            }
+
+        }  # 1件分のFullCalendar予定データ作成を終了する
+
+
+        if event["end_time"]:  # 終了時間が登録されている場合
+
+            calendar_event["end"] = f"{event['event_date']}T{event['end_time']}"  # FullCalendar用の終了日時を追加する
+
+
+        calendar_events.append(calendar_event)  # 作成した予定を表示用リストへ追加する
+
+
+    return render_template(
+        "calendar.html",  # templatesフォルダ内のcalendar.htmlを表示する
+        pets=pet_list,  # 予定追加画面用の登録済みペット一覧を渡す
+        calendar_events=calendar_events,  # FullCalendarへ表示する保存済み予定を渡す
+        error_message=None  # 通常表示では入力エラーは無い
+    )  # カレンダー画面表示処理を終了する
 
 def fetch_pets_and_selected(pet_id_text):  # 登録済みペット一覧と、指定されたIDから選択中のペットを取得する共通処理を定義する
 

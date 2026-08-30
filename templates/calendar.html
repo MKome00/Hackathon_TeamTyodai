@@ -48,6 +48,34 @@
 
         </div> <!-- カレンダーヘッダーを終了する -->
 
+        {% if error_message %} <!-- 予定入力に問題があった場合だけエラーメッセージを表示する -->
+
+            <div class="pet-error-message"> <!-- 既存のペット画面用エラーデザインを再利用する -->
+
+                {{ error_message }} <!-- Flaskから渡された入力エラーを表示する -->
+
+            </div> <!-- エラーメッセージ表示を終了する -->
+
+        {% endif %} <!-- エラーの有無による表示切り替えを終了する -->
+
+
+        {% with messages = get_flashed_messages(with_categories=true) %} <!-- Flaskに一時保存されたメッセージを取得する -->
+
+            {% if messages %} <!-- 表示するメッセージが存在する場合 -->
+
+                {% for category, message in messages %} <!-- メッセージを1件ずつ処理する -->
+
+                    <div class="flash-message flash-{{ category }}"> <!-- successなどの種類に対応したデザインを適用する -->
+
+                        {{ message }} <!-- 「予定を保存しました。」などを表示する -->
+
+                    </div> <!-- 1件分のメッセージ表示を終了する -->
+
+                {% endfor %} <!-- メッセージ一覧の処理を終了する -->
+
+            {% endif %} <!-- メッセージが存在する場合の処理を終了する -->
+
+        {% endwith %} <!-- flashメッセージ取得処理を終了する -->
 
         <section class="calendar-card"> <!-- FullCalendar全体を囲むカードを作る -->
 
@@ -85,7 +113,11 @@
             </div> <!-- モーダルヘッダーを終了する -->
 
 
-            <form id="event-form"> <!-- 後でFlaskへ予定を送信するためのフォームを作る -->
+            <form
+                id="event-form"
+                action="{{ url_for('calendar') }}"
+                method="POST"
+            > <!-- 入力された予定を/calendarへPOSTで送信するフォームを作る -->
 
 
                 <div class="event-input-group"> <!-- ペット選択欄を1つのグループとしてまとめる -->
@@ -314,11 +346,15 @@
     </nav> <!-- 下部ナビゲーションを終了する -->
 
 
-    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- 下部ナビゲーションを動かす共通JavaScriptを読み込む -->
+    <!-- Flaskから渡された予定一覧をJavaScriptが読み取れるJSONとして保存する -->
+    <script
+        id="calendar-events-data"
+        type="application/json"
+    >{{ calendar_events | tojson }}</script>
 
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- 下部ナビゲーション用JavaScriptを読み込む -->
 
-    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script> <!-- カレンダー表示と予定登録モーダルを操作するJavaScriptを読み込む -->
-
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script> <!-- カレンダー用JavaScriptを読み込む -->
 
 </body> <!-- body部分を終了する -->
 
