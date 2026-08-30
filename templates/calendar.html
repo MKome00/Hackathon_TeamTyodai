@@ -4,37 +4,258 @@
 
 <head> <!-- ページの設定情報を書く部分 -->
 
-    <meta charset="UTF-8"> <!-- 日本語の文字化けを防ぐために文字コードをUTF-8に設定する -->
+    <meta charset="UTF-8"> <!-- 日本語の文字化けを防ぐため文字コードをUTF-8に設定する -->
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも正しい幅で表示できるようにする -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも画面幅に合わせて表示する -->
 
-    <title>カレンダー</title> <!-- ブラウザのタブにカレンダーと表示する -->
+    <title>カレンダー</title> <!-- ブラウザのタブに表示するタイトルを設定する -->
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- 共通のCSSファイルを読み込む -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/skeleton.css"
+    > <!-- FullCalendar本体のCSSを先に読み込む -->
+
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    > <!-- 自分のCSSを最後に読み込み、FullCalendarの見た目を上書きできるようにする -->
+
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/classic/theme.css"
+    > <!-- FullCalendarのclassicテーマを読み込み、カレンダーの罫線や基本デザインを表示する -->
+
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/all/global.js"></script> <!-- FullCalendar本体のJavaScriptを読み込む -->
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@7.0.2/themes/classic/global.js"></script> <!-- FullCalendarのclassicテーマをJavaScript側でも使用できるようにする -->
+
 
 </head> <!-- head部分を終了する -->
 
+
 <body> <!-- ブラウザに表示する内容を書く部分 -->
 
-    <main class="page-content"> <!-- カレンダーページのメイン表示領域を作る -->
 
-        <h1>📅カレンダー</h1> <!-- 現在のページ名としてカレンダーを表示する -->
+    <main class="page-content"> <!-- カレンダーページ全体のメイン表示領域を作る -->
+
+
+        <div class="calendar-page-header"> <!-- ページタイトルを表示するヘッダー領域を作る -->
+
+            <h1>📅カレンダー</h1> <!-- カレンダーページのタイトルを表示する -->
+
+        </div> <!-- カレンダーヘッダーを終了する -->
+
+
+        <section class="calendar-card"> <!-- FullCalendar全体を囲むカードを作る -->
+
+            <div id="calendar"></div> <!-- JavaScriptによってFullCalendarを表示する場所を作る -->
+
+        </section> <!-- カレンダーカードを終了する -->
+
 
     </main> <!-- メイン表示領域を終了する -->
 
+
+    <div id="event-modal" class="event-modal"> <!-- 予定を登録するときに表示するモーダル全体を作る -->
+
+        <div class="event-modal-overlay"></div> <!-- モーダル表示中に背景を暗くする領域を作る -->
+
+
+        <div class="event-modal-content"> <!-- 予定入力フォームを表示する白いモーダル本体を作る -->
+
+
+            <div class="event-modal-header"> <!-- モーダル上部のタイトルと閉じるボタンをまとめる -->
+
+                <h2>予定を追加</h2> <!-- モーダルのタイトルを表示する -->
+
+
+                <button
+                    id="event-modal-close"
+                    class="event-modal-close"
+                    type="button"
+                > <!-- モーダルを閉じるためのボタンを作る -->
+
+                    × <!-- 閉じることを示す×マークを表示する -->
+
+                </button> <!-- 閉じるボタンを終了する -->
+
+            </div> <!-- モーダルヘッダーを終了する -->
+
+
+            <form id="event-form"> <!-- 後でFlaskへ予定を送信するためのフォームを作る -->
+
+
+                <div class="event-input-group"> <!-- ペット選択欄を1つのグループとしてまとめる -->
+
+                    <label for="event-pet">ペット</label> <!-- ペット選択欄の項目名を表示する -->
+
+
+                    <select
+                        id="event-pet"
+                        name="pet_id"
+                        required
+                    > <!-- 登録済みペットから予定対象のペットを選択する -->
+
+                        <option value="">ペットを選択</option> <!-- 最初は未選択状態を表示する -->
+
+
+                        {% for pet in pets %} <!-- Flaskから渡された登録済みペットを1匹ずつ処理する -->
+
+                            <option value="{{ pet['id'] }}"> <!-- 選択されたときにペットIDを送信できる選択肢を作る -->
+
+                                {{ pet['name'] }} <!-- ペットプロフィールに登録されている名前を表示する -->
+
+                            </option> <!-- 1匹分のペット選択肢を終了する -->
+
+                        {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
+
+
+                    </select> <!-- ペット選択欄を終了する -->
+
+                </div> <!-- ペット選択グループを終了する -->
+
+
+                <div class="event-input-group"> <!-- 予定の種類を選択するグループを作る -->
+
+                    <label for="event-category">予定の種類</label> <!-- 予定種類の項目名を表示する -->
+
+
+                    <select
+                        id="event-category"
+                        name="category"
+                        required
+                    > <!-- 病院・トリミング・その他から予定の種類を選択する -->
+
+                        <option value="">予定の種類を選択</option> <!-- 最初は未選択状態を表示する -->
+
+                        <option value="hospital">病院</option> <!-- 動物病院の予定を表す選択肢を作る -->
+
+                        <option value="trimming">トリミング</option> <!-- トリミングの予定を表す選択肢を作る -->
+
+                        <option value="other">その他</option> <!-- 上記以外のペット関連予定を表す選択肢を作る -->
+
+                    </select> <!-- 予定種類の選択欄を終了する -->
+
+                </div> <!-- 予定種類グループを終了する -->
+
+
+                <div class="event-input-group"> <!-- 日付入力欄をまとめるグループを作る -->
+
+                    <label for="event-date">日付</label> <!-- 日付入力欄の項目名を表示する -->
+
+
+                    <input
+                        id="event-date"
+                        name="event_date"
+                        type="date"
+                        required
+                    > <!-- カレンダーで選択した日付またはユーザーが指定した日付を入力する -->
+
+                </div> <!-- 日付入力グループを終了する -->
+
+
+                <div class="event-time-row"> <!-- 開始時間と終了時間を横並びにする領域を作る -->
+
+
+                    <div class="event-input-group"> <!-- 開始時間の入力欄をまとめる -->
+
+                        <label for="event-start-time">開始時間</label> <!-- 開始時間の項目名を表示する -->
+
+
+                        <input
+                            id="event-start-time"
+                            name="start_time"
+                            type="time"
+                        > <!-- 予定の開始時間を入力する -->
+
+                    </div> <!-- 開始時間グループを終了する -->
+
+
+                    <div class="event-input-group"> <!-- 終了時間の入力欄をまとめる -->
+
+                        <label for="event-end-time">終了時間</label> <!-- 終了時間の項目名を表示する -->
+
+
+                        <input
+                            id="event-end-time"
+                            name="end_time"
+                            type="time"
+                        > <!-- 必要な場合だけ予定の終了時間を入力する -->
+
+                    </div> <!-- 終了時間グループを終了する -->
+
+
+                </div> <!-- 開始時間・終了時間の横並び領域を終了する -->
+
+
+                <div class="event-input-group"> <!-- 詳細メモ入力欄をまとめる -->
+
+                    <label for="event-note">詳細メモ</label> <!-- 詳細メモの項目名を表示する -->
+
+
+                    <textarea
+                        id="event-note"
+                        name="note"
+                        maxlength="500"
+                        placeholder="例：ワクチン接種、爪切りもお願いする"
+                    ></textarea> <!-- 予定について必要な補足情報を最大500文字まで入力できるようにする -->
+
+                </div> <!-- 詳細メモグループを終了する -->
+
+
+                <div class="event-modal-actions"> <!-- キャンセルボタンと保存ボタンを横並びにする -->
+
+
+                    <button
+                        id="event-cancel-button"
+                        class="event-cancel-button"
+                        type="button"
+                    > <!-- 予定を保存せずにモーダルを閉じるボタンを作る -->
+
+                        キャンセル <!-- キャンセルボタンの文字を表示する -->
+
+                    </button> <!-- キャンセルボタンを終了する -->
+
+
+                    <button
+                        class="event-save-button"
+                        type="submit"
+                    > <!-- 入力された予定を保存するためのボタンを作る -->
+
+                        保存する <!-- 保存ボタンの文字を表示する -->
+
+                    </button> <!-- 予定保存ボタンを終了する -->
+
+
+                </div> <!-- モーダル操作ボタン領域を終了する -->
+
+
+            </form> <!-- 予定登録フォームを終了する -->
+
+
+        </div> <!-- モーダル本体を終了する -->
+
+
+    </div> <!-- 予定登録モーダル全体を終了する -->
+
+
     <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体を作る -->
 
-        <div class="nav-indicator" aria-hidden="true"> <!-- 現在選択中のタブを示す移動する肉球アイコン全体を作る -->
+
+        <div class="nav-indicator" aria-hidden="true"> <!-- 選択中タブを示す移動する肉球を作る -->
 
             <svg class="nav-paw" viewBox="0 0 100 90"> <!-- 肉球を描画するSVG領域を作る -->
 
-                <ellipse cx="21" cy="31" rx="11" ry="16" transform="rotate(-18 21 31)"></ellipse> <!-- 左端の指を少し外側へ傾けて描く -->
+                <ellipse cx="21" cy="31" rx="11" ry="16" transform="rotate(-18 21 31)"></ellipse> <!-- 左端の指を描く -->
 
-                <ellipse cx="41" cy="20" rx="11" ry="16"></ellipse> <!-- 左中央の指を縦長の楕円で描く -->
+                <ellipse cx="41" cy="20" rx="11" ry="16"></ellipse> <!-- 左中央の指を描く -->
 
-                <ellipse cx="61" cy="20" rx="11" ry="16"></ellipse> <!-- 右中央の指を縦長の楕円で描く -->
+                <ellipse cx="61" cy="20" rx="11" ry="16"></ellipse> <!-- 右中央の指を描く -->
 
-                <ellipse cx="81" cy="31" rx="11" ry="16" transform="rotate(18 81 31)"></ellipse> <!-- 右端の指を少し外側へ傾けて描く -->
+                <ellipse cx="81" cy="31" rx="11" ry="16" transform="rotate(18 81 31)"></ellipse> <!-- 右端の指を描く -->
 
                 <path
                     d="
@@ -48,36 +269,58 @@
                         C 65 46, 60 38, 50 38
                         Z
                     "
-                ></path> <!-- 二枚目の画像に近い、上側がくびれた大きな肉球部分を描く -->
+                ></path> <!-- 肉球中央の大きなパッド部分を描く -->
 
             </svg> <!-- 肉球SVGを終了する -->
 
-        </div> <!-- 肉球型の選択表示を終了する -->
+        </div> <!-- 肉球型の強調表示を終了する -->
 
-        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンク -->
-            <span>ホーム</span> <!-- ナビゲーションにホームと表示する -->
-        </a>
 
-        <a href="{{ url_for('pets') }}" data-index="1"> <!-- ペット画面へ移動するリンク -->
-            <span>ペット</span> <!-- ナビゲーションにペットと表示する -->
-        </a>
+        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンクを作る -->
 
-        <a href="{{ url_for('calendar') }}" class="active" data-index="2"> <!-- カレンダー画面へ移動するリンク -->
-            <span>カレンダー</span> <!-- ナビゲーションにカレンダーと表示する -->
-        </a>
+            <span>ホーム</span> <!-- ホームという文字を表示する -->
 
-        <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンク -->
-            <span>記録</span> <!-- ナビゲーションに記録と表示する -->
-        </a>
+        </a> <!-- ホームリンクを終了する -->
 
-        <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンク -->
-            <span>予約</span> <!-- ナビゲーションに予約と表示する -->
-        </a>
+
+        <a href="{{ url_for('pets') }}" data-index="1"> <!-- ペット画面へ移動するリンクを作る -->
+
+            <span>ペット</span> <!-- ペットという文字を表示する -->
+
+        </a> <!-- ペットリンクを終了する -->
+
+
+        <a href="{{ url_for('calendar') }}" class="active" data-index="2"> <!-- 現在表示しているカレンダー画面へのリンクを作る -->
+
+            <span>カレンダー</span> <!-- カレンダーという文字を表示する -->
+
+        </a> <!-- カレンダーリンクを終了する -->
+
+
+        <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンクを作る -->
+
+            <span>記録</span> <!-- 記録という文字を表示する -->
+
+        </a> <!-- 記録リンクを終了する -->
+
+
+        <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンクを作る -->
+
+            <span>予約</span> <!-- 予約という文字を表示する -->
+
+        </a> <!-- 予約リンクを終了する -->
+
 
     </nav> <!-- 下部ナビゲーションを終了する -->
 
-    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション用JavaScriptを読み込む -->
+
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- 下部ナビゲーションを動かす共通JavaScriptを読み込む -->
+
+
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script> <!-- カレンダー表示と予定登録モーダルを操作するJavaScriptを読み込む -->
+
 
 </body> <!-- body部分を終了する -->
+
 
 </html> <!-- HTML全体を終了する -->
