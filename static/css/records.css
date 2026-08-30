@@ -1,3 +1,129 @@
+.record-pet-tabs { /* ペットや「全員」をタップ1回で切り替えるチップを並べる領域を設定する */
+
+    display: flex; /* チップを横並びにする */
+
+    gap: 8px; /* チップ同士の間隔を作る */
+
+    margin-top: 12px; /* ページタイトルとの間に余白を作る */
+
+    overflow-x: auto; /* ペット数が多いときは横スクロールできるようにする */
+
+    padding-bottom: 2px; /* 横スクロールバーがチップと重ならないよう少し余白を作る */
+
+}
+
+.record-pet-tab { /* ペット切り替えチップ1つ分の見た目を設定する */
+
+    flex-shrink: 0; /* 横幅が狭くなってもチップが潰れないようにする */
+
+    padding: 8px 16px; /* チップ内側に余白を作る */
+
+    background-color: #ffffff; /* 通常時のチップの背景を白色にする */
+
+    border: 1px solid #bbbbbb; /* チップの周囲に薄いグレーの線を付ける */
+
+    border-radius: 999px; /* チップを丸いピル型にする */
+
+    font-size: 14px; /* チップの文字サイズを設定する */
+
+    font-weight: 700; /* チップの文字を太字にする */
+
+    color: #333333; /* 通常時のチップの文字色を濃いグレーにする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+    white-space: nowrap; /* チップ内の文字が折り返さないようにする */
+
+}
+
+.record-pet-tab.active { /* 現在選択されているペット切り替えチップを設定する */
+
+    background-color: #819aff; /* 選択中であることが分かるようアプリの基調色で塗りつぶす */
+
+    border-color: #819aff; /* 枠線も背景と同じ色にする */
+
+    color: #ffffff; /* 選択中のチップの文字を白色にする */
+
+}
+
+.record-pet-tab-all { /* 「全員」チップだけ他のペットと視覚的に区別するための余白を設定する */
+
+    margin-left: 4px; /* 直前のペットチップとの間に少しだけ余白を足す */
+
+}
+
+.record-all-tabs { /* 「全員」表示内の時系列・ペット別・項目別を切り替えるサブタブを並べる領域を設定する */
+
+    display: flex; /* サブタブを横並びにする */
+
+    gap: 8px; /* サブタブ同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.record-all-tab { /* サブタブ1つ分のボタンを設定する */
+
+    flex: 1; /* 3つのサブタブを均等な幅にする */
+
+    padding: 10px; /* ボタン内側に余白を作る */
+
+    background-color: #f3f3f3; /* 通常時のサブタブの背景を薄いグレーにする */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* サブタブの角を丸くする */
+
+    font-size: 13px; /* サブタブの文字サイズを設定する */
+
+    font-weight: 700; /* サブタブの文字を太字にする */
+
+    color: #666666; /* 通常時のサブタブの文字色を設定する */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.record-all-tab.active { /* 現在選ばれているサブタブを設定する */
+
+    background-color: #819aff; /* 選択中であることが分かるようアプリの基調色で塗りつぶす */
+
+    color: #ffffff; /* 選択中のサブタブの文字を白色にする */
+
+}
+
+.record-all-panel { /* サブタブに対応する中身のパネルを設定する */
+
+    display: none; /* 選ばれていないパネルは非表示にする */
+
+}
+
+.record-all-panel.active { /* 現在選ばれているサブタブに対応するパネルを設定する */
+
+    display: block; /* 選ばれているパネルだけ表示する */
+
+}
+
+.record-pet-badge { /* 「全員」表示の時系列・項目別で、どのペットの記録かを示すバッジを設定する */
+
+    display: inline-block; /* 余白を正しく効かせるためインラインブロックにする */
+
+    margin-left: 6px; /* 種類名との間に余白を作る */
+
+    padding: 1px 8px; /* バッジ内側に余白を作る */
+
+    background-color: #f0f0f0; /* バッジの背景を薄いグレーにする */
+
+    border-radius: 999px; /* バッジを丸いピル型にする */
+
+    font-size: 11px; /* バッジの文字を小さく表示する */
+
+    font-weight: 700; /* バッジの文字を太字にする */
+
+    color: #666666; /* バッジの文字色を設定する */
+
+}
+
 .record-reminder-banner { /* 記録を促すリマインダーをまとめる領域を設定する */
 
     margin-top: 16px; /* ページ上部との間に余白を作る */

@@ -1,37 +1,37 @@
-const switchButton = document.getElementById("pet-switch-button"); // 右上に表示されているペット切り替えボタンを取得する
+const allTabButtons = document.querySelectorAll(".record-all-tab"); // 「全員」表示内の時系列・ペット別・項目別を切り替えるサブタブのボタンをすべて取得する
 
-const dropdown = document.getElementById("pet-dropdown"); // 登録済みペット一覧を表示するプルダウンメニューを取得する
+const allPanels = document.querySelectorAll(".record-all-panel"); // サブタブに対応する中身のパネルをすべて取得する
 
-const petOptions = document.querySelectorAll(".pet-option"); // データベースから生成されたすべてのペット選択ボタンを取得する
+if (allTabButtons.length && allPanels.length) { // 「全員」表示ではないページ(個別ペット表示)ではサブタブが存在しないためエラーにならないようにする
 
-if (switchButton && dropdown) { // ペットが1匹も登録されておらず切り替えUIが無い場合にエラーにならないようにする
+    allTabButtons.forEach((button) => { // サブタブのボタンを1つずつ順番に処理する
 
-    switchButton.addEventListener("click", () => { // 右上のペット切り替えボタンがクリックされたときの処理を設定する
+        button.addEventListener("click", () => { // サブタブのボタンがクリックされたときの処理を設定する
 
-        dropdown.classList.toggle("open"); // openクラスを付け外ししてプルダウンの表示と非表示を切り替える
+            allTabButtons.forEach((otherButton) => { // すべてのサブタブボタンを1つずつ処理する
 
-    }); // ペット切り替えボタンのクリック処理を終了する
+                otherButton.classList.remove("active"); // 選択中の見た目を一度すべて外す
 
-    petOptions.forEach((option) => { // 登録されているペット選択ボタンを1つずつ順番に処理する
+            }); // すべてのサブタブボタンからactiveを外す処理を終了する
 
-        option.addEventListener("click", () => { // プルダウン内のペット名がクリックされたときの処理を設定する
+            allPanels.forEach((panel) => { // すべてのパネルを1つずつ処理する
 
-            const petUrl = option.dataset.petUrl; // HTMLのdata-pet-urlに保存されている、そのペット専用のURLを取得する
+                panel.classList.remove("active"); // 表示中のパネルを一度すべて隠す
 
-            window.location.href = petUrl; // 選択されたペットID付きのURLへ移動し、Flaskに記録一覧を読み込ませる
+            }); // すべてのパネルを隠す処理を終了する
 
-        }); // 1匹分のペット選択ボタンのクリック処理を終了する
+            button.classList.add("active"); // クリックされたボタンだけ選択中の見た目にする
 
-    }); // 登録済みペットすべてへのクリック処理設定を終了する
+            const targetPanel = document.getElementById(button.dataset.target); // ボタンのdata-targetに対応するパネルを取得する
 
-    document.addEventListener("click", (event) => { // ページ内のどこかがクリックされたときの処理を設定する
+            if (targetPanel) { // 対応するパネルが見つかった場合
 
-        if (!event.target.closest(".pet-switcher")) { // クリックされた場所がペット切り替え領域の外側だった場合
+                targetPanel.classList.add("active"); // そのパネルだけ表示する
 
-            dropdown.classList.remove("open"); // 開いているプルダウンを閉じる
+            } // 対応するパネルが見つかった場合の処理を終了する
 
-        } // ペット切り替え領域の外側かどうかの判定を終了する
+        }); // 1つのサブタブボタンのクリック処理を終了する
 
-    }); // ページ全体のクリック処理を終了する
+    }); // すべてのサブタブボタンへのクリック処理設定を終了する
 
-} // ペット切り替えUIが存在する場合の処理を終了する
+} // サブタブが存在する場合の処理を終了する
