@@ -156,7 +156,7 @@ def build_pet_records(pet):  # 選択中のペット1匹分の健康・通院履
 
     rng = random.Random(pet["id"] * 31 + 7)  # ホーム画面のダミーと重複しない乱数の流れになるよう、ペットIDから別の種を作る
 
-    record_count = rng.randint(4, 7)  # 表示する記録の件数をダミーで決める
+    record_count = rng.randint(6, 14)  # 表示する記録の件数をダミーで決める(項目ごとの「すべて見る」も試せるよう件数に幅を持たせる)
 
     today = date.today()  # 今日の日付を基準に過去の記録日を計算する
 
@@ -191,6 +191,36 @@ def build_pet_records(pet):  # 選択中のペット1匹分の健康・通院履
     records.sort(key=lambda record: record["date"], reverse=True)  # 新しい記録が上に来るよう日付の新しい順に並べ替える
 
     return records  # 組み立てた記録一覧を返す
+
+RECORD_GROUP_PREVIEW_COUNT = 5  # 項目ごとのまとめカードに常に表示する最新件数を設定する
+
+def group_records_by_type(records):  # 時系列の記録一覧を種類ごとにまとめ直す関数を定義する
+
+    groups = []  # 種類ごとにまとめた結果を追加していくリストを用意する
+
+    for record_type in RECORD_TYPE_POOL:  # 体重・予防接種・健康診断・通院・お薬の順に処理する
+
+        matching_records = [  # この種類に該当する記録だけを抜き出す
+
+            record for record in records if record["label"] == record_type["label"]
+
+        ]  # 該当する記録の抜き出しを終了する
+
+        if not matching_records:  # この種類の記録が1件も無い場合
+
+            continue  # まとめカードを作らずに次の種類へ進む
+
+        groups.append({  # 1種類分のまとめ情報をリストへ追加する
+
+            "label": record_type["label"],  # 種類名
+            "icon": record_type["icon"],  # 種類を表す絵文字
+            "count": len(matching_records),  # この種類の記録の総件数
+            "preview": matching_records[:RECORD_GROUP_PREVIEW_COUNT],  # 常に表示する最新分の記録
+            "rest": matching_records[RECORD_GROUP_PREVIEW_COUNT:],  # 「すべて見る」を開いたときだけ表示する残りの記録
+
+        })  # 1種類分のまとめ追加を終了する
+
+    return groups  # 種類ごとにまとめた結果を返す
 
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
@@ -589,11 +619,14 @@ def records():  # 記録画面を表示する関数を定義する
 
     pet_records = build_pet_records(selected_pet) if selected_pet else []  # 選択中のペットがいる場合だけ健康・通院履歴のダミーデータを組み立てる
 
+    record_groups = group_records_by_type(pet_records) if pet_records else []  # 時系列の記録を種類ごとのまとめにも組み立て直す
+
     return render_template(
         "records.html",  # templatesフォルダ内のrecords.htmlを表示する
         pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
         selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
-        pet_records=pet_records  # 選択中のペットの健康・通院履歴をHTMLへ渡す
+        pet_records=pet_records,  # 選択中のペットの健康・通院履歴(時系列)をHTMLへ渡す
+        record_groups=record_groups  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
     )  # HTML表示処理を終了する
 
 @app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する

@@ -78,6 +78,92 @@
 
             {% if pet_records %} <!-- そのペットの記録が1件以上ある場合 -->
 
+                <div class="record-group-list"> <!-- 種類ごとにまとめたカードを並べる領域を作る -->
+
+                    {% for group in record_groups %} <!-- Flaskから渡された種類ごとのまとめを1件ずつ処理する -->
+
+                        <div class="record-group-card"> <!-- 1種類分のまとめカードを作る -->
+
+                            <div class="record-group-header"> <!-- 種類名と件数をまとめて表示する行を作る -->
+
+                                <span class="record-group-icon">{{ group.icon }}</span> <!-- 種類を表す絵文字を表示する -->
+
+                                <span class="record-group-label">{{ group.label }}</span> <!-- 種類名を表示する -->
+
+                                <span class="record-group-count">{{ group.count }}件</span> <!-- この種類の記録の総件数を表示する -->
+
+                            </div> <!-- まとめカードの見出し行を終了する -->
+
+                            <ul class="record-group-items"> <!-- 常に表示する最新分の記録一覧を作る -->
+
+                                {% for entry in group.preview %} <!-- 最新分の記録を1件ずつ処理する -->
+
+                                    <li class="record-group-item"> <!-- 1件分の記録を表示する -->
+
+                                        <span class="record-group-item-date">{{ entry.date.strftime('%m/%d') }}</span> <!-- 記録した日付を月日だけで表示する -->
+
+                                        <span class="record-group-item-detail"> <!-- 記録の詳細文言を表示する -->
+
+                                            {{ entry.detail }} <!-- ダミーの詳細文言を表示する -->
+
+                                            {% if entry.weight_value is not none %} <!-- 体重の記録で具体的な数値がある場合 -->
+
+                                                ({{ entry.weight_value }}kg) <!-- 記録された体重の値を併記する -->
+
+                                            {% endif %} <!-- 体重の数値有無による表示切り替えを終了する -->
+
+                                        </span> <!-- 詳細文言の表示を終了する -->
+
+                                    </li> <!-- 1件分の記録表示を終了する -->
+
+                                {% endfor %} <!-- 最新分の記録すべての表示処理を終了する -->
+
+                            </ul> <!-- 最新分の記録一覧を終了する -->
+
+                            {% if group.rest %} <!-- 最新分より前にも記録が残っている場合だけ「すべて見る」を表示する -->
+
+                                <details class="record-group-more"> <!-- タップすると残りの記録を開閉できる領域を作る -->
+
+                                    <summary>すべて見る({{ group.count }}件)</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                                    <ul class="record-group-items"> <!-- 開いたときに表示する残りの記録一覧を作る -->
+
+                                        {% for entry in group.rest %} <!-- 最新分より前の記録を1件ずつ処理する -->
+
+                                            <li class="record-group-item"> <!-- 1件分の記録を表示する -->
+
+                                                <span class="record-group-item-date">{{ entry.date.strftime('%m/%d') }}</span> <!-- 記録した日付を月日だけで表示する -->
+
+                                                <span class="record-group-item-detail"> <!-- 記録の詳細文言を表示する -->
+
+                                                    {{ entry.detail }} <!-- ダミーの詳細文言を表示する -->
+
+                                                    {% if entry.weight_value is not none %} <!-- 体重の記録で具体的な数値がある場合 -->
+
+                                                        ({{ entry.weight_value }}kg) <!-- 記録された体重の値を併記する -->
+
+                                                    {% endif %} <!-- 体重の数値有無による表示切り替えを終了する -->
+
+                                                </span> <!-- 詳細文言の表示を終了する -->
+
+                                            </li> <!-- 1件分の記録表示を終了する -->
+
+                                        {% endfor %} <!-- 残りの記録すべての表示処理を終了する -->
+
+                                    </ul> <!-- 残りの記録一覧を終了する -->
+
+                                </details> <!-- 「すべて見る」の開閉領域を終了する -->
+
+                            {% endif %} <!-- 残り記録の有無による「すべて見る」の表示切り替えを終了する -->
+
+                        </div> <!-- 1種類分のまとめカードを終了する -->
+
+                    {% endfor %} <!-- 種類ごとのまとめすべての表示処理を終了する -->
+
+                </div> <!-- 種類ごとのまとめ領域を終了する -->
+
+                <p class="record-section-title">時系列ですべて見る</p> <!-- タイムライン領域の見出しを表示する -->
+
                 <div class="record-timeline"> <!-- 記録を新しい順に並べるタイムライン領域を作る -->
 
                     {% for entry in pet_records %} <!-- Flaskから渡された記録を1件ずつ処理する -->

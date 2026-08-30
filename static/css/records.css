@@ -1,8 +1,150 @@
+.record-group-list { /* 種類ごとのまとめカードを並べる領域を設定する */
+
+    display: flex; /* 複数のまとめカードを並べるためflexを使用する */
+
+    flex-direction: column; /* まとめカードを縦方向に並べる */
+
+    gap: 12px; /* まとめカード同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.record-group-card { /* 1種類分のまとめを表示するカードを設定する */
+
+    padding: 14px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.record-group-header { /* まとめカード上部の種類名と件数の行を設定する */
+
+    display: flex; /* 絵文字・種類名・件数を横並びにする */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    gap: 8px; /* 各要素の間に余白を作る */
+
+}
+
+.record-group-icon { /* まとめカードの絵文字を設定する */
+
+    font-size: 18px; /* 絵文字を少し大きく表示する */
+
+}
+
+.record-group-label { /* まとめカードの種類名を設定する */
+
+    flex: 1; /* 件数バッジ以外の残った横幅を使用する */
+
+    font-size: 15px; /* 種類名の文字サイズを設定する */
+
+    font-weight: 700; /* 種類名を太字にする */
+
+    color: #333333; /* 種類名の文字色を濃いグレーにする */
+
+}
+
+.record-group-count { /* まとめカードの件数バッジを設定する */
+
+    padding: 2px 10px; /* バッジ内側に余白を作る */
+
+    background-color: #eef1ff; /* バッジの背景を薄い青系にする */
+
+    border-radius: 999px; /* バッジを丸いピル型にする */
+
+    font-size: 12px; /* 件数の文字サイズを設定する */
+
+    font-weight: 700; /* 件数を太字にする */
+
+    color: #4a5fc1; /* 件数の文字色を濃い青系にする */
+
+}
+
+.record-group-items { /* まとめカード内の記録一覧を設定する */
+
+    margin: 10px 0 0; /* 見出し行との間に余白を作る */
+
+    padding: 0; /* リストが持つ左側の余白をなくす */
+
+    list-style: none; /* 標準の黒丸を表示しない */
+
+    display: flex; /* 記録同士を並べるためflexを使用する */
+
+    flex-direction: column; /* 記録を縦方向に並べる */
+
+    gap: 6px; /* 記録同士の間隔を作る */
+
+}
+
+.record-group-item { /* まとめカード内の1件分の記録を設定する */
+
+    display: flex; /* 日付と詳細を横並びにする */
+
+    gap: 8px; /* 日付と詳細の間に余白を作る */
+
+    font-size: 13px; /* 記録の文字サイズを設定する */
+
+    color: #555555; /* 記録の文字色を濃いグレーにする */
+
+}
+
+.record-group-item-date { /* まとめカード内の記録の日付部分を設定する */
+
+    flex-shrink: 0; /* 日付が詳細に押されて縮まないようにする */
+
+    color: #999999; /* 日付の文字色を薄いグレーにする */
+
+}
+
+.record-group-more { /* 「すべて見る」の開閉領域を設定する */
+
+    margin-top: 10px; /* 最新分の一覧との間に余白を作る */
+
+}
+
+.record-group-more summary { /* 「すべて見る」の開閉用文字を設定する */
+
+    font-size: 13px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字をまとめカードの件数バッジと同じ青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.record-group-more[open] summary { /* 「すべて見る」を開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 6px; /* 開いたあとの一覧との間に余白を作る */
+
+}
+
+.record-section-title { /* 時系列タイムラインの見出しを設定する */
+
+    margin: 20px 0 0; /* まとめカードとの間に余白を作る */
+
+    font-size: 13px; /* 見出しを本文より小さく表示する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #888888; /* 見出しの文字色を薄いグレーにする */
+
+}
+
 .record-timeline { /* 記録一覧を縦のタイムラインとして並べる領域を設定する */
 
     position: relative; /* 左側に引く縦線をタイムライン全体の基準にする */
 
-    margin-top: 16px; /* ページ上部との間に余白を作る */
+    margin-top: 10px; /* 見出しとの間に余白を作る */
 
     padding-left: 20px; /* 縦線と丸印の分だけ左側に余白を作る */
 
