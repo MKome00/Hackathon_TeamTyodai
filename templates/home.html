@@ -97,16 +97,23 @@
 
                             <div class="home-food-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
 
-                                <div class="home-food-bar"> <!-- フード残量の背景バーを作る -->
+                                <div
+                                    class="home-food-bar"
+                                    role="progressbar"
+                                    aria-valuenow="{{ item.food_days_left }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="{{ item.food_max_days }}"
+                                    aria-label="{{ item.pet['name'] }}のフード残量"
+                                > <!-- フード残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
 
                                     <div
-                                        class="home-food-bar-fill {% if item.food_urgent %}home-food-bar-urgent{% endif %}"
+                                        class="home-food-bar-fill home-food-bar-{{ item.food_level }}"
                                         style="width: {{ item.food_percent }}%;"
-                                    ></div> <!-- 残量パーセントに応じてバーの色と長さを変える -->
+                                    ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
 
                                 </div> <!-- フード残量バーを終了する -->
 
-                                <span class="{% if item.food_urgent %}home-urgent-text{% endif %}"> <!-- 残りわずかな場合は文字色で目立たせる -->
+                                <span class="home-food-days home-food-days-{{ item.food_level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
 
                                     あと{{ item.food_days_left }}日分 <!-- フードがなくなるまでの残り日数を表示する -->
 
