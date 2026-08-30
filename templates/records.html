@@ -74,7 +74,131 @@
 
         </div> <!-- ページ上部のヘッダー領域を終了する -->
 
+        {% if error_message %} <!-- Flaskから記録追加フォームのエラーメッセージが渡されている場合だけ表示する -->
+
+            <div class="pet-error-message"> <!-- 入力エラーを表示する領域を作る(pets.htmlと共通のstyle.cssクラスを再利用する) -->
+
+                {{ error_message }} <!-- Flask側で設定したエラーメッセージを表示する -->
+
+            </div> <!-- エラー表示領域を終了する -->
+
+        {% endif %} <!-- エラーメッセージの有無による表示切り替えを終了する -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %} <!-- Flaskに一時保存されているフラッシュメッセージを種類付きで取得する -->
+
+            {% if messages %} <!-- 表示するフラッシュメッセージが存在する場合 -->
+
+                {% for category, message in messages %} <!-- 保存されているメッセージを1件ずつ順番に処理する -->
+
+                    <div class="flash-message flash-{{ category }}"> <!-- successなどの種類に応じたCSSを適用できるメッセージ領域を作る -->
+
+                        {{ message }} <!-- Flask側で設定したメッセージ本文を表示する -->
+
+                    </div> <!-- 1件分のフラッシュメッセージ表示を終了する -->
+
+                {% endfor %} <!-- すべてのフラッシュメッセージ表示を終了する -->
+
+            {% endif %} <!-- メッセージが存在する場合の表示処理を終了する -->
+
+        {% endwith %} <!-- Flaskから取得したフラッシュメッセージを扱う範囲を終了する -->
+
         {% if selected_pet %} <!-- 表示対象のペットが選択されている場合 -->
+
+            {% if record_reminders %} <!-- 予定日を過ぎても記録が無い項目がある場合だけリマインダーを表示する -->
+
+                <div class="record-reminder-banner"> <!-- 記録を促すリマインダーをまとめる領域を作る -->
+
+                    <p class="record-reminder-title">⚠️ 記録が必要な予定があります</p> <!-- リマインダー全体の見出しを表示する -->
+
+                    <ul class="record-reminder-list"> <!-- リマインダーを箇条書きで並べるリストを作る -->
+
+                        {% for reminder in record_reminders %} <!-- リマインダーを1件ずつ処理する -->
+
+                            <li>{{ reminder.date.strftime('%m/%d') }}の{{ reminder.type }}の記録がまだありません</li> <!-- 予定日と種類を示し、記録が無いことを知らせる -->
+
+                        {% endfor %} <!-- すべてのリマインダー表示を終了する -->
+
+                    </ul> <!-- リマインダー一覧を終了する -->
+
+                </div> <!-- リマインダー領域を終了する -->
+
+            {% endif %} <!-- リマインダーの有無による表示切り替えを終了する -->
+
+            <details class="record-add-form"> <!-- タップすると記録追加フォームを開閉できる領域を作る -->
+
+                <summary>＋ 記録を追加</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                <form action="{{ url_for('records') }}" method="POST" class="record-form"> <!-- 新しい記録をFlaskへ送信するフォームを開始する -->
+
+                    <input type="hidden" name="pet_id" value="{{ selected_pet['id'] }}"> <!-- 記録対象のペットIDを非表示で保持する -->
+
+                    <div class="record-form-group"> <!-- 種類の入力欄をまとめる -->
+
+                        <label for="record-type">種類</label> <!-- 種類選択欄の説明を表示する -->
+
+                        <select id="record-type" name="type" required> <!-- 記録の種類を選ぶプルダウンを作る -->
+
+                            <option value="" disabled {% if not form_type %}selected{% endif %}>選択してください</option> <!-- 未選択時に表示する初期の選択肢 -->
+
+                            {% for record_type in record_types %} <!-- 選べる記録の種類を1件ずつ処理する -->
+
+                                <option value="{{ record_type.label }}" {% if form_type == record_type.label %}selected{% endif %}> <!-- 直前に選ばれていた種類を選択状態に戻す -->
+
+                                    {{ record_type.icon }} {{ record_type.label }} <!-- 種類の絵文字と名前を選択肢として表示する -->
+
+                                </option> <!-- 1件分の選択肢を終了する -->
+
+                            {% endfor %} <!-- 種類の選択肢すべての表示処理を終了する -->
+
+                        </select> <!-- 種類選択欄を終了する -->
+
+                    </div> <!-- 種類の入力欄グループを終了する -->
+
+                    <div class="record-form-group"> <!-- 記録日の入力欄をまとめる -->
+
+                        <label for="record-date">記録日</label> <!-- 記録日入力欄の説明を表示する -->
+
+                        <input id="record-date" name="record_date" type="date" value="{{ form_date }}" required> <!-- 記録した日付を選ぶ -->
+
+                    </div> <!-- 記録日の入力欄グループを終了する -->
+
+                    <div class="record-form-group"> <!-- 体重の入力欄をまとめる -->
+
+                        <label for="record-weight">体重(kgの場合のみ)</label> <!-- 体重入力欄の説明を表示する -->
+
+                        <input
+                            id="record-weight"
+                            name="weight_value"
+                            type="number"
+                            min="0"
+                            max="500"
+                            step="0.1"
+                            value="{{ form_weight }}"
+                            placeholder="8.5"
+                        > <!-- 種類が「体重」のときだけ使う数値入力欄を作る -->
+
+                    </div> <!-- 体重の入力欄グループを終了する -->
+
+                    <div class="record-form-group"> <!-- 内容の入力欄をまとめる -->
+
+                        <label for="record-detail">内容</label> <!-- 内容入力欄の説明を表示する -->
+
+                        <input
+                            id="record-detail"
+                            name="detail"
+                            type="text"
+                            value="{{ form_detail }}"
+                            maxlength="200"
+                            placeholder="例: 皮膚のかゆみで受診"
+                        > <!-- 記録の詳細な内容を最大200文字で入力する -->
+
+                    </div> <!-- 内容の入力欄グループを終了する -->
+
+                    <button class="record-form-submit" type="submit">保存する</button> <!-- 入力した記録をFlaskへ送信して保存する -->
+
+                </form> <!-- 記録追加フォームを終了する -->
+
+            </details> <!-- 記録追加フォームの開閉領域を終了する -->
 
             {% if pet_records %} <!-- そのペットの記録が1件以上ある場合 -->
 

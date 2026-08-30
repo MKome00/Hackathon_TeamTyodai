@@ -61,6 +61,28 @@
 
                         </div> <!-- カードヘッダーを終了する -->
 
+                        {% if item.record_reminders %} <!-- 予定日を過ぎても記録が無い項目がある場合だけリマインダーを表示する -->
+
+                            <div class="home-reminder-banner"> <!-- 記録を促すリマインダーをまとめる領域を作る -->
+
+                                <p class="home-reminder-title">⚠️ 記録が必要な予定があります</p> <!-- リマインダー全体の見出しを表示する -->
+
+                                <ul class="home-reminder-list"> <!-- リマインダーを箇条書きで並べるリストを作る -->
+
+                                    {% for reminder in item.record_reminders %} <!-- リマインダーを1件ずつ処理する -->
+
+                                        <li>{{ reminder.date.strftime('%m/%d') }}の{{ reminder.type }}</li> <!-- 予定日と種類を表示する -->
+
+                                    {% endfor %} <!-- すべてのリマインダー表示を終了する -->
+
+                                </ul> <!-- リマインダー一覧を終了する -->
+
+                                <a class="home-reminder-link" href="{{ url_for('records', pet_id=item.pet['id']) }}">記録する</a> <!-- 記録画面へ移動して記録できるようにする -->
+
+                            </div> <!-- リマインダー領域を終了する -->
+
+                        {% endif %} <!-- リマインダーの有無による表示切り替えを終了する -->
+
                         <div class="home-section"> <!-- 「今日のやること」を表示する領域を作る -->
 
                             <p class="home-section-title">今日のやること</p> <!-- 見出しを表示する -->
