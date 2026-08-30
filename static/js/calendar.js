@@ -230,7 +230,7 @@ document.addEventListener("DOMContentLoaded", () => { // HTML全体の読み込�
 
         firstDay: 0, // 1週間の最初を日曜日にする
 
-        height: "auto", // カレンダーの高さを内容に合わせて自動調整する
+        height: 650, // カレンダーの高さを内容に合わせて自動調整する
 
         events: calendarEvents,
 

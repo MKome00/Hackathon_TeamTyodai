@@ -32,62 +32,89 @@
 
             <h1>🐕ペット</h1> <!-- ページ左上に現在のページ名を表示する -->
 
-            <div class="pet-switcher"> <!-- 複数のペットを切り替えるための領域を作る -->
+            {% if view_mode != "list" %} <!-- プロフィール画面の場合だけペット切り替えボタンを表示する -->
 
-                <button id="pet-switch-button" class="pet-switch-button" type="button"> <!-- 現在選択されているペット名を表示するボタンを作る -->
+                <div class="pet-switcher"> <!-- 複数のペットを切り替えるための領域を作る -->
 
-                    <span id="current-pet-name"> <!-- 現在選択されているペット名を表示する -->
+                    <button id="pet-switch-button" class="pet-switch-button" type="button"> <!-- 現在選択されているペット名を表示するボタンを作る -->
 
-                        {% if selected_pet %} <!-- Flaskから選択中のペット情報が渡されている場合 -->
+                        <span id="current-pet-name"> <!-- 現在選択されているペット名を表示する -->
 
-                            {{ selected_pet['name'] }} <!-- 選択中のペット名を表示する -->
+                            {% if selected_pet %} <!-- Flaskから選択中のペット情報が渡されている場合 -->
 
-                        {% else %} <!-- ペットがまだ選択されていない場合 -->
+                                {{ selected_pet['name'] }} <!-- 選択中のペット名を表示する -->
 
-                            ペットを選択 <!-- 初期状態の文字を表示する -->
+                            {% else %} <!-- ペットがまだ選択されていない場合 -->
 
-                        {% endif %} <!-- 選択中ペットの有無による表示切り替えを終了する -->
+                                ペットを選択 <!-- 初期状態の文字を表示する -->
 
-                    </span> <!-- 現在のペット名表示を終了する -->
+                            {% endif %} <!-- 選択中ペットの有無による表示切り替えを終了する -->
 
-                    <span class="pet-switch-arrow">▼</span> <!-- プルダウンを開けることを示す矢印を表示する -->
+                        </span> <!-- 現在のペット名表示を終了する -->
 
-                </button> <!-- ペット切り替えボタンを終了する -->
+                        <span class="pet-switch-arrow">▼</span> <!-- プルダウンを開けることを示す矢印を表示する -->
 
-                <div id="pet-dropdown" class="pet-dropdown"> <!-- ペット一覧を表示するプルダウンメニューを作る -->
+                    </button> <!-- ペット切り替えボタンを終了する -->
 
-                    {% for pet in pets %} <!-- Flaskから渡された登録済みペットを1匹ずつ順番に処理する -->
+                    <div id="pet-dropdown" class="pet-dropdown"> <!-- ペット一覧を表示するプルダウンメニューを作る -->
+
+                        {% for pet in pets %} <!-- Flaskから渡された登録済みペットを1匹ずつ順番に処理する -->
+
+                            <button
+                                class="pet-option"
+                                type="button"
+                                data-pet-url="{{ url_for('pets', pet_id=pet['id']) }}"
+                            > <!-- このペットを選択したときに移動するURLをdata-pet-urlへ保存する -->
+
+                                {{ pet['name'] }} <!-- データベースに登録されているペット名を選択肢として表示する -->
+
+                            </button> <!-- 1匹分のペット選択ボタンを終了する -->
+
+                        {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
+
+                        <div class="pet-dropdown-divider"></div> <!-- 登録済みペットと追加ボタンの間に区切り線を表示する -->
 
                         <button
-                            class="pet-option"
+                            id="add-pet-button"
+                            class="add-pet-option"
                             type="button"
-                            data-pet-url="{{ url_for('pets', pet_id=pet['id']) }}"
-                        > <!-- このペットを選択したときに移動するURLをdata-pet-urlへ保存する -->
+                            data-add-url="{{ url_for('pets', mode='new') }}"
+                        > <!-- 新しいペットを追加するときに、ペット未選択状態のpetsページへ移動するためのURLを保存する -->
 
-                            {{ pet['name'] }} <!-- データベースに登録されているペット名を選択肢として表示する -->
+                            ＋ ペットを追加 <!-- プルダウンの一番下に新しいペットを追加する選択肢を表示する -->
 
-                        </button> <!-- 1匹分のペット選択ボタンを終了する -->
+                        </button> <!-- ペット追加ボタンを終了する -->
 
-                    {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
+                    </div> <!-- プルダウンメニューを終了する -->
 
-                    <div class="pet-dropdown-divider"></div> <!-- 登録済みペットと追加ボタンの間に区切り線を表示する -->
+                </div> <!-- ペット切り替え領域を終了する -->
 
-                    <button
-                        id="add-pet-button"
-                        class="add-pet-option"
-                        type="button"
-                        data-add-url="{{ url_for('pets', mode='new') }}"
-                    > <!-- 新しいペットを追加するときに、ペット未選択状態のpetsページへ移動するためのURLを保存する -->
-
-                        ＋ ペットを追加 <!-- プルダウンの一番下に新しいペットを追加する選択肢を表示する -->
-
-                    </button> <!-- ペット追加ボタンを終了する -->
-
-                </div> <!-- プルダウンメニューを終了する -->
-
-            </div> <!-- ペット切り替え領域を終了する -->
+            {% endif %}
 
         </div> <!-- ページ上部のヘッダー領域を終了する -->
+
+        <div class="pet-view-tabs"> <!-- プロフィール画面とペット一覧画面を切り替える領域を作る -->
+
+            <a
+                href="{{ url_for('pets') }}"
+                class="pet-view-tab {% if view_mode != 'list' %}active{% endif %}"
+            > <!-- プロフィール表示へ移動するタブを作る -->
+
+                プロフィール
+
+            </a>
+
+
+            <a
+                href="{{ url_for('pets', view='list') }}"
+                class="pet-view-tab {% if view_mode == 'list' %}active{% endif %}"
+            > <!-- ペット一覧表示へ移動するタブを作る -->
+
+                ペット一覧
+
+            </a>
+
+        </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %} <!-- Flaskに一時保存されているフラッシュメッセージを種類付きで取得する -->
 
@@ -107,169 +134,267 @@
 
         {% endwith %} <!-- Flaskから取得したフラッシュメッセージを扱う範囲を終了する -->
 
-        <form action="{{ url_for('pets') }}" method="POST" enctype="multipart/form-data"> <!-- 文字情報だけでなく画像ファイルもFlaskへ送信できるフォームを開始する -->
+        {% if view_mode != "list" %} <!-- ペット一覧ではなくプロフィール画面を表示している場合だけ、編集フォームを表示する -->
 
-            <input
-                id="pet-id"
-                name="pet_id"
-                type="hidden"
-                value="{{ selected_pet['id'] if selected_pet else '' }}"
-            > <!-- 現在選択されているペットのIDを非表示で保持し、未選択の場合は空にする -->
+            <form action="{{ url_for('pets') }}" method="POST" enctype="multipart/form-data"> <!-- 文字情報だけでなく画像ファイルもFlaskへ送信できるフォームを開始する -->
 
-            <section class="pet-profile-card"> <!-- ペットの写真と基本情報をまとめるカードを作る -->
+                <input
+                    id="pet-id"
+                    name="pet_id"
+                    type="hidden"
+                    value="{{ selected_pet['id'] if selected_pet else '' }}"
+                > <!-- 現在選択されているペットのIDを非表示で保持し、未選択の場合は空にする -->
 
-                <div class="pet-photo-area"> <!-- ペット写真を表示する領域を作る -->
+                <section class="pet-profile-card"> <!-- ペットの写真と基本情報をまとめるカードを作る -->
 
-                    <div class="pet-photo-box"> <!-- ペット写真を表示する四角い枠を作る -->
+                    <div class="pet-photo-area"> <!-- ペット写真を表示する領域を作る -->
 
-                        {% if selected_pet and selected_pet['photo'] %} <!-- 選択中のペットに保存済み写真が存在する場合 -->
+                        <div class="pet-photo-box"> <!-- ペット写真を表示する四角い枠を作る -->
 
-                            <img
-                                class="pet-profile-photo"
-                                src="{{ url_for('static', filename='images/pets/' + selected_pet['photo']) }}"
-                                alt="{{ selected_pet['name'] }}の写真"
-                            > <!-- static/images/petsに保存されているペット写真を表示する -->
+                            {% if selected_pet and selected_pet['photo'] %} <!-- 選択中のペットに保存済み写真が存在する場合 -->
 
-                        {% else %} <!-- 保存済み写真が存在しない場合 -->
+                                <img
+                                    class="pet-profile-photo"
+                                    src="{{ url_for('static', filename='images/pets/' + selected_pet['photo']) }}"
+                                    alt="{{ selected_pet['name'] }}の写真"
+                                > <!-- static/images/petsに保存されているペット写真を表示する -->
 
-                            <span class="pet-photo-placeholder">🐕🐈</span> <!-- 写真未登録時は犬と猫の絵文字を表示する -->
+                            {% else %} <!-- 保存済み写真が存在しない場合 -->
 
-                        {% endif %} <!-- 写真があるかどうかによる表示切り替えを終了する -->
+                                <span class="pet-photo-placeholder">🐕🐈</span> <!-- 写真未登録時は犬と猫の絵文字を表示する -->
 
-                    </div> <!-- ペット写真の枠を終了する -->
+                            {% endif %} <!-- 写真があるかどうかによる表示切り替えを終了する -->
 
-                    <label class="photo-select-button" for="pet-photo"> <!-- 写真選択用のボタンとして表示するラベルを作る -->
+                        </div> <!-- ペット写真の枠を終了する -->
 
-                        写真を選ぶ <!-- ボタンに表示する文字 -->
+                        <label class="photo-select-button" for="pet-photo"> <!-- 写真選択用のボタンとして表示するラベルを作る -->
 
-                    </label> <!-- 写真選択ボタンを終了する -->
+                            写真を選ぶ <!-- ボタンに表示する文字 -->
 
-                    <input id="pet-photo" name="photo" class="pet-photo-input" type="file" accept="image/png,image/jpeg,image/webp"> <!-- ペット写真を選択し、photoという名前でFlaskへ送信する -->
+                        </label> <!-- 写真選択ボタンを終了する -->
 
-                </div> <!-- ペット写真領域を終了する -->
+                        <input id="pet-photo" name="photo" class="pet-photo-input" type="file" accept="image/png,image/jpeg,image/webp"> <!-- ペット写真を選択し、photoという名前でFlaskへ送信する -->
 
-                <div class="pet-info-area"> <!-- ペットの基本情報を入力する領域を作る -->
+                    </div> <!-- ペット写真領域を終了する -->
 
-                    <div class="pet-input-group"> <!-- 名前の入力欄を1つのグループとしてまとめる -->
+                    <div class="pet-info-area"> <!-- ペットの基本情報を入力する領域を作る -->
 
-                        <label for="pet-name">名前</label> <!-- 名前入力欄の説明を表示する -->
+                        <div class="pet-input-group"> <!-- 名前の入力欄を1つのグループとしてまとめる -->
 
-                        <input
-                            id="pet-name"
-                            name="name"
-                            type="text"
-                            value="{{ selected_pet['name'] if selected_pet else '' }}"
-                            maxlength="30"
-                            placeholder="例：ポチ"
-                            required
-                        > <!-- 名前を必須入力にし、最大30文字までに制限する -->
+                            <label for="pet-name">名前</label> <!-- 名前入力欄の説明を表示する -->
 
-                    </div> <!-- 名前入力グループを終了する -->
+                            <input
+                                id="pet-name"
+                                name="name"
+                                type="text"
+                                value="{{ selected_pet['name'] if selected_pet else '' }}"
+                                maxlength="30"
+                                placeholder="例：ポチ"
+                                required
+                            > <!-- 名前を必須入力にし、最大30文字までに制限する -->
 
-                    <div class="pet-input-group"> <!-- 種類の入力欄を1つのグループとしてまとめる -->
+                        </div> <!-- 名前入力グループを終了する -->
 
-                        <label for="pet-type">種類</label> <!-- 種類入力欄の説明を表示する -->
+                        <div class="pet-input-group"> <!-- 種類の入力欄を1つのグループとしてまとめる -->
 
-                        <input
-                            id="pet-type"
-                            name="type"
-                            type="text"
-                            value="{{ selected_pet['type'] if selected_pet else '' }}"
-                            maxlength="30"
-                            placeholder="例：柴犬"
-                        > <!-- ペットの種類を最大50文字までに制限する -->
+                            <label for="pet-type">種類</label> <!-- 種類入力欄の説明を表示する -->
 
-                    </div> <!-- 種類入力グループを終了する -->
+                            <input
+                                id="pet-type"
+                                name="type"
+                                type="text"
+                                value="{{ selected_pet['type'] if selected_pet else '' }}"
+                                maxlength="30"
+                                placeholder="例：柴犬"
+                            > <!-- ペットの種類を最大50文字までに制限する -->
 
-                    <div class="pet-input-row"> <!-- 年齢と体重を横並びにするための領域を作る -->
+                        </div> <!-- 種類入力グループを終了する -->
 
-                        <div class="pet-input-group"> <!-- 年齢入力欄を1つのグループとしてまとめる -->
+                        <div class="pet-input-row"> <!-- 年齢と体重を横並びにするための領域を作る -->
 
-                            <label for="pet-age">年齢</label> <!-- 年齢入力欄の説明を表示する -->
+                            <div class="pet-input-group"> <!-- 年齢入力欄を1つのグループとしてまとめる -->
 
-                            <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+                                <label for="pet-age">年齢</label> <!-- 年齢入力欄の説明を表示する -->
 
-                                <input
-                                    id="pet-age"
-                                    name="age"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="1"
-                                    value="{{ selected_pet['age'] if selected_pet and selected_pet['age'] is not none else '' }}"
-                                    placeholder="3"
-                                > <!-- 年齢を0歳以上100歳以下の整数に制限する -->
+                                <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
 
-                                <span>歳</span> <!-- 年齢の単位を表示する -->
+                                    <input
+                                        id="pet-age"
+                                        name="age"
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        value="{{ selected_pet['age'] if selected_pet and selected_pet['age'] is not none else '' }}"
+                                        placeholder="3"
+                                    > <!-- 年齢を0歳以上100歳以下の整数に制限する -->
 
-                            </div> <!-- 年齢入力欄と単位の領域を終了する -->
+                                    <span>歳</span> <!-- 年齢の単位を表示する -->
 
-                        </div> <!-- 年齢入力グループを終了する -->
+                                </div> <!-- 年齢入力欄と単位の領域を終了する -->
 
-                        <div class="pet-input-group"> <!-- 体重入力欄を1つのグループとしてまとめる -->
+                            </div> <!-- 年齢入力グループを終了する -->
 
-                            <label for="pet-weight">体重</label> <!-- 体重入力欄の説明を表示する -->
+                            <div class="pet-input-group"> <!-- 体重入力欄を1つのグループとしてまとめる -->
 
-                            <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+                                <label for="pet-weight">体重</label> <!-- 体重入力欄の説明を表示する -->
 
-                                <input
-                                    id="pet-weight"
-                                    name="weight"
-                                    type="number"
-                                    min="0"
-                                    max="500"
-                                    step="0.1"
-                                    value="{{ selected_pet['weight'] if selected_pet and selected_pet['weight'] is not none else '' }}"
-                                    placeholder="8.5"
-                                > <!-- 体重を0kg以上500kg以下、0.1kg単位で入力できるようにする -->
+                                <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
 
-                                <span>kg</span> <!-- 体重の単位を表示する -->
+                                    <input
+                                        id="pet-weight"
+                                        name="weight"
+                                        type="number"
+                                        min="0"
+                                        max="500"
+                                        step="0.1"
+                                        value="{{ selected_pet['weight'] if selected_pet and selected_pet['weight'] is not none else '' }}"
+                                        placeholder="8.5"
+                                    > <!-- 体重を0kg以上500kg以下、0.1kg単位で入力できるようにする -->
 
-                            </div> <!-- 体重入力欄と単位の領域を終了する -->
+                                    <span>kg</span> <!-- 体重の単位を表示する -->
 
-                        </div> <!-- 体重入力グループを終了する -->
+                                </div> <!-- 体重入力欄と単位の領域を終了する -->
 
-                    </div> <!-- 年齢と体重をまとめた横並び領域を終了する -->
+                            </div> <!-- 体重入力グループを終了する -->
 
-                    <div class="pet-input-group pet-note-group"> <!-- その他の基本情報入力欄を、余った高さまで伸ばせる専用グループとして設定する -->
+                        </div> <!-- 年齢と体重をまとめた横並び領域を終了する -->
 
-                        <label for="pet-note">その他の基本情報</label> <!-- その他の情報入力欄の説明を表示する -->
+                        <div class="pet-input-group pet-note-group"> <!-- その他の基本情報入力欄を、余った高さまで伸ばせる専用グループとして設定する -->
 
-                        <textarea
-                            id="pet-note"
-                            name="note"
-                            maxlength="500"
-                            placeholder="性格・アレルギー・注意事項など"
-                        >{{ selected_pet['note'] if selected_pet else '' }}</textarea> <!-- その他の基本情報を最大500文字までに制限する -->
+                            <label for="pet-note">その他の基本情報</label> <!-- その他の情報入力欄の説明を表示する -->
 
-                    </div> <!-- その他の基本情報入力グループを終了する -->
+                            <textarea
+                                id="pet-note"
+                                name="note"
+                                maxlength="500"
+                                placeholder="性格・アレルギー・注意事項など"
+                            >{{ selected_pet['note'] if selected_pet else '' }}</textarea> <!-- その他の基本情報を最大500文字までに制限する -->
 
-                    <button class="pet-save-button" type="submit">保存する</button> <!-- 入力されたペット情報をフォームからFlaskへ送信し、SQLiteへ保存する -->
+                        </div> <!-- その他の基本情報入力グループを終了する -->
 
-                </div> <!-- ペット基本情報入力領域を終了する -->
+                        <button class="pet-save-button" type="submit">保存する</button> <!-- 入力されたペット情報をフォームからFlaskへ送信し、SQLiteへ保存する -->
 
-            </section> <!-- ペットプロフィールカードを終了する -->
-    
-        </form> <!-- ペット情報を送信するフォームを終了する -->
+                    </div> <!-- ペット基本情報入力領域を終了する -->
 
-        {% if selected_pet %} <!-- 既存のペットが選択されている場合だけ削除ボタンを表示する -->
+                </section> <!-- ペットプロフィールカードを終了する -->
+        
+            </form> <!-- ペット情報を送信するフォームを終了する -->
 
-            <form
-                action="{{ url_for('delete_pet', pet_id=selected_pet['id']) }}"
-                method="POST"
-                class="pet-delete-form"
-                onsubmit="return confirm('このペットを削除しますか？');"
-            > <!-- 削除前に確認画面を表示し、キャンセルされた場合は送信しない -->
+            {% if selected_pet %}
 
-                <button class="pet-delete-button" type="submit"> <!-- ペット削除処理を実行するボタンを作る -->
+                <form
+                    action="{{ url_for('delete_pet', pet_id=selected_pet['id']) }}"
+                    method="POST"
+                    class="pet-delete-form"
+                    onsubmit="return confirm('このペットを削除しますか？');"
+                >
 
-                    ペットを削除 <!-- 削除ボタンに表示する文字 -->
+                    <button class="pet-delete-button" type="submit">
+                        ペットを削除
+                    </button>
 
-                </button> <!-- ペット削除ボタンを終了する -->
+                </form>
 
-            </form> <!-- ペット削除専用フォームを終了する -->
+            {% endif %}
 
-        {% endif %} <!-- 既存ペットが選択されている場合の表示処理を終了する -->
+        {% endif %} <!-- プロフィール表示を終了する -->
+
+        {% if view_mode == "list" %} <!-- ペット一覧が選択されている場合だけ表示する -->
+
+            {% if pets %} <!-- 登録済みペットが1匹以上いる場合 -->
+
+                <div class="pet-list"> <!-- ペット一覧カードを並べる領域を作る -->
+
+                    {% for pet in pets %} <!-- 登録済みペットを1匹ずつ処理する -->
+
+                        <div class="pet-list-card"> <!-- 1匹分のペット情報を表示するカードを作る -->
+
+                            <div class="pet-list-photo"> <!-- ペット写真を表示する領域を作る -->
+
+                                {% if pet['photo'] %} <!-- 写真が登録されている場合 -->
+
+                                    <img
+                                        src="{{ url_for('static', filename='images/pets/' + pet['photo']) }}"
+                                        alt="{{ pet['name'] }}の写真"
+                                    > <!-- 登録済み写真を表示する -->
+
+                                {% else %} <!-- 写真が登録されていない場合 -->
+
+                                    <span>🐾</span> <!-- 代わりに肉球を表示する -->
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div class="pet-list-info"> <!-- ペットの文字情報をまとめる -->
+
+                                <p class="pet-list-name">
+                                    {{ pet['name'] }}
+                                </p> <!-- ペット名を表示する -->
+
+
+                                {% if pet['type'] %}
+
+                                    <p class="pet-list-type">
+                                        {{ pet['type'] }}
+                                    </p> <!-- ペットの種類を表示する -->
+
+                                {% endif %}
+
+
+                                <p class="pet-list-basic-info"> <!-- 年齢と体重を表示する -->
+
+                                    {% if pet['age'] is not none %}
+
+                                        {{ pet['age'] }}歳
+
+                                    {% else %}
+
+                                        年齢未登録
+
+                                    {% endif %}
+
+                                    <span> / </span>
+
+                                    {% if pet['weight'] is not none %}
+
+                                        {{ pet['weight'] }}kg
+
+                                    {% else %}
+
+                                        体重未登録
+
+                                    {% endif %}
+
+                                </p>
+
+
+                                <a
+                                    href="{{ url_for('pets', pet_id=pet['id']) }}"
+                                    class="pet-list-detail-link"
+                                >
+                                    詳細を見る
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <p class="home-empty-text">
+                    まだペットが登録されていません。
+                </p>
+
+            {% endif %}
+
+        {% endif %}
 
     </main> <!-- ページのメイン表示領域を終了する -->
 
