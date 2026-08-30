@@ -1,0 +1,137 @@
+.record-timeline { /* 記録一覧を縦のタイムラインとして並べる領域を設定する */
+
+    position: relative; /* 左側に引く縦線をタイムライン全体の基準にする */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+    padding-left: 20px; /* 縦線と丸印の分だけ左側に余白を作る */
+
+}
+
+.record-timeline::before { /* タイムラインの目印になる縦線を設定する */
+
+    content: ""; /* 縦線を表示するための空要素を作る */
+
+    position: absolute; /* タイムライン全体の左端に固定する */
+
+    left: 5px; /* 記録の丸印の中心に合わせて縦線を配置する */
+
+    top: 6px; /* 一番上の丸印の中心あたりから線を開始する */
+
+    bottom: 6px; /* 一番下の丸印の中心あたりまで線を伸ばす */
+
+    width: 2px; /* 縦線の太さを設定する */
+
+    background-color: #e0e0e0; /* 縦線を薄いグレーにする */
+
+}
+
+.record-entry { /* 1件分の記録(日付とカード)をまとめる領域を設定する */
+
+    position: relative; /* 丸印をこの要素の左端に配置するための基準にする */
+
+    margin-bottom: 18px; /* 記録同士の間に余白を作る */
+
+}
+
+.record-entry:last-child { /* 一番下の記録だけに適用する */
+
+    margin-bottom: 0; /* 最後の記録の下には余分な余白を作らない */
+
+}
+
+.record-entry::before { /* タイムライン上に記録の位置を示す丸印を設定する */
+
+    content: ""; /* 丸印を表示するための空要素を作る */
+
+    position: absolute; /* タイムラインの縦線上に重ねて配置する */
+
+    left: -20px; /* 縦線の位置に丸印の中心が来るよう左へずらす */
+
+    top: 6px; /* カード上部と高さを揃える */
+
+    width: 10px; /* 丸印の横幅を設定する */
+
+    height: 10px; /* 丸印の高さを設定する */
+
+    background-color: #819aff; /* 丸印をアプリの基調色にする */
+
+    border: 2px solid #ffffff; /* 縦線との重なりが分かりやすいよう白い縁取りを付ける */
+
+    border-radius: 50%; /* 丸印を円形にする */
+
+    box-shadow: 0 0 0 1px #dddddd; /* 白い縁取りの外側にも薄い輪郭を付けて見やすくする */
+
+}
+
+.record-date { /* 記録の日付表示を設定する */
+
+    margin: 0 0 6px; /* カードとの間にだけ余白を作る */
+
+    font-size: 13px; /* 日付を本文より小さく表示する */
+
+    font-weight: 700; /* 日付を太字にする */
+
+    color: #888888; /* 日付の文字色を薄いグレーにする */
+
+}
+
+.record-card { /* 1件分の記録内容を表示するカードを設定する */
+
+    display: flex; /* 絵文字と内容を横並びにする */
+
+    align-items: center; /* 絵文字と内容を縦方向の中央に揃える */
+
+    gap: 12px; /* 絵文字と内容の間に余白を作る */
+
+    padding: 12px 14px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.record-icon { /* 記録の種類を表す絵文字を設定する */
+
+    font-size: 22px; /* 絵文字を大きめに表示する */
+
+    flex-shrink: 0; /* カード幅が狭くなっても絵文字が縮まないようにする */
+
+}
+
+.record-label { /* 記録の種類名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 15px; /* 種類名の文字サイズを設定する */
+
+    font-weight: 700; /* 種類名を太字にする */
+
+    color: #333333; /* 種類名の文字色を濃いグレーにする */
+
+}
+
+.record-detail { /* 記録の詳細文言を設定する */
+
+    margin: 2px 0 0; /* 種類名との間に少しだけ余白を作る */
+
+    font-size: 13px; /* 詳細文言を種類名より小さく表示する */
+
+    color: #777777; /* 詳細文言の文字色を薄いグレーにする */
+
+}
+
+.record-empty-text { /* 記録が1件もない場合の案内文を設定する */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+    font-size: 14px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}

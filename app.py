@@ -6,6 +6,8 @@ import sqlite3  # Python標準のSQLiteを操作するためのsqlite3モジュ�
 
 import random  # ホーム画面のダミー表示データをペットごとに再現性を持って生成するためにrandomモジュールを読み込む
 
+from datetime import date, timedelta  # 記録画面のダミー日付を計算するためにdateとtimedeltaを読み込む
+
 from flask import Flask, render_template, request, redirect, url_for, flash  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示に必要な機能を読み込む
 
 from werkzeug.utils import secure_filename  # アップロードされたファイル名を安全な形式へ変換する関数を読み込む
@@ -129,6 +131,66 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
         "weight_diff": weight_diff,  # 前回からの体重の増減
 
     }  # ペット1匹分のダミー情報組み立てを終了する
+
+RECORD_TYPE_POOL = [  # 記録画面の通院・健康履歴に使うダミーの種類一覧を用意する
+
+    {"icon": "⚖️", "label": "体重"},
+    {"icon": "💉", "label": "予防接種"},
+    {"icon": "🩺", "label": "健康診断"},
+    {"icon": "🏥", "label": "通院"},
+    {"icon": "💊", "label": "お薬"},
+
+]  # 記録の種類ダミー候補の定義を終了する
+
+RECORD_DETAIL_POOL = {  # 記録の種類ごとに使うダミーの詳細文言を用意する
+
+    "体重": ["定期測定", "健康診断時に測定", "自宅で測定"],
+    "予防接種": ["混合ワクチン接種", "狂犬病ワクチン接種", "ノミ・マダニ予防接種"],
+    "健康診断": ["異常なし", "経過観察", "血液検査を実施"],
+    "通院": ["皮膚のかゆみで受診", "嘔吐のため受診", "定期健診で来院", "怪我の治療で来院"],
+    "お薬": ["抗生剤を処方", "痒み止めを処方", "整腸剤を処方"],
+
+}  # 記録の詳細ダミー候補の定義を終了する
+
+def build_pet_records(pet):  # 選択中のペット1匹分の健康・通院履歴ダミーデータを組み立てる関数を定義する
+
+    rng = random.Random(pet["id"] * 31 + 7)  # ホーム画面のダミーと重複しない乱数の流れになるよう、ペットIDから別の種を作る
+
+    record_count = rng.randint(4, 7)  # 表示する記録の件数をダミーで決める
+
+    today = date.today()  # 今日の日付を基準に過去の記録日を計算する
+
+    records = []  # 組み立てた記録を1件ずつ追加していくリストを用意する
+
+    for _ in range(record_count):  # 決めた件数だけ記録を1件ずつ作成する
+
+        record_type = rng.choice(RECORD_TYPE_POOL)  # 記録の種類(体重・通院など)をダミーで選ぶ
+
+        detail = rng.choice(RECORD_DETAIL_POOL[record_type["label"]])  # 選んだ種類に合った詳細文言をダミーで選ぶ
+
+        record_date = today - timedelta(days=rng.randint(1, 180))  # 過去180日以内のどこかの日付をダミーで決める
+
+        weight_value = None  # 体重の記録でない場合は体重の値を持たせない
+
+        if record_type["label"] == "体重":  # 体重の記録だった場合
+
+            base_weight = pet["weight"] if pet["weight"] is not None else 5.0  # 登録済みの体重を基準にし、未登録なら5.0kgを仮の基準にする
+
+            weight_value = round(base_weight + rng.uniform(-0.5, 0.5), 1)  # 基準の体重から前後0.5kgほど変動させたダミー値を作る
+
+        records.append({  # 1件分の記録をリストへ追加する
+
+            "date": record_date,  # 記録した日付
+            "icon": record_type["icon"],  # 記録の種類を表す絵文字
+            "label": record_type["label"],  # 記録の種類名
+            "detail": detail,  # 記録の詳細文言
+            "weight_value": weight_value,  # 体重の記録の場合だけ入る具体的な数値
+
+        })  # 1件分の記録追加を終了する
+
+    records.sort(key=lambda record: record["date"], reverse=True)  # 新しい記録が上に来るよう日付の新しい順に並べ替える
+
+    return records  # 組み立てた記録一覧を返す
 
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
@@ -480,7 +542,59 @@ def calendar():  # カレンダー画面を表示する関数を定義する
 @app.route("/records")  # 「/records」にアクセスされたときの処理を指定する
 def records():  # 記録画面を表示する関数を定義する
 
-    return render_template("records.html")  # templatesフォルダ内のrecords.htmlを表示する
+    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name, type, age, weight, note, photo
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    selected_pet_id = request.args.get("pet_id")  # URLの?pet_id=〇から現在表示するペットIDを取得する
+
+    selected_pet = None  # 最初は選択中のペットが存在しない状態にしておく
+
+    if selected_pet_id:  # URLにペットIDが指定されている場合
+
+        selected_pet = connection.execute(  # 指定されたIDのペット情報を取得する
+
+            """
+            SELECT id, name, type, age, weight, note, photo
+            FROM pets
+            WHERE id = ?
+            """,  # URLで指定されたペット1匹を取得するSQLを書く
+
+            (selected_pet_id,)  # URLから取得したペットIDをSQLへ渡す
+
+        ).fetchone()  # 条件に一致したペット1匹分を取得する
+
+    elif pet_list:  # URLにpet_idが指定されておらず、ペットが1匹以上登録されている場合
+
+        selected_pet = connection.execute(  # 登録されている中で最もIDが小さいペットを取得する
+
+            """
+            SELECT id, name, type, age, weight, note, photo
+            FROM pets
+            ORDER BY id ASC
+            LIMIT 1
+            """  # IDの小さい順に並べ、最初の1匹だけ取得するSQLを書く
+
+        ).fetchone()  # 最初のペット1匹分を取得する
+
+    connection.close()  # ペット情報を取得し終わったのでSQLiteとの接続を終了する
+
+    pet_records = build_pet_records(selected_pet) if selected_pet else []  # 選択中のペットがいる場合だけ健康・通院履歴のダミーデータを組み立てる
+
+    return render_template(
+        "records.html",  # templatesフォルダ内のrecords.htmlを表示する
+        pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
+        selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
+        pet_records=pet_records  # 選択中のペットの健康・通院履歴をHTMLへ渡す
+    )  # HTML表示処理を終了する
 
 @app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する
 def reservation():  # 予約画面を表示する関数を定義する

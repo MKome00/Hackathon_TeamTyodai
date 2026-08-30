@@ -13,13 +13,120 @@
     <!-- 共通のCSSファイルを読み込む -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
+    <!-- 記録画面専用のCSSファイルを読み込む(共通のstyle.cssは変更しない) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/records.css') }}">
+
 </head>
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
 
     <main class="page-content"> <!-- 各ページのメイン表示領域を作る -->
 
-        <h1>📒記録</h1> <!-- 現在のページ名を表示する -->
+        <div class="pet-page-header"> <!-- 記録ページのタイトルとペット切り替えボタンを横並びにする領域を作る -->
+
+            <h1>📒記録</h1> <!-- 現在のページ名を表示する -->
+
+            {% if pets %} <!-- ペットが1匹以上登録されている場合だけ切り替えボタンを表示する -->
+
+                <div class="pet-switcher"> <!-- 複数のペットを切り替えるための領域を作る -->
+
+                    <button id="pet-switch-button" class="pet-switch-button" type="button"> <!-- 現在選択されているペット名を表示するボタンを作る -->
+
+                        <span id="current-pet-name"> <!-- 現在選択されているペット名を表示する -->
+
+                            {% if selected_pet %} <!-- Flaskから選択中のペット情報が渡されている場合 -->
+
+                                {{ selected_pet['name'] }} <!-- 選択中のペット名を表示する -->
+
+                            {% else %} <!-- ペットがまだ選択されていない場合 -->
+
+                                ペットを選択 <!-- 初期状態の文字を表示する -->
+
+                            {% endif %} <!-- 選択中ペットの有無による表示切り替えを終了する -->
+
+                        </span> <!-- 現在のペット名表示を終了する -->
+
+                        <span class="pet-switch-arrow">▼</span> <!-- プルダウンを開けることを示す矢印を表示する -->
+
+                    </button> <!-- ペット切り替えボタンを終了する -->
+
+                    <div id="pet-dropdown" class="pet-dropdown"> <!-- ペット一覧を表示するプルダウンメニューを作る -->
+
+                        {% for pet in pets %} <!-- Flaskから渡された登録済みペットを1匹ずつ順番に処理する -->
+
+                            <button
+                                class="pet-option"
+                                type="button"
+                                data-pet-url="{{ url_for('records', pet_id=pet['id']) }}"
+                            > <!-- このペットを選択したときに移動するURLをdata-pet-urlへ保存する -->
+
+                                {{ pet['name'] }} <!-- データベースに登録されているペット名を選択肢として表示する -->
+
+                            </button> <!-- 1匹分のペット選択ボタンを終了する -->
+
+                        {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
+
+                    </div> <!-- プルダウンメニューを終了する -->
+
+                </div> <!-- ペット切り替え領域を終了する -->
+
+            {% endif %} <!-- ペット登録の有無による切り替えボタンの表示切り替えを終了する -->
+
+        </div> <!-- ページ上部のヘッダー領域を終了する -->
+
+        {% if selected_pet %} <!-- 表示対象のペットが選択されている場合 -->
+
+            {% if pet_records %} <!-- そのペットの記録が1件以上ある場合 -->
+
+                <div class="record-timeline"> <!-- 記録を新しい順に並べるタイムライン領域を作る -->
+
+                    {% for entry in pet_records %} <!-- Flaskから渡された記録を1件ずつ処理する -->
+
+                        <div class="record-entry"> <!-- 1件分の記録(日付とカード)をまとめる -->
+
+                            <p class="record-date">{{ entry.date.strftime('%Y/%m/%d') }}</p> <!-- 記録した日付を表示する -->
+
+                            <div class="record-card"> <!-- 記録の内容を表示するカードを作る -->
+
+                                <span class="record-icon">{{ entry.icon }}</span> <!-- 記録の種類を表す絵文字を表示する -->
+
+                                <div> <!-- 種類名と詳細をまとめる -->
+
+                                    <p class="record-label">{{ entry.label }}</p> <!-- 記録の種類名を表示する -->
+
+                                    <p class="record-detail"> <!-- 記録の詳細文言を表示する -->
+
+                                        {{ entry.detail }} <!-- ダミーの詳細文言を表示する -->
+
+                                        {% if entry.weight_value is not none %} <!-- 体重の記録で具体的な数値がある場合 -->
+
+                                            ({{ entry.weight_value }}kg) <!-- 記録された体重の値を併記する -->
+
+                                        {% endif %} <!-- 体重の数値有無による表示切り替えを終了する -->
+
+                                    </p> <!-- 詳細文言の表示を終了する -->
+
+                                </div> <!-- 種類名と詳細のまとまりを終了する -->
+
+                            </div> <!-- 記録カードを終了する -->
+
+                        </div> <!-- 1件分の記録を終了する -->
+
+                    {% endfor %} <!-- すべての記録の表示処理を終了する -->
+
+                </div> <!-- タイムライン領域を終了する -->
+
+            {% else %} <!-- 選択中のペットにまだ記録が1件もない場合 -->
+
+                <p class="record-empty-text">まだ記録がありません。</p> <!-- 記録が無いことを知らせる -->
+
+            {% endif %} <!-- 記録の有無による表示切り替えを終了する -->
+
+        {% else %} <!-- ペットが1匹も登録されていない場合 -->
+
+            <p class="record-empty-text">まだペットが登録されていません。「ペット」画面から登録してください。</p> <!-- ペット未登録時の案内を表示する -->
+
+        {% endif %} <!-- ペット選択の有無による表示切り替えを終了する -->
 
     </main>
 
@@ -79,6 +186,9 @@
 
     <!-- 下部ナビゲーションを滑らかに動かすJavaScriptファイルを読み込む -->
     <script src="{{ url_for('static', filename='js/nav.js') }}"></script>
+
+    <!-- 記録画面のペット切り替え専用のJavaScriptファイルを読み込む(pets.html用のpet-switcher.jsは使わない) -->
+    <script src="{{ url_for('static', filename='js/records.js') }}"></script>
 
 </body>
 
