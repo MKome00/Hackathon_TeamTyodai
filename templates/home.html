@@ -20,6 +20,150 @@
 
         <h1>🏠ホーム</h1> <!-- 現在のページ名としてホームを表示する -->
 
+        {% if home_pets %} <!-- ペットが1匹以上登録されている場合だけ一覧を表示する -->
+
+            <div class="home-pet-list"> <!-- 登録済みペットのカードを縦に並べる領域を作る -->
+
+                {% for item in home_pets %} <!-- Flaskから渡されたペットごとのホーム表示データを1件ずつ処理する -->
+
+                    <section class="home-pet-card"> <!-- 1匹分の情報をまとめるカードを作る -->
+
+                        <div class="home-pet-card-header"> <!-- 写真と名前を横に並べるヘッダー部分を作る -->
+
+                            <div class="home-pet-photo"> <!-- ペット写真を表示する丸い枠を作る -->
+
+                                {% if item.pet['photo'] %} <!-- 保存済みの写真がある場合 -->
+
+                                    <img
+                                        src="{{ url_for('static', filename='images/pets/' + item.pet['photo']) }}"
+                                        alt="{{ item.pet['name'] }}の写真"
+                                    > <!-- 登録されている写真を表示する -->
+
+                                {% else %} <!-- 写真が未登録の場合 -->
+
+                                    <span>🐾</span> <!-- 代わりに肉球の絵文字を表示する -->
+
+                                {% endif %} <!-- 写真の有無による表示切り替えを終了する -->
+
+                            </div> <!-- 写真枠を終了する -->
+
+                            <div class="home-pet-name-area"> <!-- 名前と種類をまとめる領域を作る -->
+
+                                <p class="home-pet-name">{{ item.pet['name'] }}</p> <!-- ペットの名前を表示する -->
+
+                                {% if item.pet['type'] %} <!-- 種類が入力されている場合だけ表示する -->
+
+                                    <p class="home-pet-type">{{ item.pet['type'] }}</p> <!-- ペットの種類を表示する -->
+
+                                {% endif %} <!-- 種類の有無による表示切り替えを終了する -->
+
+                            </div> <!-- 名前と種類の領域を終了する -->
+
+                        </div> <!-- カードヘッダーを終了する -->
+
+                        <div class="home-section"> <!-- 「今日のやること」を表示する領域を作る -->
+
+                            <p class="home-section-title">今日のやること</p> <!-- 見出しを表示する -->
+
+                            {% if item.today_tasks %} <!-- 今日のやることが1件以上ある場合 -->
+
+                                <ul class="home-task-list"> <!-- 今日のやることを箇条書きで並べるリストを作る -->
+
+                                    {% for task in item.today_tasks %} <!-- 今日のやることを1件ずつ処理する -->
+
+                                        <li class="home-task-item"> <!-- 1件分のやることを表示する -->
+
+                                            <span class="home-task-icon">{{ task.icon }}</span> <!-- やることに対応する絵文字を表示する -->
+
+                                            {{ task.label }} <!-- やることの内容を表示する -->
+
+                                        </li> <!-- 1件分のやること表示を終了する -->
+
+                                    {% endfor %} <!-- 今日のやることすべての表示を終了する -->
+
+                                </ul> <!-- 今日のやることリストを終了する -->
+
+                            {% else %} <!-- 今日のやることが1件もない場合 -->
+
+                                <p class="home-empty-text">今日の予定はありません</p> <!-- 予定がないことを知らせる -->
+
+                            {% endif %} <!-- 今日のやることの有無による表示切り替えを終了する -->
+
+                        </div> <!-- 「今日のやること」領域を終了する -->
+
+                        <div class="home-section"> <!-- フードの期限・在庫を表示する領域を作る -->
+
+                            <p class="home-section-title">フードの残量</p> <!-- 見出しを表示する -->
+
+                            <div class="home-food-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
+
+                                <div class="home-food-bar"> <!-- フード残量の背景バーを作る -->
+
+                                    <div
+                                        class="home-food-bar-fill {% if item.food_urgent %}home-food-bar-urgent{% endif %}"
+                                        style="width: {{ item.food_percent }}%;"
+                                    ></div> <!-- 残量パーセントに応じてバーの色と長さを変える -->
+
+                                </div> <!-- フード残量バーを終了する -->
+
+                                <span class="{% if item.food_urgent %}home-urgent-text{% endif %}"> <!-- 残りわずかな場合は文字色で目立たせる -->
+
+                                    あと{{ item.food_days_left }}日分 <!-- フードがなくなるまでの残り日数を表示する -->
+
+                                </span> <!-- 残り日数表示を終了する -->
+
+                            </div> <!-- フード残量の行を終了する -->
+
+                        </div> <!-- フードの残量領域を終了する -->
+
+                        <div class="home-section"> <!-- 次の予定を表示する領域を作る -->
+
+                            <p class="home-section-title">次の予定</p> <!-- 見出しを表示する -->
+
+                            <p class="{% if item.next_schedule_urgent %}home-urgent-text{% endif %}"> <!-- 予定が近い場合は文字色で目立たせる -->
+
+                                {{ item.next_schedule_label }}まであと{{ item.next_schedule_days }}日 <!-- 次に控えている予定と残り日数を表示する -->
+
+                            </p> <!-- 次の予定表示を終了する -->
+
+                        </div> <!-- 次の予定領域を終了する -->
+
+                        <div class="home-section"> <!-- 体重の変化を表示する領域を作る -->
+
+                            <p class="home-section-title">体重の変化</p> <!-- 見出しを表示する -->
+
+                            <p> <!-- 前回記録との増減を表示する -->
+
+                                {% if item.weight_diff > 0 %} <!-- 前回より増えている場合 -->
+
+                                    前回より +{{ item.weight_diff }}kg ↑ <!-- 体重が増えたことを表示する -->
+
+                                {% elif item.weight_diff < 0 %} <!-- 前回より減っている場合 -->
+
+                                    前回より {{ item.weight_diff }}kg ↓ <!-- 体重が減ったことを表示する -->
+
+                                {% else %} <!-- 前回から変化がない場合 -->
+
+                                    前回から変化なし <!-- 体重に変化がないことを表示する -->
+
+                                {% endif %} <!-- 体重増減による表示切り替えを終了する -->
+
+                            </p> <!-- 体重の変化表示を終了する -->
+
+                        </div> <!-- 体重の変化領域を終了する -->
+
+                    </section> <!-- 1匹分のカードを終了する -->
+
+                {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
+
+            </div> <!-- ペットカード一覧を終了する -->
+
+        {% else %} <!-- 登録されているペットが1匹もいない場合 -->
+
+            <p class="home-empty-text">まだペットが登録されていません。「ペット」画面から登録してください。</p> <!-- ペット未登録時の案内を表示する -->
+
+        {% endif %} <!-- ペット登録の有無による表示切り替えを終了する -->
+
     </main> <!-- メイン表示領域を終了する -->
 
     <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体を作る -->
