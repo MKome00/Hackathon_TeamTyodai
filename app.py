@@ -4,6 +4,8 @@ import uuid  # 同じ名前の画像が保存されても重複しない一意�
 
 import sqlite3  # Python標準のSQLiteを操作するためのsqlite3モジュールを読み込む
 
+import random  # ホーム画面のダミー表示データをペットごとに再現性を持って生成するためにrandomモジュールを読み込む
+
 from flask import Flask, render_template, request, redirect, url_for, flash  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示に必要な機能を読み込む
 
 from werkzeug.utils import secure_filename  # アップロードされたファイル名を安全な形式へ変換する関数を読み込む
@@ -61,11 +63,75 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
     connection.close()  # データベースとの接続を終了する
 
+TASK_POOL = [  # ホーム画面の「今日のやること」に使うダミーの予定候補一覧を用意する
+
+    {"icon": "🏥", "label": "通院"},
+    {"icon": "💊", "label": "お薬"},
+    {"icon": "✂️", "label": "トリミング予約"},
+    {"icon": "🛒", "label": "フードの買い足し"},
+    {"icon": "🧴", "label": "トイレ用品の補充"},
+
+]  # 「今日のやること」ダミー候補の定義を終了する
+
+SCHEDULE_POOL = [  # ホーム画面の「次の予定」に使うダミーの予定候補一覧を用意する
+
+    "予防接種",
+    "健康診断",
+    "トリミング",
+
+]  # 「次の予定」ダミー候補の定義を終了する
+
+def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミー情報を組み立てる関数を定義する
+
+    rng = random.Random(pet["id"])  # ペットIDを種にして、同じペットなら毎回同じダミー内容になるようにする
+
+    today_tasks = rng.sample(TASK_POOL, k=rng.randint(0, 2))  # 「今日のやること」候補からランダムに0〜2件を選ぶ
+
+    food_days_left = rng.randint(1, 14)  # フードがなくなるまでの残り日数をダミーで決める
+
+    food_percent = rng.randint(10, 100)  # フードの残量をダミーで決める
+
+    next_schedule_label = rng.choice(SCHEDULE_POOL)  # 次に控えている予定の種類をダミーで決める
+
+    next_schedule_days = rng.randint(1, 30)  # 次の予定までの残り日数をダミーで決める
+
+    weight_diff = round(rng.uniform(-0.3, 0.3), 1)  # 前回記録からの体重の増減をダミーで決める
+
+    return {  # 組み立てたダミー情報をまとめて返す
+
+        "pet": pet,  # 表示対象のペット情報
+        "today_tasks": today_tasks,  # 今日のやることリスト
+        "food_days_left": food_days_left,  # フードが残っている日数
+        "food_percent": food_percent,  # フードの残量パーセント
+        "food_urgent": food_days_left <= 3,  # フードの残りが少なく目立たせるべきかどうか
+        "next_schedule_label": next_schedule_label,  # 次の予定の種類
+        "next_schedule_days": next_schedule_days,  # 次の予定までの残り日数
+        "next_schedule_urgent": next_schedule_days <= 3,  # 次の予定が近く目立たせるべきかどうか
+        "weight_diff": weight_diff,  # 前回からの体重の増減
+
+    }  # ペット1匹分のダミー情報組み立てを終了する
+
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
 def home():  # ホーム画面を表示する関数を定義する
 
-    return render_template("home.html")  # templatesフォルダ内のhome.htmlを表示する
+    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name, type, age, weight, note, photo
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # ペット情報を取得し終わったのでSQLiteとの接続を終了する
+
+    home_pets = [build_home_dummy_data(pet) for pet in pet_list]  # 登録済みペットごとに表示用のダミー情報を組み立てる
+
+    return render_template("home.html", home_pets=home_pets)  # templatesフォルダ内のhome.htmlへペットごとの表示データを渡す
 
 @app.route("/pets", methods=["GET", "POST"])  # ペットページで画面表示のGETと保存処理のPOSTを受け付ける
 def pets():  # ペット画面の表示、新規登録、既存情報の更新を行う関数を定義する
