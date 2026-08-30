@@ -724,6 +724,7 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
 
         note = request.form.get("note", "").strip()  # 詳細メモを取得し、前後の余分な空白を削除する
 
+        current_month = request.form.get("current_month", "").strip()  # 予定を保存する前にカレンダーで開いていた月を取得する
 
         error_message = None  # 入力内容に問題がある場合のエラーメッセージを保存する変数を用意する
 
@@ -870,7 +871,7 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
         flash("予定を保存しました。", "success")  # 保存完了メッセージを次の画面表示まで一時保存する
 
 
-        return redirect(url_for("calendar"))  # POST後にカレンダー画面へ戻る
+        return redirect(url_for("calendar", month=current_month))  # 保存前に開いていた月をURLへ付けてカレンダーへ戻る
 
 
     connection = get_db_connection()  # GETでカレンダーを表示するためSQLiteへ接続する
@@ -959,7 +960,9 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
 
                 "category": event["category"],  # 予定種類
 
-                "note": event["note"] or ""  # 詳細メモ
+                "note": event["note"] or "",  # 詳細メモ
+
+                "deleteUrl": url_for("delete_calendar_event", event_id=event["id"])  # この予定を削除するためのURLをJavaScriptへ渡す
 
             }
 
@@ -980,6 +983,57 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
         calendar_events=calendar_events,  # FullCalendarへ表示する保存済み予定を渡す
         error_message=None  # 通常表示では入力エラーは無い
     )  # カレンダー画面表示処理を終了する
+
+@app.route("/calendar/delete/<int:event_id>", methods=["POST"])  # 指定された予定IDを削除するPOST専用URLを設定する
+def delete_calendar_event(event_id):  # カレンダー予定の削除処理を行う関数を定義する
+
+    current_month = request.form.get("current_month", "").strip()  # 削除前に開いていた月をフォームから取得する
+
+    connection = get_db_connection()  # SQLiteへ接続する
+
+
+    event = connection.execute(  # 指定されたIDの予定が存在するか確認する
+
+        """
+        SELECT id
+        FROM calendar_events
+        WHERE id = ?
+        """,  # 削除対象の予定IDを検索するSQLを書く
+
+        (event_id,)  # URLから受け取った予定IDをSQLへ渡す
+
+    ).fetchone()  # 条件に一致する予定を1件取得する
+
+
+    if event:  # 指定された予定が存在する場合
+
+        connection.execute(  # calendar_eventsテーブルから予定を削除する
+
+            """
+            DELETE FROM calendar_events
+            WHERE id = ?
+            """,  # 指定されたIDの予定だけを削除するSQLを書く
+
+            (event_id,)  # 削除対象の予定IDをSQLへ渡す
+
+        )  # DELETE処理を終了する
+
+
+        connection.commit()  # 削除内容をSQLiteへ正式に保存する
+
+
+        flash("予定を削除しました。", "success")  # 削除完了メッセージを一時保存する
+
+
+    connection.close()  # SQLiteとの接続を終了する
+
+
+    if current_month:  # 削除前に表示していた月が送信されている場合
+
+        return redirect(url_for("calendar", month=current_month))  # 同じ月のカレンダーへ戻る
+
+
+    return redirect(url_for("calendar"))  # 月情報が無い場合は通常のカレンダーへ戻る
 
 def fetch_pets_and_selected(pet_id_text):  # 登録済みペット一覧と、指定されたIDから選択中のペットを取得する共通処理を定義する
 

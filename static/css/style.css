@@ -1298,3 +1298,161 @@ html { /* ページによってスクロールバーの有無が変わっても�
     background-color: hsl(41, 100%, 72%) !important; /* 今日のセルを薄い黄色にする */
 
 }
+
+.day-event-empty { /* 選択した日に予定が1件もない場合の案内文を設定する */
+
+    margin: 8px 0 20px; /* 上下に余白を作る */
+
+    color: #999999; /* 控えめなグレーで表示する */
+
+    font-size: 14px; /* 本文より少し小さくする */
+
+}
+
+.day-event-list { /* その日の予定カードを並べる領域を設定する */
+
+    display: flex; /* 複数の予定を並べるためflexを使用する */
+
+    flex-direction: column; /* 予定を縦方向に並べる */
+
+    gap: 10px; /* 予定同士の間に余白を作る */
+
+    margin-bottom: 18px; /* 「予定を追加」ボタンとの間に余白を作る */
+
+}
+
+.day-event-item { /* 1件分の予定を表示するカードを設定する */
+
+    padding: 12px 14px; /* カード内側に余白を作る */
+
+    background-color: #f8f8f8; /* 予定カードの背景を薄いグレーにする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄い線を付ける */
+
+    border-radius: 12px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.day-event-title { /* 予定カードのペット名・予定種類を設定する */
+
+    margin: 0; /* 段落標準の余白をなくす */
+
+    font-size: 15px; /* 予定名を少し大きめに表示する */
+
+    font-weight: 700; /* 予定名を太字にする */
+
+    color: #333333; /* 濃い文字色にする */
+
+}
+
+.day-event-time { /* 予定の開始・終了時間を設定する */
+
+    margin: 5px 0 0; /* 予定名との間に少し余白を作る */
+
+    font-size: 13px; /* 時間を予定名より少し小さくする */
+
+    color: #666666; /* 時間を少し薄い文字色にする */
+
+}
+
+.day-event-note { /* 予定の詳細メモを設定する */
+
+    margin: 5px 0 0; /* 時間との間に少し余白を作る */
+
+    font-size: 13px; /* メモの文字サイズを設定する */
+
+    color: #777777; /* メモを薄めの文字色にする */
+
+}
+
+.day-event-delete-form { /* 予定カード内の削除フォームを配置する */
+
+    display: flex; /* 削除ボタンの位置を調整できるようにする */
+
+    justify-content: flex-end; /* 削除ボタンをカード右側へ配置する */
+
+    margin-top: 10px; /* メモや時間との間に余白を作る */
+
+}
+
+.day-event-delete-button { /* 予定削除ボタンの見た目を設定する */
+
+    padding: 7px 12px; /* ボタン内側に余白を作る */
+
+    background-color: #ffffff; /* 背景を白にする */
+
+    color: #d9534f; /* 削除操作だと分かるよう赤系の文字色にする */
+
+    border: 1px solid #d9534f; /* 赤系の枠線を付ける */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 13px; /* ボタン文字のサイズを設定する */
+
+    font-weight: 700; /* 削除文字を太字にする */
+
+    cursor: pointer; /* クリックできることを示す */
+
+}
+
+.day-event-delete-button:hover { /* PCで削除ボタンにマウスを重ねたとき */
+
+    background-color: #fff2f2; /* 背景を薄い赤色にする */
+
+}
+
+.calendar-floating-controls { /* スクロール中も使用できる月移動ボタン全体を設定する */
+
+    position: fixed; /* ページをスクロールしても同じ位置に固定する */
+
+    top: 12px; /* 画面上端から12px離して配置する */
+
+    right: 24px; /* 画面右端から24px離して配置する */
+
+    z-index: 50; /* カレンダーより前面に表示する */
+
+    display: flex; /* 3つのボタンを横並びにする */
+
+    gap: 6px; /* ボタン同士の間に余白を作る */
+
+    padding: 6px; /* ボタンの周囲に余白を作る */
+
+    background-color: #ffffff; /* カレンダーが後ろに透けないよう白背景にする */
+
+    border: 1px solid #bbbbbb; /* 全体を薄いグレーの線で囲む */
+
+    border-radius: 12px; /* 全体の角を丸くする */
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12); /* カレンダー上に浮いていることが分かるよう影を付ける */
+
+}
+
+.calendar-floating-controls button { /* 固定月移動ボタン3つの共通デザインを設定する */
+
+    padding: 8px 12px; /* ボタンの内側に余白を作る */
+
+    background-color: #ffffff; /* ボタン背景を白にする */
+
+    border: 1px solid #bbbbbb; /* ボタンを薄い線で囲む */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 14px; /* ボタン文字の大きさを設定する */
+
+    cursor: pointer; /* クリック可能であることを示す */
+
+}
+
+.calendar-floating-controls button:hover { /* PCでボタンにマウスを重ねたとき */
+
+    background-color: #f3f3f3; /* 背景を薄いグレーにする */
+
+}
+
+.calendar-other-month { /* 現在表示している月ではない日付セルを設定する */
+
+    background-color: #bbbbbb !important; /* 前月・翌月のマスを薄いグレーにする */
+
+}

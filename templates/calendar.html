@@ -86,6 +86,76 @@
 
     </main> <!-- メイン表示領域を終了する -->
 
+    <!-- スクロール中でも月を移動できる固定ボタンを表示する -->
+    <div class="calendar-floating-controls">
+
+        <button
+            id="floating-prev-button"
+            type="button"
+        >＜</button> <!-- 前月へ移動するボタン -->
+
+        <button
+            id="floating-today-button"
+            type="button"
+        >今日</button> <!-- 今月へ戻るボタン -->
+
+        <button
+            id="floating-next-button"
+            type="button"
+        >＞</button> <!-- 次月へ移動するボタン -->
+
+    </div>
+
+    <div id="day-events-modal" class="event-modal"> <!-- 選択した日付の予定一覧を表示するモーダル全体を作る -->
+
+        <div class="event-modal-overlay day-events-modal-overlay"></div> <!-- モーダル表示中に背景を暗くする領域を作る -->
+
+
+        <div class="event-modal-content"> <!-- 予定一覧を表示する白いモーダル本体を作る -->
+
+
+            <div class="event-modal-header"> <!-- モーダル上部のタイトルと閉じるボタンをまとめる -->
+
+                <h2 id="day-events-title">予定一覧</h2> <!-- JavaScriptで「9月3日の予定」のようなタイトルを入れる -->
+
+
+                <button
+                    id="day-events-modal-close"
+                    class="event-modal-close"
+                    type="button"
+                > <!-- 予定一覧モーダルを閉じるボタンを作る -->
+
+                    ×
+
+                </button> <!-- 閉じるボタンを終了する -->
+
+            </div> <!-- モーダル上部を終了する -->
+
+
+            <div id="day-events-list"> <!-- 選択した日の予定をJavaScriptでここへ表示する -->
+
+            </div> <!-- 予定一覧表示領域を終了する -->
+
+
+            <div class="event-modal-actions"> <!-- モーダル下部の操作ボタン領域を作る -->
+
+                <button
+                    id="open-add-event-button"
+                    class="event-save-button"
+                    type="button"
+                > <!-- 新しい予定の入力画面を開くボタンを作る -->
+
+                    ＋ 予定を追加
+
+                </button> <!-- 予定追加ボタンを終了する -->
+
+            </div> <!-- モーダル操作領域を終了する -->
+
+
+        </div> <!-- モーダル本体を終了する -->
+
+    </div> <!-- 予定一覧モーダル全体を終了する -->
+
 
     <div id="event-modal" class="event-modal"> <!-- 予定を登録するときに表示するモーダル全体を作る -->
 
@@ -118,6 +188,13 @@
                 action="{{ url_for('calendar') }}"
                 method="POST"
             > <!-- 入力された予定を/calendarへPOSTで送信するフォームを作る -->
+
+            <input
+                type="hidden"
+                id="calendar-current-month"
+                name="current_month"
+                value=""
+            > <!-- 予定を保存する直前に、現在カレンダーで開いている月を保存する -->
 
 
                 <div class="event-input-group"> <!-- ペット選択欄を1つのグループとしてまとめる -->
