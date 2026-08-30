@@ -1,3 +1,161 @@
+.record-reminder-banner { /* 記録を促すリマインダーをまとめる領域を設定する */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+    padding: 12px 14px; /* バナー内側に余白を作る */
+
+    background-color: #fff8e6; /* 注意を促す薄い黄色の背景にする */
+
+    border: 1px solid #f0d38a; /* 薄い黄色の枠線を付ける */
+
+    border-radius: 14px; /* バナーの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.record-reminder-title { /* リマインダー全体の見出しを設定する */
+
+    margin: 0; /* 見出しが持つ余白をなくす */
+
+    font-size: 14px; /* 見出しの文字サイズを設定する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #8a6d1a; /* 見出しの文字色を濃い黄土色にする */
+
+}
+
+.record-reminder-list { /* リマインダーの箇条書き一覧を設定する */
+
+    margin: 6px 0 0; /* 見出しとの間にだけ余白を作る */
+
+    padding-left: 18px; /* 標準の黒丸が収まる左余白を作る */
+
+    font-size: 13px; /* リマインダーの文字サイズを設定する */
+
+    color: #8a6d1a; /* リマインダーの文字色を見出しと揃える */
+
+}
+
+.record-add-form { /* 記録追加フォームの開閉領域を設定する */
+
+    margin-top: 16px; /* 上の領域との間に余白を作る */
+
+    padding: 14px; /* フォーム全体の内側に余白を作る */
+
+    background-color: #ffffff; /* フォーム全体の背景を白色にする */
+
+    border: 1px solid #dddddd; /* フォーム全体の周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* フォーム全体の角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.record-add-form summary { /* 記録追加フォームの開閉用文字を設定する */
+
+    font-size: 15px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字をまとめカードの件数バッジと同じ青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.record-add-form[open] summary { /* 記録追加フォームを開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 12px; /* 開いたあとのフォームとの間に余白を作る */
+
+}
+
+.record-form { /* 記録追加フォーム内の入力欄をまとめる領域を設定する */
+
+    display: flex; /* 入力欄を並べるためflexを使用する */
+
+    flex-direction: column; /* 入力欄を縦方向に並べる */
+
+    gap: 12px; /* 入力欄同士の間隔を作る */
+
+}
+
+.record-form-group { /* 記録追加フォーム内の1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+}
+
+.record-form-group label { /* 記録追加フォームの入力欄の上に表示する項目名を設定する */
+
+    font-size: 13px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+.record-form-group input, /* 記録追加フォームの文字・数値・日付入力欄をまとめて設定する */
+.record-form-group select { /* 記録追加フォームの種類選択欄も同じ見た目にする */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 10px 12px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 10px; /* 入力欄の角を丸くする */
+
+    font-size: 15px; /* スマホでも読みやすい文字サイズにする */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.record-form-group input:focus, /* 記録追加フォームの入力欄を選択しているときの見た目を設定する */
+.record-form-group select:focus { /* 種類選択欄を選択しているときの見た目も揃える */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.record-form-submit { /* 記録追加フォームの保存ボタンを設定する */
+
+    padding: 12px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 12px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ペットページの保存ボタンと同じ色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 15px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.record-form-submit:active { /* 記録追加フォームの保存ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
 .record-group-list { /* 種類ごとのまとめカードを並べる領域を設定する */
 
     display: flex; /* 複数のまとめカードを並べるためflexを使用する */

@@ -970,6 +970,60 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 }
 
+.home-reminder-banner { /* 記録を促すリマインダーをまとめる領域を設定する */
+
+    margin-top: 14px; /* カードヘッダーとの間に余白を作る */
+
+    padding: 12px 14px; /* バナー内側に余白を作る */
+
+    background-color: #fff8e6; /* 注意を促す薄い黄色の背景にする */
+
+    border: 1px solid #f0d38a; /* 薄い黄色の枠線を付ける */
+
+    border-radius: 14px; /* バナーの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.home-reminder-title { /* リマインダー全体の見出しを設定する */
+
+    margin: 0; /* 見出しが持つ余白をなくす */
+
+    font-size: 13px; /* 見出しの文字サイズを設定する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #8a6d1a; /* 見出しの文字色を濃い黄土色にする */
+
+}
+
+.home-reminder-list { /* リマインダーの箇条書き一覧を設定する */
+
+    margin: 6px 0 0; /* 見出しとの間にだけ余白を作る */
+
+    padding-left: 18px; /* 標準の黒丸が収まる左余白を作る */
+
+    font-size: 13px; /* リマインダーの文字サイズを設定する */
+
+    color: #8a6d1a; /* リマインダーの文字色を見出しと揃える */
+
+}
+
+.home-reminder-link { /* リマインダーから記録画面へ移動するリンクを設定する */
+
+    display: inline-block; /* 余白を正しく効かせるためインラインブロックにする */
+
+    margin-top: 8px; /* 一覧との間に余白を作る */
+
+    font-size: 13px; /* リンクの文字サイズを設定する */
+
+    font-weight: 700; /* リンクを太字にする */
+
+    color: #4a5fc1; /* リンクを記録画面のリマインダーと同じ青系にする */
+
+}
+
 @media (max-width: 480px) { /* 画面幅が480px以下のスマホ向けデザインを設定する */
 
     .home-pet-card { /* スマホでのホームカードを設定する */
