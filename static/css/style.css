@@ -898,15 +898,41 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 .home-food-bar { /* フード残量バーの背景部分を設定する */
 
+    position: relative; /* 目盛り線をバーの上に重ねて表示するための基準にする */
+
     flex: 1; /* 残った横幅いっぱいにバーを広げる */
 
-    height: 8px; /* バーの高さを設定する */
+    height: 14px; /* 目盛りが見やすいようバーを少し高めにする */
 
-    background-color: #eeeeee; /* バー全体の下地を薄いグレーにする */
+    background-color: #f0f0f0; /* バー全体の下地を薄いグレーにする */
 
-    border-radius: 4px; /* バーの角を丸くする */
+    border: 1px solid #bbbbbb; /* 残量が分かりやすいよう外枠を付ける */
+
+    border-radius: 6px; /* バーの角を丸くする */
+
+    box-sizing: border-box; /* borderを含めた高さでバーの大きさを計算する */
 
     overflow: hidden; /* 残量部分がバーの外にはみ出さないようにする */
+
+}
+
+.home-food-bar::after { /* フード残量バーの上に重ねる目盛り線を設定する */
+
+    content: ""; /* 目盛り線を表示するための空要素を作る */
+
+    position: absolute; /* バー全体に重ねて配置する */
+
+    inset: 0; /* バーの上下左右いっぱいに広げる */
+
+    background-image: repeating-linear-gradient( /* 20%ごとに縦線を引いて目盛りを表現する */
+        to right,
+        transparent,
+        transparent calc(20% - 1px),
+        rgba(0, 0, 0, 0.18) calc(20% - 1px),
+        rgba(0, 0, 0, 0.18) 20%
+    ); /* 0・20・40・60・80・100%の位置に目盛り線を引く */
+
+    pointer-events: none; /* 目盛り線がクリックの邪魔をしないようにする */
 
 }
 
@@ -914,15 +940,57 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     height: 100%; /* バーの高さいっぱいに表示する */
 
-    background-color: #819aff; /* 通常時の残量バーの色を設定する */
-
-    border-radius: 4px; /* 残量部分の角も丸くする */
+    transition: width 0.3s ease; /* 残量が変わったときにバーが滑らかに伸び縮みするようにする */
 
 }
 
-.home-food-bar-urgent { /* フードの残りが少ないときの残量バーを設定する */
+.home-food-bar-safe { /* フードの残量に十分余裕があるときのバーの色を設定する */
 
-    background-color: #e6a0a0; /* 残りが少ないことが分かるよう赤系の色にする */
+    background-color: #6f9cf5; /* 余裕があることが分かるよう青系の色にする */
+
+}
+
+.home-food-bar-warning { /* フードの残量がやや少なくなってきたときのバーの色を設定する */
+
+    background-color: #f0c14b; /* 注意を促すため黄色系の色にする */
+
+}
+
+.home-food-bar-danger { /* フードの残量が少なく危険なときのバーの色を設定する */
+
+    background-color: #e05c5c; /* 危険であることが分かるよう赤系の色にする */
+
+}
+
+.home-food-days { /* フードの残り日数を表す文字を設定する */
+
+    font-size: 14px; /* 残り日数の文字サイズを設定する */
+
+    white-space: nowrap; /* 残り日数の文字が途中で改行されないようにする */
+
+}
+
+.home-food-days-safe { /* 残量に余裕があるときの残り日数の文字色を設定する */
+
+    color: #4a72d6; /* バーと揃えた青系の文字色にする */
+
+    font-weight: 700; /* 読み取りやすいよう太字にする */
+
+}
+
+.home-food-days-warning { /* 残量がやや少ないときの残り日数の文字色を設定する */
+
+    color: #a8791a; /* バーと揃えた黄色系(こげ茶寄り)の文字色にする */
+
+    font-weight: 700; /* 読み取りやすいよう太字にする */
+
+}
+
+.home-food-days-danger { /* 残量が少なく危険なときの残り日数の文字色を設定する */
+
+    color: #b83b3b; /* バーと揃えた赤系の文字色にする */
+
+    font-weight: 700; /* 目立つよう太字にする */
 
 }
 

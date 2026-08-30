@@ -81,15 +81,33 @@ SCHEDULE_POOL = [  # ホーム画面の「次の予定」に使うダミーの�
 
 ]  # 「次の予定」ダミー候補の定義を終了する
 
+FOOD_BAR_MAX_DAYS = 30  # フード残量バーが満タン表示になる日数のしきい値を設定する
+
+FOOD_DANGER_DAYS = 10  # この日数を切ったらフード残量バーを赤色にするしきい値を設定する
+
+FOOD_WARNING_DAYS = 20  # この日数を切ったらフード残量バーを黄色にするしきい値を設定する
+
 def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミー情報を組み立てる関数を定義する
 
     rng = random.Random(pet["id"])  # ペットIDを種にして、同じペットなら毎回同じダミー内容になるようにする
 
     today_tasks = rng.sample(TASK_POOL, k=rng.randint(0, 2))  # 「今日のやること」候補からランダムに0〜2件を選ぶ
 
-    food_days_left = rng.randint(1, 14)  # フードがなくなるまでの残り日数をダミーで決める
+    food_days_left = rng.randint(1, 35)  # フードがなくなるまでの残り日数をダミーで決める(満タン表示になるケースも試せるよう30日を超える値も含める)
 
-    food_percent = rng.randint(10, 100)  # フードの残量をダミーで決める
+    food_percent = min(round(food_days_left / FOOD_BAR_MAX_DAYS * 100), 100)  # 残り日数をもとにバーの表示割合を計算し、実際の日数と矛盾しないようにする
+
+    if food_days_left < FOOD_DANGER_DAYS:  # 残り日数がしきい値を切って少ない場合
+
+        food_level = "danger"  # フード残量バーを赤色にする
+
+    elif food_days_left < FOOD_WARNING_DAYS:  # 残り日数がまだ危険域ではないが少なめの場合
+
+        food_level = "warning"  # フード残量バーを黄色にする
+
+    else:  # 残り日数に十分な余裕がある場合
+
+        food_level = "safe"  # フード残量バーを青色にする
 
     next_schedule_label = rng.choice(SCHEDULE_POOL)  # 次に控えている予定の種類をダミーで決める
 
@@ -102,8 +120,9 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
         "pet": pet,  # 表示対象のペット情報
         "today_tasks": today_tasks,  # 今日のやることリスト
         "food_days_left": food_days_left,  # フードが残っている日数
-        "food_percent": food_percent,  # フードの残量パーセント
-        "food_urgent": food_days_left <= 3,  # フードの残りが少なく目立たせるべきかどうか
+        "food_percent": food_percent,  # フードの残量バーの表示割合(0〜100)
+        "food_max_days": FOOD_BAR_MAX_DAYS,  # フード残量バーが満タンとして扱う日数
+        "food_level": food_level,  # フード残量バーの色分け("danger" / "warning" / "safe")
         "next_schedule_label": next_schedule_label,  # 次の予定の種類
         "next_schedule_days": next_schedule_days,  # 次の予定までの残り日数
         "next_schedule_urgent": next_schedule_days <= 3,  # 次の予定が近く目立たせるべきかどうか
