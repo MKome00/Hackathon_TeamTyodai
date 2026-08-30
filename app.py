@@ -213,6 +213,42 @@ def fetch_pet_records(pet_id):  # 選択中のペット1匹分の健康・通院
 
     return records  # 組み立てた記録一覧を返す
 
+def fetch_all_records():  # 登録されているすべてのペットの健康・通院履歴をペット名付きでrecordsテーブルから取得する関数を定義する
+
+    connection = get_db_connection()  # recordsテーブルとpetsテーブルを読み取るためSQLiteへ接続する
+
+    rows = connection.execute(  # すべてのペットの記録を、どのペットのものかも含めて新しい順に取得する
+
+        """
+        SELECT records.id, records.pet_id, pets.name AS pet_name, records.type, records.detail, records.weight_value, records.record_date
+        FROM records
+        JOIN pets ON pets.id = records.pet_id
+        ORDER BY records.record_date DESC, records.id DESC
+        """,  # recordsテーブルとpetsテーブルを結びつけ、記録日の新しい順に取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    records = []  # DBの行を表示用の形へ組み立てて追加していくリストを用意する
+
+    for row in rows:  # 取得した記録を1件ずつ処理する
+
+        records.append({  # 1件分の記録を表示用の形へ変換してリストへ追加する
+
+            "id": row["id"],  # 記録のID
+            "pet_id": row["pet_id"],  # この記録がどのペットのものかを表すID
+            "pet_name": row["pet_name"],  # この記録がどのペットのものかを表す名前
+            "date": date.fromisoformat(row["record_date"]),  # 保存されている日付の文字列をdate型に変換する
+            "icon": RECORD_TYPE_ICONS.get(row["type"], "📝"),  # 種類名に対応する絵文字(未知の種類なら📝)
+            "label": row["type"],  # 記録の種類名
+            "detail": row["detail"],  # 記録の詳細文言
+            "weight_value": row["weight_value"],  # 体重の記録の場合だけ入る具体的な数値
+
+        })  # 1件分の記録変換の追加を終了する
+
+    return records  # 組み立てた記録一覧を返す
+
 RECORD_GROUP_PREVIEW_COUNT = 5  # 項目ごとのまとめカードに常に表示する最新件数を設定する
 
 def group_records_by_type(records):  # 時系列の記録一覧を種類ごとにまとめ直す関数を定義する
@@ -242,6 +278,33 @@ def group_records_by_type(records):  # 時系列の記録一覧を種類ごと�
         })  # 1種類分のまとめ追加を終了する
 
     return groups  # 種類ごとにまとめた結果を返す
+
+def group_records_by_pet(records, pets):  # 全ペット分の記録一覧をペットごとにまとめ直す関数を定義する
+
+    groups = []  # ペットごとにまとめた結果を追加していくリストを用意する
+
+    for pet in pets:  # 登録順(ID順)にペットを1匹ずつ処理する
+
+        matching_records = [  # このペットに該当する記録だけを抜き出す
+
+            record for record in records if record["pet_id"] == pet["id"]
+
+        ]  # 該当する記録の抜き出しを終了する
+
+        if not matching_records:  # このペットの記録が1件も無い場合
+
+            continue  # まとめカードを作らずに次のペットへ進む
+
+        groups.append({  # 1匹分のまとめ情報をリストへ追加する
+
+            "pet": pet,  # まとめ対象のペット情報
+            "count": len(matching_records),  # このペットの記録の総件数
+            "preview": matching_records[:RECORD_GROUP_PREVIEW_COUNT],  # 常に表示する最新分の記録
+            "rest": matching_records[RECORD_GROUP_PREVIEW_COUNT:],  # 「すべて見る」を開いたときだけ表示する残りの記録
+
+        })  # 1匹分のまとめ追加を終了する
+
+    return groups  # ペットごとにまとめた結果を返す
 
 SCHEDULE_EVENT_TYPES = ["予防接種", "健康診断", "通院", "お薬"]  # カレンダー予定のうち、記録との突き合わせ対象にする種類を用意する(体重は予定として扱わない)
 
@@ -1048,10 +1111,14 @@ def records():  # 記録画面の表示と、健康・通院記録の新規追�
                 "records.html",  # 記録画面を再表示する
                 pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
                 selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
+                view_all=False,  # 記録追加フォームは特定のペットに対する操作なので「全員」表示にはしない
                 pet_records=pet_records,  # 選択中のペットの健康・通院履歴(時系列)をHTMLへ渡す
                 record_groups=record_groups,  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
                 record_reminders=record_reminders,  # 記録を促すリマインダーをHTMLへ渡す
                 record_types=RECORD_TYPE_POOL,  # 記録の種類の選択肢をHTMLへ渡す
+                all_records=[],  # 「全員」表示ではないため空のリストを渡す
+                all_record_groups=[],  # 「全員」表示ではないため空のリストを渡す
+                pet_record_groups=[],  # 「全員」表示ではないため空のリストを渡す
                 error_message=error_message,  # 入力エラーメッセージをHTMLへ渡す
                 form_type=record_type,  # 入力し直せるよう選んでいた種類をHTMLへ渡す
                 form_detail=detail,  # 入力し直せるよう入力していた内容をHTMLへ渡す
@@ -1080,7 +1147,32 @@ def records():  # 記録画面の表示と、健康・通院記録の新規追�
 
         return redirect(url_for("records", pet_id=pet_id))  # 記録したペットのIDを付けて記録画面へ戻る
 
+    view = request.args.get("view")  # URLの?view=allが指定されているか確認する
+
     pet_list, selected_pet = fetch_pets_and_selected(request.args.get("pet_id"))  # URLのpet_idからペット一覧と選択中のペットを取得する
+
+    if view == "all":  # 「全員」タブが選ばれている場合
+
+        all_records = fetch_all_records()  # 登録されているすべてのペットの記録をペット名付きで取得する
+
+        return render_template(
+            "records.html",  # templatesフォルダ内のrecords.htmlを表示する
+            pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す(切り替えチップの表示に使う)
+            selected_pet=None,  # 「全員」表示では特定のペットは選択されていない状態にする
+            view_all=True,  # 「全員」タブの内容を表示するようHTMLへ伝える
+            pet_records=[],  # 個別ペット表示ではないため空のリストを渡す
+            record_groups=[],  # 個別ペット表示ではないため空のリストを渡す
+            record_reminders=[],  # 「全員」表示ではリマインダーはまとめて出さない
+            record_types=RECORD_TYPE_POOL,  # 記録の種類の選択肢をHTMLへ渡す(未使用だが他の分岐と揃えておく)
+            all_records=all_records,  # 全ペット分の記録(時系列用)をHTMLへ渡す
+            all_record_groups=group_records_by_type(all_records) if all_records else [],  # 全ペット分の記録を種類ごとにまとめてHTMLへ渡す
+            pet_record_groups=group_records_by_pet(all_records, pet_list) if all_records else [],  # 全ペット分の記録をペットごとにまとめてHTMLへ渡す
+            error_message=None,  # 「全員」表示にフォームは無いのでエラーメッセージも無い
+            form_type=None,  # 「全員」表示では記録追加フォームを使わない
+            form_detail="",  # 「全員」表示では記録追加フォームを使わない
+            form_weight="",  # 「全員」表示では記録追加フォームを使わない
+            form_date=date.today().isoformat()  # 「全員」表示では記録追加フォームを使わない
+        )  # 「全員」タブのHTML表示処理を終了する
 
     pet_records = fetch_pet_records(selected_pet["id"]) if selected_pet else []  # 選択中のペットがいる場合だけ健康・通院履歴を取得する
 
@@ -1092,10 +1184,14 @@ def records():  # 記録画面の表示と、健康・通院記録の新規追�
         "records.html",  # templatesフォルダ内のrecords.htmlを表示する
         pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
         selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
+        view_all=False,  # 個別ペットの内容を表示するようHTMLへ伝える
         pet_records=pet_records,  # 選択中のペットの健康・通院履歴(時系列)をHTMLへ渡す
         record_groups=record_groups,  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
         record_reminders=record_reminders,  # 記録を促すリマインダーをHTMLへ渡す
         record_types=RECORD_TYPE_POOL,  # 記録の種類の選択肢をHTMLへ渡す
+        all_records=[],  # 個別ペット表示ではないため空のリストを渡す
+        all_record_groups=[],  # 個別ペット表示ではないため空のリストを渡す
+        pet_record_groups=[],  # 個別ペット表示ではないため空のリストを渡す
         error_message=None,  # 初回表示ではエラーメッセージは無い
         form_type=None,  # 初回表示ではフォームの種類選択は空にする
         form_detail="",  # 初回表示ではフォームの内容欄は空にする
