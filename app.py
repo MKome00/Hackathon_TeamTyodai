@@ -61,6 +61,22 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
         connection.execute("ALTER TABLE pets ADD COLUMN photo TEXT")  # 既存テーブルに画像ファイル名保存用のphoto列を追加する
 
+    connection.execute(  # recordsテーブルが存在しない場合に新しく作成するSQLを実行する
+
+        """
+        CREATE TABLE IF NOT EXISTS records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pet_id INTEGER NOT NULL,
+            type TEXT NOT NULL,
+            detail TEXT,
+            weight_value REAL,
+            record_date TEXT NOT NULL,
+            FOREIGN KEY (pet_id) REFERENCES pets (id)
+        )
+        """  # ペットごとの健康・通院記録を保存できるrecordsテーブルを定義する
+
+    )  # recordsテーブル作成処理を終了する
+
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
     connection.close()  # データベースとの接続を終了する
@@ -142,53 +158,41 @@ RECORD_TYPE_POOL = [  # 記録画面の通院・健康履歴に使うダミー�
 
 ]  # 記録の種類ダミー候補の定義を終了する
 
-RECORD_DETAIL_POOL = {  # 記録の種類ごとに使うダミーの詳細文言を用意する
+RECORD_TYPE_ICONS = {record_type["label"]: record_type["icon"] for record_type in RECORD_TYPE_POOL}  # 種類名から絵文字を引けるようにしておく
 
-    "体重": ["定期測定", "健康診断時に測定", "自宅で測定"],
-    "予防接種": ["混合ワクチン接種", "狂犬病ワクチン接種", "ノミ・マダニ予防接種"],
-    "健康診断": ["異常なし", "経過観察", "血液検査を実施"],
-    "通院": ["皮膚のかゆみで受診", "嘔吐のため受診", "定期健診で来院", "怪我の治療で来院"],
-    "お薬": ["抗生剤を処方", "痒み止めを処方", "整腸剤を処方"],
+def fetch_pet_records(pet_id):  # 選択中のペット1匹分の健康・通院履歴をrecordsテーブルから取得する関数を定義する
 
-}  # 記録の詳細ダミー候補の定義を終了する
+    connection = get_db_connection()  # recordsテーブルを読み取るためSQLiteへ接続する
 
-def build_pet_records(pet):  # 選択中のペット1匹分の健康・通院履歴ダミーデータを組み立てる関数を定義する
+    rows = connection.execute(  # 指定されたペットの記録を新しい順に取得する
 
-    rng = random.Random(pet["id"] * 31 + 7)  # ホーム画面のダミーと重複しない乱数の流れになるよう、ペットIDから別の種を作る
+        """
+        SELECT id, type, detail, weight_value, record_date
+        FROM records
+        WHERE pet_id = ?
+        ORDER BY record_date DESC, id DESC
+        """,  # 記録日の新しい順(同じ日付ならID順)に並べて取得するSQLを書く
 
-    record_count = rng.randint(6, 14)  # 表示する記録の件数をダミーで決める(項目ごとの「すべて見る」も試せるよう件数に幅を持たせる)
+        (pet_id,)  # 対象のペットIDをSQLへ渡す
 
-    today = date.today()  # 今日の日付を基準に過去の記録日を計算する
+    ).fetchall()  # SQLの検索結果をすべて取得する
 
-    records = []  # 組み立てた記録を1件ずつ追加していくリストを用意する
+    connection.close()  # SQLiteとの接続を終了する
 
-    for _ in range(record_count):  # 決めた件数だけ記録を1件ずつ作成する
+    records = []  # DBの行を表示用の形へ組み立てて追加していくリストを用意する
 
-        record_type = rng.choice(RECORD_TYPE_POOL)  # 記録の種類(体重・通院など)をダミーで選ぶ
+    for row in rows:  # 取得した記録を1件ずつ処理する
 
-        detail = rng.choice(RECORD_DETAIL_POOL[record_type["label"]])  # 選んだ種類に合った詳細文言をダミーで選ぶ
+        records.append({  # 1件分の記録を表示用の形へ変換してリストへ追加する
 
-        record_date = today - timedelta(days=rng.randint(1, 180))  # 過去180日以内のどこかの日付をダミーで決める
+            "id": row["id"],  # 記録のID
+            "date": date.fromisoformat(row["record_date"]),  # 保存されている日付の文字列をdate型に変換する
+            "icon": RECORD_TYPE_ICONS.get(row["type"], "📝"),  # 種類名に対応する絵文字(未知の種類なら📝)
+            "label": row["type"],  # 記録の種類名
+            "detail": row["detail"],  # 記録の詳細文言
+            "weight_value": row["weight_value"],  # 体重の記録の場合だけ入る具体的な数値
 
-        weight_value = None  # 体重の記録でない場合は体重の値を持たせない
-
-        if record_type["label"] == "体重":  # 体重の記録だった場合
-
-            base_weight = pet["weight"] if pet["weight"] is not None else 5.0  # 登録済みの体重を基準にし、未登録なら5.0kgを仮の基準にする
-
-            weight_value = round(base_weight + rng.uniform(-0.5, 0.5), 1)  # 基準の体重から前後0.5kgほど変動させたダミー値を作る
-
-        records.append({  # 1件分の記録をリストへ追加する
-
-            "date": record_date,  # 記録した日付
-            "icon": record_type["icon"],  # 記録の種類を表す絵文字
-            "label": record_type["label"],  # 記録の種類名
-            "detail": detail,  # 記録の詳細文言
-            "weight_value": weight_value,  # 体重の記録の場合だけ入る具体的な数値
-
-        })  # 1件分の記録追加を終了する
-
-    records.sort(key=lambda record: record["date"], reverse=True)  # 新しい記録が上に来るよう日付の新しい順に並べ替える
+        })  # 1件分の記録変換の追加を終了する
 
     return records  # 組み立てた記録一覧を返す
 
@@ -222,6 +226,57 @@ def group_records_by_type(records):  # 時系列の記録一覧を種類ごと�
 
     return groups  # 種類ごとにまとめた結果を返す
 
+SCHEDULE_EVENT_TYPES = ["予防接種", "健康診断", "通院", "お薬"]  # カレンダー予定のうち、記録との突き合わせ対象にする種類を用意する(体重は予定として扱わない)
+
+def build_dummy_schedule(pet):  # カレンダー機能が無いあいだ代わりに使う、ペット1匹分のダミー予定を組み立てる関数を定義する
+
+    rng = random.Random(pet["id"] * 53 + 11)  # ホーム画面・記録のダミーと重複しない乱数の流れになるよう、ペットIDから別の種を作る
+
+    event_count = rng.randint(1, 3)  # 予定の件数をダミーで決める
+
+    today = date.today()  # 今日の日付を基準に予定日を計算する
+
+    events = []  # 組み立てた予定を1件ずつ追加していくリストを用意する
+
+    for _ in range(event_count):  # 決めた件数だけ予定を1件ずつ作成する
+
+        events.append({  # 1件分の予定をリストへ追加する
+
+            "type": rng.choice(SCHEDULE_EVENT_TYPES),  # 予定の種類をダミーで選ぶ
+            "date": today + timedelta(days=rng.randint(-20, 20)),  # 過去20日〜未来20日のどこかをダミーの予定日にする(過去日は「過ぎた予定」を試すため)
+
+        })  # 1件分の予定追加を終了する
+
+    return events  # 組み立てた予定一覧を返す
+
+def build_record_reminders(pet, pet_records):  # 予定日を過ぎても記録が無いものを探し、リマインダー一覧を組み立てる関数を定義する
+
+    today = date.today()  # 「予定日を過ぎているか」を判定する基準の日付を取得する
+
+    reminders = []  # 記録を促す必要がある予定を追加していくリストを用意する
+
+    for event in build_dummy_schedule(pet):  # ダミーの予定を1件ずつ確認する
+
+        if event["date"] >= today:  # 予定日がまだ来ていない、または今日の場合
+
+            continue  # 記録を促す必要はまだ無いので次の予定へ進む
+
+        has_matching_record = any(  # 予定日以降に、同じ種類の記録がすでに登録されているか確認する
+
+            record["label"] == event["type"] and record["date"] >= event["date"]
+
+            for record in pet_records
+
+        )  # 一致する記録があるかどうかの確認を終了する
+
+        if not has_matching_record:  # 予定日を過ぎているのに対応する記録がまだ無い場合
+
+            reminders.append(event)  # この予定をリマインダーとして追加する
+
+    reminders.sort(key=lambda event: event["date"])  # 予定日が古い(=より過ぎている)ものから並べる
+
+    return reminders  # 組み立てたリマインダー一覧を返す
+
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
 def home():  # ホーム画面を表示する関数を定義する
@@ -240,7 +295,15 @@ def home():  # ホーム画面を表示する関数を定義する
 
     connection.close()  # ペット情報を取得し終わったのでSQLiteとの接続を終了する
 
-    home_pets = [build_home_dummy_data(pet) for pet in pet_list]  # 登録済みペットごとに表示用のダミー情報を組み立てる
+    home_pets = []  # ホーム画面に表示するペットごとの情報を追加していくリストを用意する
+
+    for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
+
+        home_pet = build_home_dummy_data(pet)  # 今日のやること・フード残量などの表示用ダミー情報を組み立てる
+
+        home_pet["record_reminders"] = build_record_reminders(pet, fetch_pet_records(pet["id"]))  # 予定日を過ぎても記録が無い項目のリマインダーを組み立てて追加する
+
+        home_pets.append(home_pet)  # 組み立てた1匹分の情報をリストへ追加する
 
     return render_template("home.html", home_pets=home_pets)  # templatesフォルダ内のhome.htmlへペットごとの表示データを渡す
 
@@ -569,10 +632,9 @@ def calendar():  # カレンダー画面を表示する関数を定義する
 
     return render_template("calendar.html")  # templatesフォルダ内のcalendar.htmlを表示する
 
-@app.route("/records")  # 「/records」にアクセスされたときの処理を指定する
-def records():  # 記録画面を表示する関数を定義する
+def fetch_pets_and_selected(pet_id_text):  # 登録済みペット一覧と、指定されたIDから選択中のペットを取得する共通処理を定義する
 
-    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+    connection = get_db_connection()  # ペット情報を取得するためSQLiteへ接続する
 
     pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
 
@@ -584,11 +646,9 @@ def records():  # 記録画面を表示する関数を定義する
 
     ).fetchall()  # SQLの検索結果をすべて取得する
 
-    selected_pet_id = request.args.get("pet_id")  # URLの?pet_id=〇から現在表示するペットIDを取得する
-
     selected_pet = None  # 最初は選択中のペットが存在しない状態にしておく
 
-    if selected_pet_id:  # URLにペットIDが指定されている場合
+    if pet_id_text:  # ペットIDが指定されている場合
 
         selected_pet = connection.execute(  # 指定されたIDのペット情報を取得する
 
@@ -596,13 +656,13 @@ def records():  # 記録画面を表示する関数を定義する
             SELECT id, name, type, age, weight, note, photo
             FROM pets
             WHERE id = ?
-            """,  # URLで指定されたペット1匹を取得するSQLを書く
+            """,  # 指定されたペット1匹を取得するSQLを書く
 
-            (selected_pet_id,)  # URLから取得したペットIDをSQLへ渡す
+            (pet_id_text,)  # 指定されたペットIDをSQLへ渡す
 
         ).fetchone()  # 条件に一致したペット1匹分を取得する
 
-    elif pet_list:  # URLにpet_idが指定されておらず、ペットが1匹以上登録されている場合
+    elif pet_list:  # ペットIDが指定されておらず、ペットが1匹以上登録されている場合
 
         selected_pet = connection.execute(  # 登録されている中で最もIDが小さいペットを取得する
 
@@ -617,16 +677,144 @@ def records():  # 記録画面を表示する関数を定義する
 
     connection.close()  # ペット情報を取得し終わったのでSQLiteとの接続を終了する
 
-    pet_records = build_pet_records(selected_pet) if selected_pet else []  # 選択中のペットがいる場合だけ健康・通院履歴のダミーデータを組み立てる
+    return pet_list, selected_pet  # ペット一覧と選択中のペットを返す
+
+@app.route("/records", methods=["GET", "POST"])  # 記録画面で表示のGETと記録追加のPOSTを受け付ける
+def records():  # 記録画面の表示と、健康・通院記録の新規追加を行う関数を定義する
+
+    if request.method == "POST":  # 「記録を追加」フォームからPOSTでデータが送信された場合だけ以下を実行する
+
+        pet_id = request.form.get("pet_id")  # フォームから記録対象のペットIDを取得する
+
+        record_type = request.form.get("type", "")  # フォームから記録の種類を取得する
+
+        detail = request.form.get("detail", "").strip()  # 記録の内容を取得し、前後の余分な空白を削除する
+
+        weight_text = request.form.get("weight_value", "").strip()  # 体重の値をまず文字列として取得する
+
+        record_date_text = request.form.get("record_date", "").strip()  # 記録日を文字列として取得する
+
+        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+
+        record_type_labels = [record_type_item["label"] for record_type_item in RECORD_TYPE_POOL]  # 選択できる記録の種類名だけを一覧として取り出す
+
+        if not pet_id:  # 記録対象のペットが選ばれていない場合
+
+            error_message = "記録するペットを選択してください。"  # ペット未選択であることをエラーメッセージとして設定する
+
+        elif record_type not in record_type_labels:  # 記録の種類が選択肢に無い値だった場合
+
+            error_message = "記録の種類を選択してください。"  # 種類が未選択・不正であることを知らせる
+
+        elif not detail:  # 記録の内容が空欄の場合
+
+            error_message = "記録の内容を入力してください。"  # 内容が必要であることを知らせる
+
+        elif len(detail) > 200:  # 記録の内容が200文字を超えている場合
+
+            error_message = "記録の内容は200文字以内で入力してください。"  # 内容の文字数制限を知らせる
+
+        record_date = None  # 変換できた記録日を保存する変数を用意する
+
+        if not error_message:  # ここまでエラーが無い場合
+
+            try:  # 記録日を日付として解釈できるか確認する
+
+                record_date = date.fromisoformat(record_date_text)  # 入力された記録日を日付型に変換する
+
+            except ValueError:  # 日付として解釈できない値が入力されていた場合
+
+                error_message = "記録日を正しく選択してください。"  # 記録日の入力形式が不正であることを知らせる
+
+        weight_value = None  # 体重の記録でない場合は体重の値を持たせない
+
+        if not error_message and record_type == "体重":  # ここまでエラーが無く、体重の記録を追加しようとしている場合
+
+            if not weight_text:  # 体重の値が入力されていない場合
+
+                error_message = "体重の値を入力してください。"  # 体重の入力が必要であることを知らせる
+
+            else:  # 体重の値が入力されている場合
+
+                try:  # 体重を小数へ変換できるか確認する
+
+                    weight_value = float(weight_text)  # 入力された体重を小数へ変換する
+
+                except ValueError:  # 小数へ変換できない値が入力されていた場合
+
+                    error_message = "体重は数値で入力してください。"  # 体重の入力形式が不正であることを知らせる
+
+                if error_message is None and (weight_value < 0 or weight_value > 500):  # 変換できた体重が許可範囲外だった場合
+
+                    error_message = "体重は0kg以上500kg以下で入力してください。"  # 体重の範囲を知らせる
+
+        if error_message:  # 入力内容に何らかのエラーが存在する場合
+
+            pet_list, selected_pet = fetch_pets_and_selected(pet_id)  # 記録画面を再表示するためペット一覧と選択中のペットを取得する
+
+            pet_records = fetch_pet_records(selected_pet["id"]) if selected_pet else []  # 選択中のペットの記録を取得する
+
+            record_groups = group_records_by_type(pet_records) if pet_records else []  # 記録を種類ごとのまとめに組み立て直す
+
+            record_reminders = build_record_reminders(selected_pet, pet_records) if selected_pet else []  # 記録を促すリマインダーを組み立て直す
+
+            return render_template(
+                "records.html",  # 記録画面を再表示する
+                pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
+                selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
+                pet_records=pet_records,  # 選択中のペットの健康・通院履歴(時系列)をHTMLへ渡す
+                record_groups=record_groups,  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
+                record_reminders=record_reminders,  # 記録を促すリマインダーをHTMLへ渡す
+                record_types=RECORD_TYPE_POOL,  # 記録の種類の選択肢をHTMLへ渡す
+                error_message=error_message,  # 入力エラーメッセージをHTMLへ渡す
+                form_type=record_type,  # 入力し直せるよう選んでいた種類をHTMLへ渡す
+                form_detail=detail,  # 入力し直せるよう入力していた内容をHTMLへ渡す
+                form_weight=weight_text,  # 入力し直せるよう入力していた体重をHTMLへ渡す
+                form_date=record_date_text  # 入力し直せるよう選んでいた記録日をHTMLへ渡す
+            )  # DBへの保存処理は行わず、記録画面へ戻る
+
+        connection = get_db_connection()  # SQLiteへ接続する
+
+        connection.execute(  # 新しい記録をrecordsテーブルへ登録する
+
+            """
+            INSERT INTO records (pet_id, type, detail, weight_value, record_date)
+            VALUES (?, ?, ?, ?, ?)
+            """,  # 新しい記録の内容を保存するSQLを書く
+
+            (pet_id, record_type, detail, weight_value, record_date.isoformat())  # 入力された記録の内容をSQLへ渡す
+
+        )  # INSERT処理を終了する
+
+        connection.commit()  # 記録の追加をSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+        flash("記録を保存しました。", "success")  # 保存完了メッセージを一時保存する
+
+        return redirect(url_for("records", pet_id=pet_id))  # 記録したペットのIDを付けて記録画面へ戻る
+
+    pet_list, selected_pet = fetch_pets_and_selected(request.args.get("pet_id"))  # URLのpet_idからペット一覧と選択中のペットを取得する
+
+    pet_records = fetch_pet_records(selected_pet["id"]) if selected_pet else []  # 選択中のペットがいる場合だけ健康・通院履歴を取得する
 
     record_groups = group_records_by_type(pet_records) if pet_records else []  # 時系列の記録を種類ごとのまとめにも組み立て直す
+
+    record_reminders = build_record_reminders(selected_pet, pet_records) if selected_pet else []  # 予定日を過ぎても記録が無い項目のリマインダーを組み立てる
 
     return render_template(
         "records.html",  # templatesフォルダ内のrecords.htmlを表示する
         pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
         selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
         pet_records=pet_records,  # 選択中のペットの健康・通院履歴(時系列)をHTMLへ渡す
-        record_groups=record_groups  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
+        record_groups=record_groups,  # 選択中のペットの健康・通院履歴(種類ごとのまとめ)をHTMLへ渡す
+        record_reminders=record_reminders,  # 記録を促すリマインダーをHTMLへ渡す
+        record_types=RECORD_TYPE_POOL,  # 記録の種類の選択肢をHTMLへ渡す
+        error_message=None,  # 初回表示ではエラーメッセージは無い
+        form_type=None,  # 初回表示ではフォームの種類選択は空にする
+        form_detail="",  # 初回表示ではフォームの内容欄は空にする
+        form_weight="",  # 初回表示ではフォームの体重欄は空にする
+        form_date=date.today().isoformat()  # 記録日の初期値は今日の日付にする
     )  # HTML表示処理を終了する
 
 @app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する
