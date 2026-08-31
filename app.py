@@ -123,7 +123,7 @@ def fetch_next_calendar_event(pet_id):  # 指定したペットの次に控え�
     row = connection.execute(  # 今日以降で最も近い予定を1件だけ取得する
 
         """
-        SELECT category, event_date
+        SELECT category, event_date, note
         FROM calendar_events
         WHERE pet_id = ? AND event_date >= ?
         ORDER BY event_date ASC, start_time ASC
@@ -144,6 +144,7 @@ def fetch_next_calendar_event(pet_id):  # 指定したペットの次に控え�
 
         "label": CALENDAR_CATEGORY_LABELS.get(row["category"], "予定"),  # 予定の種類を日本語に変換する
         "date": date.fromisoformat(row["event_date"]),  # 予定日の文字列をdate型に変換する
+        "note": row["note"],  # カレンダーに入力された詳細メモ(未入力ならNone)
 
     }  # 次の予定情報の組み立てを終了する
 
@@ -418,6 +419,7 @@ def home():  # ホーム画面を表示する関数を定義する
                 "label": next_event["label"],  # 予定の種類
                 "days_until": days_until,  # 予定日までの残り日数
                 "urgent": days_until <= 3,  # 予定が近く目立たせるべきかどうか
+                "note": next_event["note"],  # カレンダーに入力された詳細メモ(未入力ならNone)
 
             }  # 次の予定情報の組み立てを終了する
 
