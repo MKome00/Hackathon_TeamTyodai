@@ -306,44 +306,44 @@ def group_records_by_pet(records, pets):  # 全ペット分の記録一覧をペ
 
     return groups  # ペットごとにまとめた結果を返す
 
-SCHEDULE_EVENT_TYPES = ["予防接種", "健康診断", "通院", "お薬"]  # カレンダー予定のうち、記録との突き合わせ対象にする種類を用意する(体重は予定として扱わない)
+HOSPITAL_MATCHING_RECORD_LABELS = ["通院", "予防接種", "健康診断", "お薬"]  # 「病院」の予定が済んだとみなせる記録の種類を用意する(体重だけの記録では済んだとみなさない)
 
-def build_dummy_schedule(pet):  # カレンダー機能が無いあいだ代わりに使う、ペット1匹分のダミー予定を組み立てる関数を定義する
+def fetch_hospital_events(pet_id):  # 指定したペットの「病院」カテゴリの予定をcalendar_eventsテーブルから取得する関数を定義する
 
-    rng = random.Random(pet["id"] * 53 + 11)  # ホーム画面・記録のダミーと重複しない乱数の流れになるよう、ペットIDから別の種を作る
+    connection = get_db_connection()  # calendar_eventsテーブルを読み取るためSQLiteへ接続する
 
-    event_count = rng.randint(1, 3)  # 予定の件数をダミーで決める
+    rows = connection.execute(  # 指定されたペットの「病院」予定を日付順に取得する
 
-    today = date.today()  # 今日の日付を基準に予定日を計算する
+        """
+        SELECT event_date
+        FROM calendar_events
+        WHERE pet_id = ? AND category = 'hospital'
+        ORDER BY event_date ASC
+        """,  # カレンダー機能で保存された「病院」カテゴリの予定だけを取得するSQLを書く
 
-    events = []  # 組み立てた予定を1件ずつ追加していくリストを用意する
+        (pet_id,)  # 対象のペットIDをSQLへ渡す
 
-    for _ in range(event_count):  # 決めた件数だけ予定を1件ずつ作成する
+    ).fetchall()  # SQLの検索結果をすべて取得する
 
-        events.append({  # 1件分の予定をリストへ追加する
+    connection.close()  # SQLiteとの接続を終了する
 
-            "type": rng.choice(SCHEDULE_EVENT_TYPES),  # 予定の種類をダミーで選ぶ
-            "date": today + timedelta(days=rng.randint(-20, 20)),  # 過去20日〜未来20日のどこかをダミーの予定日にする(過去日は「過ぎた予定」を試すため)
+    return [date.fromisoformat(row["event_date"]) for row in rows]  # 予定日の文字列をdate型に変換した一覧を返す
 
-        })  # 1件分の予定追加を終了する
-
-    return events  # 組み立てた予定一覧を返す
-
-def build_record_reminders(pet, pet_records):  # 予定日を過ぎても記録が無いものを探し、リマインダー一覧を組み立てる関数を定義する
+def build_record_reminders(pet, pet_records):  # 病院の予定日を過ぎても記録が無いものを探し、リマインダー一覧を組み立てる関数を定義する
 
     today = date.today()  # 「予定日を過ぎているか」を判定する基準の日付を取得する
 
     reminders = []  # 記録を促す必要がある予定を追加していくリストを用意する
 
-    for event in build_dummy_schedule(pet):  # ダミーの予定を1件ずつ確認する
+    for event_date in fetch_hospital_events(pet["id"]):  # カレンダーに登録されている「病院」予定を1件ずつ確認する
 
-        if event["date"] >= today:  # 予定日がまだ来ていない、または今日の場合
+        if event_date >= today:  # 予定日がまだ来ていない、または今日の場合
 
             continue  # 記録を促す必要はまだ無いので次の予定へ進む
 
-        has_matching_record = any(  # 予定日以降に、同じ種類の記録がすでに登録されているか確認する
+        has_matching_record = any(  # 予定日以降に、病院関連の記録(通院・予防接種・健康診断・お薬)がすでに登録されているか確認する
 
-            record["label"] == event["type"] and record["date"] >= event["date"]
+            record["label"] in HOSPITAL_MATCHING_RECORD_LABELS and record["date"] >= event_date
 
             for record in pet_records
 
@@ -351,7 +351,7 @@ def build_record_reminders(pet, pet_records):  # 予定日を過ぎても記録�
 
         if not has_matching_record:  # 予定日を過ぎているのに対応する記録がまだ無い場合
 
-            reminders.append(event)  # この予定をリマインダーとして追加する
+            reminders.append({"type": "病院", "date": event_date})  # この予定をリマインダーとして追加する
 
     reminders.sort(key=lambda event: event["date"])  # 予定日が古い(=より過ぎている)ものから並べる
 
