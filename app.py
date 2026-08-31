@@ -98,16 +98,6 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
     connection.close()  # データベースとの接続を終了する
 
-TASK_POOL = [  # ホーム画面の「今日のやること」に使うダミーの予定候補一覧を用意する
-
-    {"icon": "🏥", "label": "通院"},
-    {"icon": "💊", "label": "お薬"},
-    {"icon": "✂️", "label": "トリミング予約"},
-    {"icon": "🛒", "label": "フードの買い足し"},
-    {"icon": "🧴", "label": "トイレ用品の補充"},
-
-]  # 「今日のやること」ダミー候補の定義を終了する
-
 CALENDAR_CATEGORY_LABELS = {  # calendar_eventsテーブルの英語カテゴリを画面表示用の日本語へ変換する
 
     "hospital": "病院",
@@ -115,6 +105,44 @@ CALENDAR_CATEGORY_LABELS = {  # calendar_eventsテーブルの英語カテゴリ
     "other": "その他",
 
 }  # カレンダー種類名の変換表を終了する
+
+CALENDAR_CATEGORY_ICONS = {  # calendar_eventsテーブルの英語カテゴリに対応する絵文字を用意する
+
+    "hospital": "🏥",
+    "trimming": "✂️",
+    "other": "📝",
+
+}  # カレンダー種類の絵文字の定義を終了する
+
+def fetch_today_calendar_events(pet_id):  # 指定したペットの「今日」が予定日のカレンダー予定をすべて取得する関数を定義する
+
+    connection = get_db_connection()  # calendar_eventsテーブルを読み取るためSQLiteへ接続する
+
+    rows = connection.execute(  # 今日が予定日になっている予定を開始時刻順にすべて取得する
+
+        """
+        SELECT category, note
+        FROM calendar_events
+        WHERE pet_id = ? AND event_date = ?
+        ORDER BY start_time ASC
+        """,  # 今日の日付と一致する予定だけを取得するSQLを書く
+
+        (pet_id, date.today().isoformat())  # 対象のペットIDと今日の日付をSQLへ渡す
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    return [  # 取得した予定を表示用の形へ変換して返す
+
+        {
+            "icon": CALENDAR_CATEGORY_ICONS.get(row["category"], "📝"),  # 種類に対応する絵文字(未知の種類なら📝)
+            "label": CALENDAR_CATEGORY_LABELS.get(row["category"], "予定"),  # 種類を日本語に変換する
+            "note": row["note"],  # カレンダーに入力された詳細メモ(未入力ならNone)
+        }
+        for row in rows  # 今日の予定を1件ずつ変換する
+
+    ]  # 今日の予定一覧への変換を終了する
 
 def fetch_next_calendar_event(pet_id):  # 指定したペットの次に控えているカレンダー予定を1件取得する関数を定義する
 
@@ -158,8 +186,6 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
 
     rng = random.Random(pet["id"])  # ペットIDを種にして、同じペットなら毎回同じダミー内容になるようにする
 
-    today_tasks = rng.sample(TASK_POOL, k=rng.randint(0, 2))  # 「今日のやること」候補からランダムに0〜2件を選ぶ
-
     food_days_left = rng.randint(1, 35)  # フードがなくなるまでの残り日数をダミーで決める(満タン表示になるケースも試せるよう30日を超える値も含める)
 
     food_percent = min(round(food_days_left / FOOD_BAR_MAX_DAYS * 100), 100)  # 残り日数をもとにバーの表示割合を計算し、実際の日数と矛盾しないようにする
@@ -181,7 +207,6 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
     return {  # 組み立てたダミー情報をまとめて返す
 
         "pet": pet,  # 表示対象のペット情報
-        "today_tasks": today_tasks,  # 今日のやることリスト
         "food_days_left": food_days_left,  # フードが残っている日数
         "food_percent": food_percent,  # フードの残量バーの表示割合(0〜100)
         "food_max_days": FOOD_BAR_MAX_DAYS,  # フード残量バーが満タンとして扱う日数
@@ -404,7 +429,9 @@ def home():  # ホーム画面を表示する関数を定義する
 
     for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
 
-        home_pet = build_home_dummy_data(pet)  # 今日のやること・フード残量などの表示用ダミー情報を組み立てる
+        home_pet = build_home_dummy_data(pet)  # フード残量などの表示用ダミー情報を組み立てる
+
+        home_pet["today_tasks"] = fetch_today_calendar_events(pet["id"])  # 今日が予定日になっているカレンダー予定を「今日のやること」として取得する
 
         home_pet["record_reminders"] = build_record_reminders(pet, fetch_pet_records(pet["id"]))  # 予定日を過ぎても記録が無い項目のリマインダーを組み立てて追加する
 
