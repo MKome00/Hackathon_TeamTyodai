@@ -676,6 +676,166 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 }
 
+.pet-view-tabs { /* プロフィールとペット一覧を切り替えるタブ全体を設定する */
+
+    display: flex; /* 2つのタブを横並びにする */
+
+    gap: 8px; /* タブ同士の間に余白を作る */
+
+    margin-top: 16px; /* ページヘッダーとの間に余白を作る */
+
+    margin-bottom: 16px; /* 下の内容との間に余白を作る */
+
+}
+
+.pet-view-tab { /* プロフィール・ペット一覧の各タブを設定する */
+
+    padding: 9px 16px; /* タブ内側に余白を作る */
+
+    background-color: #f3f3f3; /* 通常時の背景を薄いグレーにする */
+
+    border-radius: 10px; /* タブの角を丸くする */
+
+    color: #555555; /* 通常時の文字色を設定する */
+
+    font-size: 14px; /* タブ文字のサイズを設定する */
+
+    font-weight: 700; /* タブ文字を太字にする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+}
+
+.pet-view-tab.active { /* 現在表示しているタブを設定する */
+
+    background-color: #819aff; /* 選択中タブをアプリの青色にする */
+
+    color: #ffffff; /* 選択中タブの文字を白にする */
+
+}
+
+.pet-list { /* ペット一覧カードを並べる領域を設定する */
+
+    display: grid; /* 複数のカードを格子状に配置できるようにする */
+
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* 画面幅に応じてカードの列数を自動調整する */
+
+    gap: 16px; /* カード同士の間に余白を作る */
+
+}
+
+.pet-list-card { /* 1匹分のペット情報を表示するカードを設定する */
+
+    display: flex; /* 写真と情報を横並びにする */
+
+    gap: 14px; /* 写真と情報の間に余白を作る */
+
+    padding: 16px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カード背景を白にする */
+
+    border: 1px solid #dddddd; /* カードを薄い線で囲む */
+
+    border-radius: 16px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.pet-list-photo { /* 一覧画面のペット写真を設定する */
+
+    width: 90px; /* 写真の横幅を設定する */
+
+    height: 90px; /* 写真の高さを設定する */
+
+    flex-shrink: 0; /* 横幅が狭くなっても写真が縮まないようにする */
+
+    display: flex; /* 写真や肉球を中央配置する */
+
+    justify-content: center; /* 横方向中央に配置する */
+
+    align-items: center; /* 縦方向中央に配置する */
+
+    background-color: #f3f3f3; /* 写真未登録時の背景を薄いグレーにする */
+
+    border-radius: 14px; /* 写真枠の角を丸くする */
+
+    overflow: hidden; /* 写真が枠からはみ出さないようにする */
+
+    font-size: 30px; /* 写真未登録時の肉球を大きくする */
+
+}
+
+.pet-list-photo img { /* 一覧に表示するプロフィール写真を設定する */
+
+    width: 100%; /* 写真枠いっぱいに表示する */
+
+    height: 100%; /* 写真枠いっぱいに表示する */
+
+    object-fit: cover; /* 縦横比を保ちながら枠いっぱいに表示する */
+
+}
+
+.pet-list-info { /* 一覧カード内の文字情報を設定する */
+
+    flex: 1; /* 写真以外の残りの横幅を使用する */
+
+    min-width: 0; /* 画面幅が狭い場合のはみ出しを防ぐ */
+
+}
+
+.pet-list-name { /* ペット一覧の名前を設定する */
+
+    margin: 0; /* 標準の余白をなくす */
+
+    font-size: 18px; /* 名前を大きめに表示する */
+
+    font-weight: 700; /* 名前を太字にする */
+
+    color: #333333; /* 濃い文字色にする */
+
+}
+
+.pet-list-type { /* ペットの種類を設定する */
+
+    margin: 3px 0 0; /* 名前との間に少し余白を作る */
+
+    font-size: 13px; /* 種類を少し小さく表示する */
+
+    color: #888888; /* 種類の文字色を薄くする */
+
+}
+
+.pet-list-basic-info { /* 年齢・体重を表示する部分を設定する */
+
+    margin: 10px 0; /* 上下に余白を作る */
+
+    font-size: 14px; /* 文字サイズを設定する */
+
+    color: #555555; /* 少し薄い文字色にする */
+
+}
+
+.pet-list-detail-link { /* 「詳細を見る」リンクを設定する */
+
+    display: inline-block; /* paddingを適用できるようにする */
+
+    padding: 7px 12px; /* リンク内側に余白を作る */
+
+    background-color: #eef1ff; /* 薄い青色の背景にする */
+
+    border-radius: 8px; /* 角を丸くする */
+
+    color: #4a5fc1; /* 文字を青系にする */
+
+    font-size: 13px; /* 文字サイズを設定する */
+
+    font-weight: 700; /* 文字を太字にする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+}
+
 @media (max-width: 480px) { /* 画面幅が480px以下のスマホ向けデザインを設定する */
 
     .pet-switch-button { /* スマホでのペット切り替えボタンを設定する */
@@ -1303,6 +1463,8 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     cursor: pointer; /* クリック可能であることを示す */
 
+    transition: transform 0.08s ease; /* 押したときの動きだけを滑らかにする */
+
 }
 
 .event-cancel-button { /* キャンセルボタンを設定する */
@@ -1323,9 +1485,16 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 }
 
+.event-cancel-button:active,
+.event-save-button:active { /* ボタンを押している間だけ適用する */
+
+    transform: translateY(2px) scale(0.96); /* 少し下へ沈みながら縮めて押したように見せる */
+
+}
+
 .calendar-today { /* 今日の日付セル全体を強調する */
 
-    background-color: hsl(41, 100%, 72%) !important; /* 今日のセルを薄い黄色にする */
+    background-color: #fff5d6 !important; /* 今日のセルを薄い黄色にする */
 
 }
 
@@ -1463,9 +1632,9 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     padding: 8px 12px; /* ボタンの内側に余白を作る */
 
-    background-color: #ffffff; /* ボタン背景を白にする */
+    background-color: #dee4fd; /* ボタン背景を白にする */
 
-    border: 1px solid #bbbbbb; /* ボタンを薄い線で囲む */
+    border: 1px solid #999999; /* ボタンを薄い線で囲む */
 
     border-radius: 8px; /* ボタンの角を丸くする */
 
@@ -1473,11 +1642,22 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     cursor: pointer; /* クリック可能であることを示す */
 
+    transition: transform 0.08s ease, background-color 0.08s ease; /* 押したときの縮小と色変更を滑らかにする */
+
+}
+
+
+.calendar-floating-controls button:active { /* ボタンを実際に押している間だけ適用する */
+
+    transform: scale(0.94); /* ボタンを少し縮めて押し込んだように見せる */
+
+    background-color: #ffffff; /* 押している間だけ背景を少し濃くする */
+
 }
 
 .calendar-floating-controls button:hover { /* PCでボタンにマウスを重ねたとき */
 
-    background-color: #f3f3f3; /* 背景を薄いグレーにする */
+    background-color: #ced8fd; /* 背景を薄いグレーにする */
 
 }
 

@@ -649,6 +649,8 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
     selected_pet_id = request.args.get("pet_id")  # URLの?pet_id=〇から現在表示するペットIDを取得する
 
+    view_mode = request.args.get("view", "profile")  # ペット画面でプロフィール表示か一覧表示かをURLから取得する
+
     mode = request.args.get("mode")  # 新規ペット追加画面かどうかを判定するためURLのmodeを取得する
 
     selected_pet = None  # 最初は選択中のペットが存在しない状態にしておく
@@ -687,8 +689,9 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
     return render_template(
         "pets.html",  # pets.htmlを表示する
         pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
-        selected_pet=selected_pet  # 現在選択されているペット情報をHTMLへ渡す
-    )  # HTML表示処理を終了する
+        selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
+        view_mode=view_mode  # 「profile」または「list」をHTMLへ渡す
+    )
 
 @app.route("/pets/delete/<int:pet_id>", methods=["POST"])  # 指定されたIDのペットを削除するPOST専用URLを設定する
 def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
