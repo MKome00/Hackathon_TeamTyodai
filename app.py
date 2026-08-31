@@ -108,13 +108,44 @@ TASK_POOL = [  # ホーム画面の「今日のやること」に使うダミー
 
 ]  # 「今日のやること」ダミー候補の定義を終了する
 
-SCHEDULE_POOL = [  # ホーム画面の「次の予定」に使うダミーの予定候補一覧を用意する
+CALENDAR_CATEGORY_LABELS = {  # calendar_eventsテーブルの英語カテゴリを画面表示用の日本語へ変換する
 
-    "予防接種",
-    "健康診断",
-    "トリミング",
+    "hospital": "病院",
+    "trimming": "トリミング",
+    "other": "その他",
 
-]  # 「次の予定」ダミー候補の定義を終了する
+}  # カレンダー種類名の変換表を終了する
+
+def fetch_next_calendar_event(pet_id):  # 指定したペットの次に控えているカレンダー予定を1件取得する関数を定義する
+
+    connection = get_db_connection()  # calendar_eventsテーブルを読み取るためSQLiteへ接続する
+
+    row = connection.execute(  # 今日以降で最も近い予定を1件だけ取得する
+
+        """
+        SELECT category, event_date
+        FROM calendar_events
+        WHERE pet_id = ? AND event_date >= ?
+        ORDER BY event_date ASC, start_time ASC
+        LIMIT 1
+        """,  # 今日を含む未来の予定のうち、一番近いものを取得するSQLを書く
+
+        (pet_id, date.today().isoformat())  # 対象のペットIDと今日の日付をSQLへ渡す
+
+    ).fetchone()  # 条件に一致する予定が無ければNoneになる
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    if row is None:  # 今後の予定が1件も登録されていない場合
+
+        return None  # 表示する予定が無いことを伝える
+
+    return {  # 見つかった予定を表示用の形にまとめて返す
+
+        "label": CALENDAR_CATEGORY_LABELS.get(row["category"], "予定"),  # 予定の種類を日本語に変換する
+        "date": date.fromisoformat(row["event_date"]),  # 予定日の文字列をdate型に変換する
+
+    }  # 次の予定情報の組み立てを終了する
 
 FOOD_BAR_MAX_DAYS = 30  # フード残量バーが満タン表示になる日数のしきい値を設定する
 
@@ -144,10 +175,6 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
 
         food_level = "safe"  # フード残量バーを青色にする
 
-    next_schedule_label = rng.choice(SCHEDULE_POOL)  # 次に控えている予定の種類をダミーで決める
-
-    next_schedule_days = rng.randint(1, 30)  # 次の予定までの残り日数をダミーで決める
-
     weight_diff = round(rng.uniform(-0.3, 0.3), 1)  # 前回記録からの体重の増減をダミーで決める
 
     return {  # 組み立てたダミー情報をまとめて返す
@@ -158,9 +185,6 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
         "food_percent": food_percent,  # フードの残量バーの表示割合(0〜100)
         "food_max_days": FOOD_BAR_MAX_DAYS,  # フード残量バーが満タンとして扱う日数
         "food_level": food_level,  # フード残量バーの色分け("danger" / "warning" / "safe")
-        "next_schedule_label": next_schedule_label,  # 次の予定の種類
-        "next_schedule_days": next_schedule_days,  # 次の予定までの残り日数
-        "next_schedule_urgent": next_schedule_days <= 3,  # 次の予定が近く目立たせるべきかどうか
         "weight_diff": weight_diff,  # 前回からの体重の増減
 
     }  # ペット1匹分のダミー情報組み立てを終了する
@@ -351,7 +375,7 @@ def build_record_reminders(pet, pet_records):  # 病院の予定日を過ぎて�
 
         if not has_matching_record:  # 予定日を過ぎているのに対応する記録がまだ無い場合
 
-            reminders.append({"type": "病院", "date": event_date})  # この予定をリマインダーとして追加する
+            reminders.append({"type": CALENDAR_CATEGORY_LABELS["hospital"], "date": event_date})  # この予定をリマインダーとして追加する
 
     reminders.sort(key=lambda event: event["date"])  # 予定日が古い(=より過ぎている)ものから並べる
 
@@ -382,6 +406,24 @@ def home():  # ホーム画面を表示する関数を定義する
         home_pet = build_home_dummy_data(pet)  # 今日のやること・フード残量などの表示用ダミー情報を組み立てる
 
         home_pet["record_reminders"] = build_record_reminders(pet, fetch_pet_records(pet["id"]))  # 予定日を過ぎても記録が無い項目のリマインダーを組み立てて追加する
+
+        next_event = fetch_next_calendar_event(pet["id"])  # カレンダーに登録されている、このペットの次の予定を取得する
+
+        if next_event:  # 今後の予定が見つかった場合
+
+            days_until = (next_event["date"] - date.today()).days  # 予定日までの残り日数を計算する
+
+            home_pet["next_event"] = {  # ホーム画面へ渡す次の予定情報を組み立てる
+
+                "label": next_event["label"],  # 予定の種類
+                "days_until": days_until,  # 予定日までの残り日数
+                "urgent": days_until <= 3,  # 予定が近く目立たせるべきかどうか
+
+            }  # 次の予定情報の組み立てを終了する
+
+        else:  # 今後の予定が1件も無い場合
+
+            home_pet["next_event"] = None  # 次の予定が無いことをホーム画面へ伝える
 
         home_pets.append(home_pet)  # 組み立てた1匹分の情報をリストへ追加する
 

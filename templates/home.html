@@ -149,11 +149,27 @@
 
                             <p class="home-section-title">次の予定</p> <!-- 見出しを表示する -->
 
-                            <p class="{% if item.next_schedule_urgent %}home-urgent-text{% endif %}"> <!-- 予定が近い場合は文字色で目立たせる -->
+                            {% if item.next_event %} <!-- カレンダーに今後の予定が登録されている場合 -->
 
-                                {{ item.next_schedule_label }}まであと{{ item.next_schedule_days }}日 <!-- 次に控えている予定と残り日数を表示する -->
+                                <p class="{% if item.next_event.urgent %}home-urgent-text{% endif %}"> <!-- 予定が近い場合は文字色で目立たせる -->
 
-                            </p> <!-- 次の予定表示を終了する -->
+                                    {% if item.next_event.days_until == 0 %} <!-- 予定日が今日の場合 -->
+
+                                        {{ item.next_event.label }}は今日です <!-- 予定が今日であることを表示する -->
+
+                                    {% else %} <!-- 予定日がまだ先の場合 -->
+
+                                        {{ item.next_event.label }}まであと{{ item.next_event.days_until }}日 <!-- 次に控えている予定と残り日数を表示する -->
+
+                                    {% endif %} <!-- 予定日が今日かどうかによる表示切り替えを終了する -->
+
+                                </p> <!-- 次の予定表示を終了する -->
+
+                            {% else %} <!-- カレンダーに今後の予定が登録されていない場合 -->
+
+                                <p class="home-empty-text">予定はありません</p> <!-- 予定が無いことを知らせる -->
+
+                            {% endif %} <!-- 次の予定の有無による表示切り替えを終了する -->
 
                         </div> <!-- 次の予定領域を終了する -->
 
