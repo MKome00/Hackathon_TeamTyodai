@@ -65,6 +65,9 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# 各自のPC上のテスト用データ(起動時に自動生成されるためGit管理不要)
+pets.db
+
 # Scrapy stuff:
 .scrapy
 
