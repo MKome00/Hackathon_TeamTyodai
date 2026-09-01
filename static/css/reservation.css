@@ -60,29 +60,65 @@
 
 }
 
-.reservation-cart-link { /* 購入タブからカート画面へ移動するリンクを設定する */
+.product-panel-note { /* 購入タブの使い方を説明する文章を設定する */
 
-    display: block; /* 横幅いっぱいの独立した行として表示する */
+    margin: 16px 0 0; /* タブとの間に余白を作る */
 
-    margin-top: 16px; /* タブとの間に余白を作る */
+    font-size: 13px; /* 説明文の文字サイズを設定する */
+
+    color: #777777; /* 説明文の文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 2行になっても読みやすいよう行間を広げる */
+
+}
+
+.product-filter-row { /* カテゴリ・価格帯・お気に入りの絞り込みを横に並べる領域を設定する */
+
+    display: flex; /* 絞り込み要素を横並びにする */
+
+    flex-wrap: wrap; /* 画面幅が狭いときは折り返す */
+
+    gap: 8px; /* 絞り込み要素同士の間隔を作る */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    margin-top: 10px; /* 検索欄との間に余白を作る */
 
     margin-bottom: 12px; /* 商品一覧との間に余白を作る */
 
-    padding: 10px 14px; /* リンク内側に余白を作る */
+}
 
-    background-color: #eef1ff; /* リンクの背景を薄い青系にする */
+.product-filter-select { /* カテゴリ・価格帯のプルダウンを設定する */
 
-    border-radius: 10px; /* リンクの角を丸くする */
+    padding: 8px 10px; /* プルダウン内側に余白を作る */
 
-    font-size: 14px; /* リンクの文字サイズを設定する */
+    border: 1px solid #cccccc; /* プルダウンの周囲に薄いグレーの線を付ける */
 
-    font-weight: 700; /* リンクの文字を太字にする */
+    border-radius: 8px; /* プルダウンの角を丸くする */
 
-    color: #4a5fc1; /* リンクの文字色を濃い青系にする */
+    font-size: 13px; /* プルダウンの文字サイズを設定する */
 
-    text-decoration: none; /* リンクの下線を消す */
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
 
-    text-align: center; /* 文字を中央揃えにする */
+    background-color: #ffffff; /* プルダウンの背景を白色にする */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.product-favorite-only { /* お気に入りのみ表示するチェックボックスの行を設定する */
+
+    display: flex; /* チェックボックスと文字を横並びにする */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    gap: 4px; /* チェックボックスと文字の間に余白を作る */
+
+    font-size: 13px; /* 文字サイズを設定する */
+
+    color: #555555; /* 文字色を濃いめのグレーにする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
 
 }
 
@@ -98,13 +134,15 @@
 
 .product-card { /* 1商品分のカードを設定する */
 
+    position: relative; /* お気に入りボタンをカードの右上に重ねて配置するための基準にする */
+
     display: flex; /* カード内の要素を縦に並べる */
 
-    flex-direction: column; /* 絵文字・商品名・価格・ボタンを縦方向に並べる */
+    flex-direction: column; /* 絵文字・商品名・価格・リンクを縦方向に並べる */
 
     align-items: center; /* カード内の要素を中央揃えにする */
 
-    gap: 6px; /* カード内の要素同士の間隔を作る */
+    gap: 4px; /* カード内の要素同士の間隔を作る */
 
     padding: 14px; /* カード内側に余白を作る */
 
@@ -120,9 +158,59 @@
 
 }
 
+.product-favorite-form { /* お気に入りボタンをカード右上に配置するための領域を設定する */
+
+    position: absolute; /* カードの右上に重ねて配置する */
+
+    top: 8px; /* カード上端からの位置を設定する */
+
+    right: 8px; /* カード右端からの位置を設定する */
+
+}
+
+.product-favorite-button { /* お気に入りの登録・解除ボタンを設定する */
+
+    padding: 2px; /* ボタン内側にわずかな余白を作る */
+
+    background: none; /* ボタン標準の背景を消す */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    font-size: 18px; /* ハートの絵文字を見やすい大きさにする */
+
+    line-height: 1; /* 絵文字の縦位置のずれを防ぐ */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.product-favorite-button:active { /* お気に入りボタンを押している間だけ適用する */
+
+    transform: scale(0.9); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
+.product-popular-badge { /* よくクリックされている商品に付けるバッジを設定する */
+
+    padding: 2px 8px; /* バッジ内側に余白を作る */
+
+    background-color: #fff2e6; /* バッジの背景を薄いオレンジ系にする */
+
+    border-radius: 999px; /* バッジを丸いピル型にする */
+
+    font-size: 10px; /* バッジの文字を小さく表示する */
+
+    font-weight: 700; /* バッジの文字を太字にする */
+
+    color: #b3661a; /* バッジの文字色を濃いオレンジ系にする */
+
+}
+
 .product-icon { /* 商品の絵文字を設定する */
 
     font-size: 32px; /* 絵文字を大きく表示する */
+
+    margin-top: 4px; /* お気に入りボタンとの間に余白を作る */
 
 }
 
@@ -138,11 +226,21 @@
 
 }
 
-.product-price { /* 商品の価格を設定する */
+.product-category-label { /* 商品のカテゴリ表示を設定する */
 
     margin: 0; /* 段落が持つ余白をなくす */
 
-    font-size: 15px; /* 価格の文字サイズを設定する */
+    font-size: 11px; /* カテゴリを商品名より小さく表示する */
+
+    color: #999999; /* カテゴリの文字色を薄いグレーにする */
+
+}
+
+.product-price { /* 商品の価格を設定する */
+
+    margin: 2px 0 0; /* カテゴリ表示との間に少しだけ余白を作る */
+
+    font-size: 13px; /* 価格の文字サイズを設定する */
 
     font-weight: 700; /* 価格を太字にする */
 
@@ -150,35 +248,39 @@
 
 }
 
-.product-card form { /* 商品カード内のカート追加フォームを設定する */
+.product-shop-links { /* 外部通販サイトへのリンクボタンをまとめる領域を設定する */
 
-    width: 100%; /* フォームをカードの横幅いっぱいに広げる */
+    display: flex; /* リンクボタンを並べるためflexを使用する */
 
-}
+    flex-direction: column; /* リンクボタンを縦方向に並べる */
 
-.product-add-button { /* カートに入れるボタンを設定する */
+    gap: 4px; /* リンクボタン同士の間隔を作る */
 
-    width: 100%; /* ボタンをカードの横幅いっぱいに広げる */
+    width: 100%; /* リンクボタンをカードの横幅いっぱいに広げる */
 
-    padding: 8px; /* ボタン内側に余白を作る */
-
-    border: none; /* ブラウザ標準の枠線を消す */
-
-    border-radius: 8px; /* ボタンの角を丸くする */
-
-    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
-
-    color: #ffffff; /* ボタンの文字を白色にする */
-
-    font-size: 12px; /* ボタンの文字サイズを設定する */
-
-    font-weight: 700; /* ボタンの文字を太字にする */
-
-    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+    margin-top: 6px; /* 価格表示との間に余白を作る */
 
 }
 
-.product-add-button:active { /* カートに入れるボタンを押している間だけ適用する */
+.product-shop-link { /* 外部通販サイトへのリンクボタン1つ分を設定する */
+
+    padding: 6px; /* リンクボタン内側に余白を作る */
+
+    background-color: #f3f3f3; /* リンクボタンの背景を薄いグレーにする */
+
+    border-radius: 8px; /* リンクボタンの角を丸くする */
+
+    font-size: 11px; /* リンクボタンの文字サイズを設定する */
+
+    font-weight: 700; /* リンクボタンの文字を太字にする */
+
+    color: #333333; /* リンクボタンの文字色を濃いグレーにする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+}
+
+.product-shop-link:active { /* 外部通販サイトへのリンクボタンを押している間だけ適用する */
 
     transform: scale(0.97); /* ボタンを少しだけ縮めて押し込んだように見せる */
 
@@ -380,166 +482,6 @@
 }
 
 .reservation-form-submit:active { /* 予約確定ボタンを押している間だけ適用する */
-
-    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
-
-}
-
-.reservation-back-link { /* カート画面から予約画面へ戻るリンクを設定する */
-
-    font-size: 13px; /* リンクの文字サイズを設定する */
-
-    font-weight: 700; /* リンクの文字を太字にする */
-
-    color: #4a5fc1; /* リンクの文字色を青系にする */
-
-    text-decoration: none; /* リンクの下線を消す */
-
-}
-
-.cart-item-list { /* カートの商品一覧を並べる領域を設定する */
-
-    display: flex; /* カート内の商品を並べるためflexを使用する */
-
-    flex-direction: column; /* カート内の商品を縦方向に並べる */
-
-    gap: 10px; /* 商品同士の間隔を作る */
-
-    margin-top: 16px; /* ページ上部との間に余白を作る */
-
-}
-
-.cart-item { /* 1商品分のカート行を設定する */
-
-    display: flex; /* 絵文字・商品情報・削除ボタンを横並びにする */
-
-    align-items: center; /* 縦方向の中央に揃える */
-
-    gap: 12px; /* 各要素の間に余白を作る */
-
-    padding: 12px 14px; /* カート行の内側に余白を作る */
-
-    background-color: #ffffff; /* カート行の背景を白色にする */
-
-    border: 1px solid #dddddd; /* カート行の周囲に薄いグレーの線を付ける */
-
-    border-radius: 14px; /* カート行の角を丸くする */
-
-    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
-
-}
-
-.cart-item-icon { /* カート行の商品絵文字を設定する */
-
-    font-size: 28px; /* 絵文字を大きく表示する */
-
-}
-
-.cart-item-info { /* カート行の商品名と数量・小計をまとめる領域を設定する */
-
-    flex: 1; /* 削除ボタン以外の残った横幅を使用する */
-
-}
-
-.cart-item-name { /* カート行の商品名を設定する */
-
-    margin: 0; /* 段落が持つ余白をなくす */
-
-    font-size: 14px; /* 商品名の文字サイズを設定する */
-
-    font-weight: 700; /* 商品名を太字にする */
-
-    color: #333333; /* 商品名の文字色を濃いグレーにする */
-
-}
-
-.cart-item-detail { /* カート行の単価・数量・小計を設定する */
-
-    margin: 2px 0 0; /* 商品名との間に少しだけ余白を作る */
-
-    font-size: 12px; /* 詳細の文字サイズを設定する */
-
-    color: #777777; /* 詳細の文字色を控えめなグレーにする */
-
-}
-
-.cart-item-remove { /* カートから商品を取り除くボタンを設定する */
-
-    padding: 6px 12px; /* ボタン内側に余白を作る */
-
-    background-color: #ffffff; /* ボタンの背景を白色にする */
-
-    border: 1px solid #d9534f; /* 削除操作であることが分かるよう赤系の枠線を付ける */
-
-    border-radius: 8px; /* ボタンの角を丸くする */
-
-    font-size: 12px; /* ボタンの文字サイズを設定する */
-
-    font-weight: 700; /* ボタンの文字を太字にする */
-
-    color: #d9534f; /* ボタンの文字色を赤系にする */
-
-    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
-
-}
-
-.cart-total-row { /* カートの合計金額を表示する行を設定する */
-
-    display: flex; /* 「合計」と金額を横並びにする */
-
-    justify-content: space-between; /* 「合計」を左、金額を右に配置する */
-
-    align-items: center; /* 縦方向の中央に揃える */
-
-    margin-top: 16px; /* カート一覧との間に余白を作る */
-
-    padding: 14px; /* 合計行の内側に余白を作る */
-
-    background-color: #eef1ff; /* 合計行の背景を薄い青系にする */
-
-    border-radius: 14px; /* 合計行の角を丸くする */
-
-    font-size: 15px; /* 合計行の文字サイズを設定する */
-
-    font-weight: 700; /* 合計行の文字を太字にする */
-
-    color: #333333; /* 「合計」の文字色を濃いグレーにする */
-
-}
-
-.cart-total-price { /* カートの合計金額の数値部分を設定する */
-
-    font-size: 20px; /* 合計金額を大きく表示する */
-
-    color: #4a5fc1; /* 合計金額の文字色を青系にする */
-
-}
-
-.cart-confirm-button { /* 注文を確定するボタンを設定する */
-
-    width: 100%; /* ボタンを横幅いっぱいに広げる */
-
-    margin-top: 16px; /* 合計行との間に余白を作る */
-
-    padding: 14px; /* ボタンの内側に余白を作る */
-
-    border: none; /* ブラウザ標準の枠線を消す */
-
-    border-radius: 12px; /* ボタンの角を丸くする */
-
-    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
-
-    color: #ffffff; /* ボタンの文字を白色にする */
-
-    font-size: 15px; /* ボタンの文字サイズを設定する */
-
-    font-weight: 700; /* ボタンの文字を太字にする */
-
-    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
-
-}
-
-.cart-confirm-button:active { /* 注文確定ボタンを押している間だけ適用する */
 
     transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
 

@@ -51,33 +51,111 @@
 
         <div id="reservation-panel-shop" class="reservation-panel active"> <!-- 購入タブの中身を作る -->
 
-            <a class="reservation-cart-link" href="{{ url_for('view_cart') }}">🛒 カートを見る({{ cart_count }}点)</a> <!-- カート確認画面へ移動するリンク兼カートの点数表示 -->
+            <p class="product-panel-note">気になる商品はお気に入りに登録したり、Amazon・楽天・TikTokの検索結果からお好きな通販サイトで購入できます。よく見ている商品ほど上に表示されます。</p> <!-- 購入タブの使い方を説明する -->
+
+            <input
+                id="product-search"
+                class="facility-search"
+                type="text"
+                placeholder="商品名で検索"
+            > <!-- 商品名を入力して絞り込むための検索欄を作る -->
+
+            <div class="product-filter-row"> <!-- カテゴリと価格帯の絞り込みを横に並べる領域を作る -->
+
+                <select id="product-category-filter" class="product-filter-select"> <!-- カテゴリで絞り込むプルダウンを作る -->
+
+                    <option value="">すべてのカテゴリ</option> <!-- 絞り込まない場合の選択肢 -->
+
+                    {% for category in product_categories %} <!-- Flaskから渡されたカテゴリを1件ずつ処理する -->
+
+                        <option value="{{ category }}">{{ category }}</option> <!-- カテゴリを選択肢として表示する -->
+
+                    {% endfor %} <!-- カテゴリの選択肢すべての表示処理を終了する -->
+
+                </select> <!-- カテゴリ絞り込みプルダウンを終了する -->
+
+                <select id="product-price-filter" class="product-filter-select"> <!-- 価格帯で絞り込むプルダウンを作る -->
+
+                    <option value="">すべての価格帯</option> <!-- 絞り込まない場合の選択肢 -->
+
+                    <option value="0-1000">〜¥1,000</option> <!-- 1000円以下で絞り込む選択肢 -->
+
+                    <option value="1000-2000">¥1,000〜¥2,000</option> <!-- 1000円〜2000円で絞り込む選択肢 -->
+
+                    <option value="2000-999999">¥2,000〜</option> <!-- 2000円以上で絞り込む選択肢 -->
+
+                </select> <!-- 価格帯絞り込みプルダウンを終了する -->
+
+                <label class="product-favorite-only"> <!-- お気に入りのみ表示するチェックボックスをまとめる -->
+
+                    <input type="checkbox" id="product-favorite-only-checkbox"> <!-- お気に入りのみ表示するかどうかのチェックボックス -->
+
+                    お気に入りのみ <!-- チェックボックスの説明文 -->
+
+                </label> <!-- お気に入り絞り込みのまとまりを終了する -->
+
+            </div> <!-- 絞り込み欄の行を終了する -->
 
             <div class="product-grid"> <!-- 商品を並べるグリッド領域を作る -->
 
-                {% for product in products %} <!-- Flaskから渡された商品を1件ずつ処理する -->
+                {% for product in products %} <!-- Flaskから渡された商品(クリック回数が多い順)を1件ずつ処理する -->
 
-                    <div class="product-card"> <!-- 1商品分のカードを作る -->
+                    <div
+                        class="product-card"
+                        data-product-search="{{ product.name }}"
+                        data-product-category="{{ product.category }}"
+                        data-product-price="{{ product.price }}"
+                        data-product-favorite="{{ 'true' if product.is_favorite else 'false' }}"
+                    > <!-- 1商品分のカードを作り、絞り込み用の情報をまとめて持たせる -->
+
+                        <form action="{{ url_for('toggle_favorite') }}" method="POST" class="product-favorite-form"> <!-- お気に入りの登録・解除を送信するフォームを作る -->
+
+                            <input type="hidden" name="product_id" value="{{ product.id }}"> <!-- 対象の商品IDを非表示で保持する -->
+
+                            <button
+                                class="product-favorite-button {% if product.is_favorite %}active{% endif %}"
+                                type="submit"
+                                aria-label="お気に入りに{% if product.is_favorite %}登録済み{% else %}未登録{% endif %}"
+                            >{{ '❤️' if product.is_favorite else '🤍' }}</button> <!-- お気に入りの登録状態に応じてハートの見た目を切り替えるボタン -->
+
+                        </form> <!-- お気に入りフォームを終了する -->
+
+                        {% if product.click_count > 0 %} <!-- このブラウザで一度でもリンクをクリックしたことがある商品の場合 -->
+
+                            <span class="product-popular-badge">🔥 よく見ています</span> <!-- クリック回数に応じて目立たせるバッジを表示する -->
+
+                        {% endif %} <!-- クリック回数の有無による表示切り替えを終了する -->
 
                         <span class="product-icon">{{ product.icon }}</span> <!-- 商品の絵文字を表示する -->
 
                         <p class="product-name">{{ product.name }}</p> <!-- 商品名を表示する -->
 
-                        <p class="product-price">¥{{ "{:,}".format(product.price) }}</p> <!-- 商品の価格を3桁区切りで表示する -->
+                        <p class="product-category-label">{{ product.category }}</p> <!-- 商品のカテゴリを表示する -->
 
-                        <form action="{{ url_for('add_to_cart') }}" method="POST"> <!-- カートへ追加するフォームを作る -->
+                        <p class="product-price">参考価格 ¥{{ "{:,}".format(product.price) }}</p> <!-- 商品のおおよその価格を3桁区切りで表示する -->
 
-                            <input type="hidden" name="product_id" value="{{ product.id }}"> <!-- 追加する商品のIDを非表示で保持する -->
+                        <div class="product-shop-links"> <!-- 外部通販サイトへのリンクボタンをまとめる -->
 
-                            <button class="product-add-button" type="submit">カートに入れる</button> <!-- カートへ追加するボタン -->
+                            {% for site_key, site in shop_sites.items() %} <!-- Flaskから渡された通販サイトを1件ずつ処理する -->
 
-                        </form> <!-- カート追加フォームを終了する -->
+                                <a
+                                    class="product-shop-link"
+                                    href="{{ url_for('shop_click', product_id=product.id, site=site_key) }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >{{ site.icon }} {{ site.label }}</a> <!-- クリック回数を記録してから該当サイトの検索結果ページを新しいタブで開くリンク -->
+
+                            {% endfor %} <!-- 通販サイトのリンクすべての表示処理を終了する -->
+
+                        </div> <!-- 外部通販サイトへのリンク領域を終了する -->
 
                     </div> <!-- 1商品分のカードを終了する -->
 
                 {% endfor %} <!-- すべての商品の表示処理を終了する -->
 
             </div> <!-- 商品グリッド領域を終了する -->
+
+            <p id="product-empty-text" class="reservation-empty-text" style="display: none;">条件に一致する商品がありません。</p> <!-- 絞り込み結果が0件のときだけJavaScriptで表示する案内文 -->
 
         </div> <!-- 購入タブの中身を終了する -->
 
