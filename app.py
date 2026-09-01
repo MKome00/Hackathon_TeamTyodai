@@ -10,6 +10,8 @@ from datetime import date, timedelta  # 記録画面のダミー日付を計算�
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示、カート保存に必要な機能を読み込む
 
+from urllib.parse import quote  # 商品名を外部通販サイトの検索URLに埋め込めるようURLエンコードするための関数を読み込む
+
 from werkzeug.utils import secure_filename  # アップロードされたファイル名を安全な形式へ変換する関数を読み込む
 
 app = Flask(__name__)  # このPythonファイルをもとにFlaskアプリを作成する
@@ -93,6 +95,16 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
         """  # ペットごとの病院・トリミングなどの予定を保存するテーブルを定義する
 
     )  # calendar_eventsテーブル作成処理を終了する
+
+    connection.execute(  # favoritesテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS favorites (
+            product_id INTEGER PRIMARY KEY
+        )
+        """  # お気に入りに登録された商品IDを保存するテーブルを定義する
+
+    )  # favoritesテーブル作成処理を終了する
 
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
@@ -1327,75 +1339,103 @@ def records():  # 記録画面の表示と、健康・通院記録の新規追�
         form_date=date.today().isoformat()  # 記録日の初期値は今日の日付にする
     )  # HTML表示処理を終了する
 
-PRODUCT_CATALOG = [  # フード・用品購入デモで表示する商品一覧を用意する
+SHOP_SITES = {  # 商品の外部リンク先となる通販サイトの一覧を用意する
 
-    {"id": 1, "icon": "🍖", "name": "ドッグフード(小型犬用) 1kg", "price": 2480},
-    {"id": 2, "icon": "🐟", "name": "キャットフード 1kg", "price": 1980},
-    {"id": 3, "icon": "🧻", "name": "ペットシーツ レギュラー 100枚", "price": 1280},
-    {"id": 4, "icon": "🪨", "name": "猫砂 5L", "price": 980},
-    {"id": 5, "icon": "🍬", "name": "おやつ詰め合わせ", "price": 890},
-    {"id": 6, "icon": "🧴", "name": "ペット用消臭スプレー", "price": 1100},
+    "amazon": {"label": "Amazon", "icon": "📦"},
+    "rakuten": {"label": "楽天市場", "icon": "🛍️"},
+    "tiktok": {"label": "TikTok Shop", "icon": "🎵"},
+
+}  # 通販サイト一覧の定義を終了する
+
+def build_shop_urls(product_name):  # 商品名から各通販サイトの検索結果ページURLを組み立てる関数を定義する
+
+    query = quote(product_name)  # 商品名をURLに埋め込める形にエンコードする
+
+    return {  # サイトごとの検索結果ページURLをまとめて返す
+
+        "amazon": f"https://www.amazon.co.jp/s?k={query}",  # Amazonの検索結果ページ
+        "rakuten": f"https://search.rakuten.co.jp/search/mall/{query}/",  # 楽天市場の検索結果ページ
+        "tiktok": f"https://www.tiktok.com/search?q={query}",  # TikTokの検索結果ページ(TikTok Shop単体の検索URLは確認できていないため代替として使用する)
+
+    }  # サイトごとのURL組み立てを終了する
+
+PRODUCT_CATALOG = [  # フード・用品購入デモで表示する商品一覧を用意する(実際に自社で販売はせず、外部通販サイトへの案内のみ行う)
+
+    {"id": 1, "icon": "🍖", "name": "ドッグフード(小型犬用) 1kg", "price": 2480, "category": "フード"},
+    {"id": 2, "icon": "🐟", "name": "キャットフード 1kg", "price": 1980, "category": "フード"},
+    {"id": 3, "icon": "🧻", "name": "ペットシーツ レギュラー 100枚", "price": 1280, "category": "トイレ用品"},
+    {"id": 4, "icon": "🪨", "name": "猫砂 5L", "price": 980, "category": "トイレ用品"},
+    {"id": 5, "icon": "🍬", "name": "おやつ詰め合わせ", "price": 890, "category": "おやつ"},
+    {"id": 6, "icon": "🧴", "name": "ペット用消臭スプレー", "price": 1100, "category": "日用品"},
 
 ]  # 商品一覧の定義を終了する
 
+for product in PRODUCT_CATALOG:  # 商品一覧を1件ずつ処理する
+
+    product["shop_urls"] = build_shop_urls(product["name"])  # 各商品に、通販サイトごとの検索結果ページURLをあらかじめ組み込んでおく
+
 PRODUCT_CATALOG_BY_ID = {product["id"]: product for product in PRODUCT_CATALOG}  # 商品IDから商品情報を引けるようにしておく
+
+PRODUCT_CATEGORIES = sorted({product["category"] for product in PRODUCT_CATALOG})  # 商品一覧に登場するカテゴリの種類だけを取り出しておく(絞り込みの選択肢に使う)
 
 FACILITY_POOL = [  # 病院・トリミングサロン予約デモで表示する架空の施設一覧を用意する
 
     {
         "id": 1, "icon": "🏥", "category": "hospital", "name": "さくら動物病院",
-        "area": "長崎市桜町 徒歩5分", "description": "夜21時まで診療。予防接種から手術まで幅広く対応。"
+        "area": "長崎駅から徒歩8分", "description": "夜21時まで診療。予防接種から手術まで幅広く対応。"
     },
     {
         "id": 2, "icon": "🏥", "category": "hospital", "name": "ひまわりペットクリニック",
-        "area": "長崎市文教町 徒歩12分", "description": "猫の診療を得意とする、完全予約制のクリニック。"
+        "area": "浦上駅から徒歩10分", "description": "猫の診療を得意とする、完全予約制のクリニック。"
     },
     {
         "id": 3, "icon": "✂️", "category": "trimming", "name": "トリミングサロン Pure",
-        "area": "長崎市浜町 徒歩8分", "description": "シャンプー・カットだけでなく爪切り・耳掃除も単品対応。"
+        "area": "新地中華街駅から徒歩6分", "description": "シャンプー・カットだけでなく爪切り・耳掃除も単品対応。"
     },
     {
         "id": 4, "icon": "✂️", "category": "trimming", "name": "Pet Beauty MOMO",
-        "area": "長崎市住吉町 徒歩15分", "description": "大型犬から小動物まで対応可能なトリミングサロン。"
+        "area": "石橋駅から徒歩9分", "description": "大型犬から小動物まで対応可能なトリミングサロン。"
     },
 
 ]  # 施設一覧の定義を終了する
 
 FACILITY_POOL_BY_ID = {facility["id"]: facility for facility in FACILITY_POOL}  # 施設IDから施設情報を引けるようにしておく
 
-def get_cart():  # セッションに保存されているカートの中身(商品IDと個数の対応)を取得する関数を定義する
+def fetch_favorite_product_ids():  # お気に入りに登録されている商品IDの集合をfavoritesテーブルから取得する関数を定義する
 
-    return session.setdefault("cart", {})  # カートがまだ無ければ空の辞書を作って保存し、それを返す
+    connection = get_db_connection()  # favoritesテーブルを読み取るためSQLiteへ接続する
 
-def build_cart_items():  # カートの中身を画面表示用の形にまとめ、合計金額とともに返す関数を定義する
+    rows = connection.execute("SELECT product_id FROM favorites").fetchall()  # お気に入りに登録されている商品IDをすべて取得する
 
-    cart = get_cart()  # セッションに保存されているカートを取得する
+    connection.close()  # SQLiteとの接続を終了する
 
-    items = []  # 表示用の商品情報を追加していくリストを用意する
+    return {row["product_id"] for row in rows}  # 商品IDの集合として返す(あるかどうかをすぐ判定できるようにする)
 
-    total_price = 0  # 合計金額を計算するための変数を用意する
+def get_click_counts():  # セッションに保存されている、商品ごとの外部リンククリック回数を取得する関数を定義する
 
-    for product_id_text, quantity in cart.items():  # カートに入っている商品を1件ずつ処理する
+    return session.setdefault("click_counts", {})  # クリック記録がまだ無ければ空の辞書を作って保存し、それを返す
 
-        product = PRODUCT_CATALOG_BY_ID.get(int(product_id_text))  # 商品IDから商品情報を取得する
+def build_shop_products():  # 画面表示用に、お気に入り・クリック回数を組み込んだ商品一覧を組み立てる関数を定義する
 
-        if product is None:  # 商品カタログに存在しない商品IDだった場合(念のためのガード)
+    favorite_ids = fetch_favorite_product_ids()  # お気に入りに登録されている商品IDを取得する
 
-            continue  # 表示せずに次の商品へ進む
+    click_counts = get_click_counts()  # このブラウザでの商品ごとのクリック回数を取得する
 
-        subtotal = product["price"] * quantity  # 商品の小計金額を計算する
+    products = []  # 表示用の商品情報を追加していくリストを用意する
 
-        items.append({  # 1商品分の表示情報をリストへ追加する
+    for product in PRODUCT_CATALOG:  # 商品カタログを1件ずつ処理する
 
-            "product": product,  # 商品情報
-            "quantity": quantity,  # カートに入っている個数
-            "subtotal": subtotal,  # この商品の小計金額
+        display_product = dict(product)  # 元のカタログを書き換えないよう複製する
 
-        })  # 1商品分の追加を終了する
+        display_product["is_favorite"] = product["id"] in favorite_ids  # お気に入り登録済みかどうかを追加する
 
-        total_price += subtotal  # 合計金額に小計を加算する
+        display_product["click_count"] = click_counts.get(str(product["id"]), 0)  # このブラウザでのクリック回数を追加する
 
-    return items, total_price  # カートの商品一覧と合計金額を返す
+        products.append(display_product)  # 組み立てた表示用商品情報をリストへ追加する
+
+    products.sort(key=lambda item: item["click_count"], reverse=True)  # クリック回数が多い商品ほど上位に表示されるよう並べ替える
+
+    return products  # 並べ替え済みの商品一覧を返す
 
 @app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する
 def reservation():  # 予約画面(購入・病院/トリミング予約)を表示する関数を定義する
@@ -1414,70 +1454,67 @@ def reservation():  # 予約画面(購入・病院/トリミング予約)を表�
 
     connection.close()  # SQLiteとの接続を終了する
 
-    cart_items, cart_total = build_cart_items()  # カートの中身と合計金額を組み立てる
-
-    cart_count = sum(item["quantity"] for item in cart_items)  # カートに入っている商品の合計個数を計算する
-
     return render_template(
         "reservation.html",  # templatesフォルダ内のreservation.htmlを表示する
         pets=pet_list,  # 予約フォームのペット選択欄に使うペット一覧をHTMLへ渡す
-        products=PRODUCT_CATALOG,  # 購入タブに表示する商品一覧をHTMLへ渡す
+        products=build_shop_products(),  # お気に入り・クリック回数込みの商品一覧をHTMLへ渡す
+        product_categories=PRODUCT_CATEGORIES,  # カテゴリ絞り込みの選択肢をHTMLへ渡す
+        shop_sites=SHOP_SITES,  # 外部通販サイトの一覧をHTMLへ渡す
         facilities=FACILITY_POOL,  # 予約タブに表示する施設一覧をHTMLへ渡す
-        cart_count=cart_count,  # カートに入っている商品の合計個数をHTMLへ渡す
         today=date.today().isoformat()  # 予約日入力欄の最小値に使う今日の日付をHTMLへ渡す
     )  # 予約画面の表示処理を終了する
 
-@app.route("/reservation/cart/add", methods=["POST"])  # カートへ商品を追加するPOST専用URLを設定する
-def add_to_cart():  # 選択された商品をカートへ追加する関数を定義する
+@app.route("/reservation/shop/click")  # 商品の外部リンクをクリックしたときに経由させるURLを設定する
+def shop_click():  # クリック回数を記録してから外部通販サイトへ転送する関数を定義する
 
-    product_id_text = request.form.get("product_id", "")  # フォームから追加対象の商品IDを取得する
+    product_id_text = request.args.get("product_id", "")  # URLから対象の商品IDを取得する
+
+    site = request.args.get("site", "")  # URLからどの通販サイトへのクリックかを取得する
+
+    product = PRODUCT_CATALOG_BY_ID.get(int(product_id_text)) if product_id_text.isdigit() else None  # 商品IDから商品情報を取得する(不正な値ならNone)
+
+    if product is None or site not in SHOP_SITES:  # 商品または通販サイトの指定が不正な場合
+
+        return redirect(url_for("reservation"))  # どこにも転送せず予約画面へ戻る
+
+    click_counts = get_click_counts()  # このブラウザでの商品ごとのクリック回数を取得する
+
+    click_counts[product_id_text] = click_counts.get(product_id_text, 0) + 1  # クリックされた商品の回数を1つ増やす
+
+    session.modified = True  # クリック回数を書き換えたことをFlaskへ伝え、セッションを保存し直させる
+
+    return redirect(product["shop_urls"][site])  # 実際の通販サイトの検索結果ページへ転送する
+
+@app.route("/reservation/favorite/toggle", methods=["POST"])  # お気に入りの登録・解除を切り替えるPOST専用URLを設定する
+def toggle_favorite():  # 指定された商品のお気に入り登録状態を切り替える関数を定義する
+
+    product_id_text = request.form.get("product_id", "")  # フォームから対象の商品IDを取得する
 
     if product_id_text.isdigit() and int(product_id_text) in PRODUCT_CATALOG_BY_ID:  # 商品IDが数値で、実在する商品の場合だけ
 
-        cart = get_cart()  # セッションに保存されているカートを取得する
+        product_id = int(product_id_text)  # 商品IDを数値に変換する
 
-        cart[product_id_text] = cart.get(product_id_text, 0) + 1  # その商品の個数を1つ増やす(初めてなら1個から開始する)
+        connection = get_db_connection()  # favoritesテーブルを更新するためSQLiteへ接続する
 
-        session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
+        already_favorite = connection.execute(  # すでにお気に入りへ登録済みか確認する
 
-        flash("カートに追加しました。", "success")  # 追加完了メッセージを一時保存する
+            "SELECT 1 FROM favorites WHERE product_id = ?",  # 指定した商品IDが登録済みか調べるSQLを書く
 
-    return redirect(url_for("reservation"))  # 予約画面(購入タブ)へ戻る
+            (product_id,)  # 対象の商品IDをSQLへ渡す
 
-@app.route("/reservation/cart")  # カートの中身と合計金額を確認する画面のURLを設定する
-def view_cart():  # カート確認・注文確定画面を表示する関数を定義する
+        ).fetchone()  # 条件に一致する行があるか取得する
 
-    cart_items, cart_total = build_cart_items()  # カートの中身と合計金額を組み立てる
+        if already_favorite:  # すでにお気に入りに登録されていた場合
 
-    return render_template(
-        "reservation_cart.html",  # templatesフォルダ内のreservation_cart.htmlを表示する
-        cart_items=cart_items,  # カートに入っている商品一覧をHTMLへ渡す
-        cart_total=cart_total  # カートの合計金額をHTMLへ渡す
-    )  # カート画面の表示処理を終了する
+            connection.execute("DELETE FROM favorites WHERE product_id = ?", (product_id,))  # お気に入りから取り除く
 
-@app.route("/reservation/cart/remove", methods=["POST"])  # カートから商品を取り除くPOST専用URLを設定する
-def remove_from_cart():  # 指定された商品をカートから取り除く関数を定義する
+        else:  # まだお気に入りに登録されていなかった場合
 
-    product_id_text = request.form.get("product_id", "")  # フォームから取り除く対象の商品IDを取得する
+            connection.execute("INSERT INTO favorites (product_id) VALUES (?)", (product_id,))  # お気に入りへ登録する
 
-    cart = get_cart()  # セッションに保存されているカートを取得する
+        connection.commit()  # お気に入りの変更をSQLiteへ確定する
 
-    if product_id_text in cart:  # その商品が実際にカートへ入っている場合
-
-        del cart[product_id_text]  # カートからその商品を取り除く
-
-        session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
-
-    return redirect(url_for("view_cart"))  # カート確認画面へ戻る
-
-@app.route("/reservation/cart/confirm", methods=["POST"])  # 注文を確定するPOST専用URLを設定する
-def confirm_cart():  # カートの中身で注文を確定する関数を定義する
-
-    session["cart"] = {}  # カートを空にして注文済みの状態にする(デモのため実際の注文データは保存しない)
-
-    session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
-
-    flash("ご注文ありがとうございました！商品の到着までしばらくお待ちください。", "success")  # 注文完了メッセージを一時保存する
+        connection.close()  # SQLiteとの接続を終了する
 
     return redirect(url_for("reservation"))  # 予約画面(購入タブ)へ戻る
 
