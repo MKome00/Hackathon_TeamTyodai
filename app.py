@@ -8,7 +8,7 @@ import random  # ホーム画面のダミー表示データをペットごとに
 
 from datetime import date, timedelta  # 記録画面のダミー日付を計算するためにdateとtimedeltaを読み込む
 
-from flask import Flask, render_template, request, redirect, url_for, flash  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示に必要な機能を読み込む
+from flask import Flask, render_template, request, redirect, url_for, flash, session  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示、カート保存に必要な機能を読み込む
 
 from werkzeug.utils import secure_filename  # アップロードされたファイル名を安全な形式へ変換する関数を読み込む
 
@@ -1327,10 +1327,237 @@ def records():  # 記録画面の表示と、健康・通院記録の新規追�
         form_date=date.today().isoformat()  # 記録日の初期値は今日の日付にする
     )  # HTML表示処理を終了する
 
-@app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する
-def reservation():  # 予約画面を表示する関数を定義する
+PRODUCT_CATALOG = [  # フード・用品購入デモで表示する商品一覧を用意する
 
-    return render_template("reservation.html")  # templatesフォルダ内のreservation.htmlを表示する
+    {"id": 1, "icon": "🍖", "name": "ドッグフード(小型犬用) 1kg", "price": 2480},
+    {"id": 2, "icon": "🐟", "name": "キャットフード 1kg", "price": 1980},
+    {"id": 3, "icon": "🧻", "name": "ペットシーツ レギュラー 100枚", "price": 1280},
+    {"id": 4, "icon": "🪨", "name": "猫砂 5L", "price": 980},
+    {"id": 5, "icon": "🍬", "name": "おやつ詰め合わせ", "price": 890},
+    {"id": 6, "icon": "🧴", "name": "ペット用消臭スプレー", "price": 1100},
+
+]  # 商品一覧の定義を終了する
+
+PRODUCT_CATALOG_BY_ID = {product["id"]: product for product in PRODUCT_CATALOG}  # 商品IDから商品情報を引けるようにしておく
+
+FACILITY_POOL = [  # 病院・トリミングサロン予約デモで表示する架空の施設一覧を用意する
+
+    {
+        "id": 1, "icon": "🏥", "category": "hospital", "name": "さくら動物病院",
+        "area": "長崎市桜町 徒歩5分", "description": "夜21時まで診療。予防接種から手術まで幅広く対応。"
+    },
+    {
+        "id": 2, "icon": "🏥", "category": "hospital", "name": "ひまわりペットクリニック",
+        "area": "長崎市文教町 徒歩12分", "description": "猫の診療を得意とする、完全予約制のクリニック。"
+    },
+    {
+        "id": 3, "icon": "✂️", "category": "trimming", "name": "トリミングサロン Pure",
+        "area": "長崎市浜町 徒歩8分", "description": "シャンプー・カットだけでなく爪切り・耳掃除も単品対応。"
+    },
+    {
+        "id": 4, "icon": "✂️", "category": "trimming", "name": "Pet Beauty MOMO",
+        "area": "長崎市住吉町 徒歩15分", "description": "大型犬から小動物まで対応可能なトリミングサロン。"
+    },
+
+]  # 施設一覧の定義を終了する
+
+FACILITY_POOL_BY_ID = {facility["id"]: facility for facility in FACILITY_POOL}  # 施設IDから施設情報を引けるようにしておく
+
+def get_cart():  # セッションに保存されているカートの中身(商品IDと個数の対応)を取得する関数を定義する
+
+    return session.setdefault("cart", {})  # カートがまだ無ければ空の辞書を作って保存し、それを返す
+
+def build_cart_items():  # カートの中身を画面表示用の形にまとめ、合計金額とともに返す関数を定義する
+
+    cart = get_cart()  # セッションに保存されているカートを取得する
+
+    items = []  # 表示用の商品情報を追加していくリストを用意する
+
+    total_price = 0  # 合計金額を計算するための変数を用意する
+
+    for product_id_text, quantity in cart.items():  # カートに入っている商品を1件ずつ処理する
+
+        product = PRODUCT_CATALOG_BY_ID.get(int(product_id_text))  # 商品IDから商品情報を取得する
+
+        if product is None:  # 商品カタログに存在しない商品IDだった場合(念のためのガード)
+
+            continue  # 表示せずに次の商品へ進む
+
+        subtotal = product["price"] * quantity  # 商品の小計金額を計算する
+
+        items.append({  # 1商品分の表示情報をリストへ追加する
+
+            "product": product,  # 商品情報
+            "quantity": quantity,  # カートに入っている個数
+            "subtotal": subtotal,  # この商品の小計金額
+
+        })  # 1商品分の追加を終了する
+
+        total_price += subtotal  # 合計金額に小計を加算する
+
+    return items, total_price  # カートの商品一覧と合計金額を返す
+
+@app.route("/reservation")  # 「/reservation」にアクセスされたときの処理を指定する
+def reservation():  # 予約画面(購入・病院/トリミング予約)を表示する関数を定義する
+
+    connection = get_db_connection()  # 予約フォームのペット選択欄に使うペット一覧を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    cart_items, cart_total = build_cart_items()  # カートの中身と合計金額を組み立てる
+
+    cart_count = sum(item["quantity"] for item in cart_items)  # カートに入っている商品の合計個数を計算する
+
+    return render_template(
+        "reservation.html",  # templatesフォルダ内のreservation.htmlを表示する
+        pets=pet_list,  # 予約フォームのペット選択欄に使うペット一覧をHTMLへ渡す
+        products=PRODUCT_CATALOG,  # 購入タブに表示する商品一覧をHTMLへ渡す
+        facilities=FACILITY_POOL,  # 予約タブに表示する施設一覧をHTMLへ渡す
+        cart_count=cart_count,  # カートに入っている商品の合計個数をHTMLへ渡す
+        today=date.today().isoformat()  # 予約日入力欄の最小値に使う今日の日付をHTMLへ渡す
+    )  # 予約画面の表示処理を終了する
+
+@app.route("/reservation/cart/add", methods=["POST"])  # カートへ商品を追加するPOST専用URLを設定する
+def add_to_cart():  # 選択された商品をカートへ追加する関数を定義する
+
+    product_id_text = request.form.get("product_id", "")  # フォームから追加対象の商品IDを取得する
+
+    if product_id_text.isdigit() and int(product_id_text) in PRODUCT_CATALOG_BY_ID:  # 商品IDが数値で、実在する商品の場合だけ
+
+        cart = get_cart()  # セッションに保存されているカートを取得する
+
+        cart[product_id_text] = cart.get(product_id_text, 0) + 1  # その商品の個数を1つ増やす(初めてなら1個から開始する)
+
+        session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
+
+        flash("カートに追加しました。", "success")  # 追加完了メッセージを一時保存する
+
+    return redirect(url_for("reservation"))  # 予約画面(購入タブ)へ戻る
+
+@app.route("/reservation/cart")  # カートの中身と合計金額を確認する画面のURLを設定する
+def view_cart():  # カート確認・注文確定画面を表示する関数を定義する
+
+    cart_items, cart_total = build_cart_items()  # カートの中身と合計金額を組み立てる
+
+    return render_template(
+        "reservation_cart.html",  # templatesフォルダ内のreservation_cart.htmlを表示する
+        cart_items=cart_items,  # カートに入っている商品一覧をHTMLへ渡す
+        cart_total=cart_total  # カートの合計金額をHTMLへ渡す
+    )  # カート画面の表示処理を終了する
+
+@app.route("/reservation/cart/remove", methods=["POST"])  # カートから商品を取り除くPOST専用URLを設定する
+def remove_from_cart():  # 指定された商品をカートから取り除く関数を定義する
+
+    product_id_text = request.form.get("product_id", "")  # フォームから取り除く対象の商品IDを取得する
+
+    cart = get_cart()  # セッションに保存されているカートを取得する
+
+    if product_id_text in cart:  # その商品が実際にカートへ入っている場合
+
+        del cart[product_id_text]  # カートからその商品を取り除く
+
+        session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
+
+    return redirect(url_for("view_cart"))  # カート確認画面へ戻る
+
+@app.route("/reservation/cart/confirm", methods=["POST"])  # 注文を確定するPOST専用URLを設定する
+def confirm_cart():  # カートの中身で注文を確定する関数を定義する
+
+    session["cart"] = {}  # カートを空にして注文済みの状態にする(デモのため実際の注文データは保存しない)
+
+    session.modified = True  # カートの中身を書き換えたことをFlaskへ伝え、セッションを保存し直させる
+
+    flash("ご注文ありがとうございました！商品の到着までしばらくお待ちください。", "success")  # 注文完了メッセージを一時保存する
+
+    return redirect(url_for("reservation"))  # 予約画面(購入タブ)へ戻る
+
+@app.route("/reservation/book", methods=["POST"])  # 病院・トリミングの予約を保存するPOST専用URLを設定する
+def book_facility():  # 選択された施設への予約をcalendar_eventsへ保存する関数を定義する
+
+    facility_id_text = request.form.get("facility_id", "")  # フォームから予約対象の施設IDを取得する
+
+    pet_id = request.form.get("pet_id", "")  # フォームから予約対象のペットIDを取得する
+
+    event_date_text = request.form.get("event_date", "").strip()  # 予約日を文字列として取得する
+
+    start_time = request.form.get("start_time", "").strip()  # 希望時間を取得する
+
+    note = request.form.get("note", "").strip()  # ご要望・メモを取得し、前後の余分な空白を削除する
+
+    facility = FACILITY_POOL_BY_ID.get(int(facility_id_text)) if facility_id_text.isdigit() else None  # 施設IDから施設情報を取得する(不正な値ならNone)
+
+    error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+
+    if facility is None:  # 施設が見つからなかった場合
+
+        error_message = "予約先の施設が見つかりません。"  # 施設が不正であることを知らせる
+
+    elif not pet_id:  # 予約対象のペットが選ばれていない場合
+
+        error_message = "予約するペットを選択してください。"  # ペット選択を促す
+
+    elif not event_date_text:  # 予約日が入力されていない場合
+
+        error_message = "予約日を選択してください。"  # 日付入力を促す
+
+    elif len(note) > 200:  # ご要望が200文字を超えている場合
+
+        error_message = "ご要望は200文字以内で入力してください。"  # 文字数制限を知らせる
+
+    event_date = None  # 変換できた予約日を保存する変数を用意する
+
+    if not error_message:  # ここまでエラーが無い場合
+
+        try:  # 予約日を日付として解釈できるか確認する
+
+            event_date = date.fromisoformat(event_date_text)  # 入力された予約日を日付型に変換する
+
+        except ValueError:  # 日付として解釈できない値が入力されていた場合
+
+            error_message = "予約日を正しく選択してください。"  # 予約日の入力形式が不正であることを知らせる
+
+    if error_message:  # 入力内容に何らかのエラーが存在する場合
+
+        flash(error_message, "error")  # エラーメッセージを一時保存する
+
+        return redirect(url_for("reservation"))  # 保存せず予約画面へ戻る
+
+    note_with_facility = f"{facility['name']}を予約"  # 予約した施設名を必ずメモの先頭に残す
+
+    if note:  # ユーザーがご要望を入力していた場合
+
+        note_with_facility += f"({note})"  # 入力されたご要望をメモへ併記する
+
+    connection = get_db_connection()  # 予約内容を保存するためSQLiteへ接続する
+
+    connection.execute(  # 予約内容をcalendar_eventsテーブルへ登録する
+
+        """
+        INSERT INTO calendar_events (pet_id, category, event_date, start_time, end_time, note)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,  # 施設予約をカレンダーの予定として保存するSQLを書く
+
+        (pet_id, facility["category"], event_date.isoformat(), start_time if start_time else None, None, note_with_facility)  # 入力された予約内容をSQLへ渡す
+
+    )  # INSERT処理を終了する
+
+    connection.commit()  # 予約の追加をSQLiteへ確定する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    flash(f"{facility['name']}の予約を受け付けました。カレンダーをご確認ください。", "success")  # 予約完了メッセージを一時保存する
+
+    return redirect(url_for("reservation"))  # 予約画面(予約タブ)へ戻る
 
 if __name__ == "__main__":  # このapp.pyが直接実行された場合だけ以下を実行する
 

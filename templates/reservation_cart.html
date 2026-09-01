@@ -1,0 +1,144 @@
+<!DOCTYPE html> <!-- このファイルがHTML5であることをブラウザに伝える -->
+
+<html lang="ja"> <!-- HTML全体の開始。ページの言語を日本語に設定する -->
+
+<head> <!-- ページの設定情報を書く部分 -->
+
+    <meta charset="UTF-8"> <!-- 日本語の文字化けを防ぐために文字コードをUTF-8に設定する -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面でも正しい幅で表示できるようにする -->
+
+    <title>カート</title> <!-- ブラウザのタブにカートと表示する -->
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- 共通のCSSファイルを読み込む -->
+
+    <!-- 予約画面専用のCSSファイルを読み込む(共通のstyle.cssは変更しない) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reservation.css') }}">
+
+</head> <!-- head部分を終了する -->
+
+<body> <!-- ブラウザに表示する内容を書く部分 -->
+
+    <main class="page-content"> <!-- カート画面のメイン表示領域を作る -->
+
+        <div class="pet-page-header"> <!-- タイトルと「戻る」リンクを横並びにする領域を作る -->
+
+            <h1>🛒カート</h1> <!-- 現在のページ名を表示する -->
+
+            <a class="reservation-back-link" href="{{ url_for('reservation') }}">← 購入画面に戻る</a> <!-- 予約画面へ戻るリンク -->
+
+        </div> <!-- ページ上部のヘッダー領域を終了する -->
+
+        {% if cart_items %} <!-- カートに商品が1件以上入っている場合 -->
+
+            <div class="cart-item-list"> <!-- カートの商品一覧を並べる領域を作る -->
+
+                {% for item in cart_items %} <!-- カートに入っている商品を1件ずつ処理する -->
+
+                    <div class="cart-item"> <!-- 1商品分のカート行を作る -->
+
+                        <span class="cart-item-icon">{{ item.product.icon }}</span> <!-- 商品の絵文字を表示する -->
+
+                        <div class="cart-item-info"> <!-- 商品名と数量・小計をまとめる -->
+
+                            <p class="cart-item-name">{{ item.product.name }}</p> <!-- 商品名を表示する -->
+
+                            <p class="cart-item-detail">¥{{ "{:,}".format(item.product.price) }} × {{ item.quantity }}個 = ¥{{ "{:,}".format(item.subtotal) }}</p> <!-- 単価×個数=小計を表示する -->
+
+                        </div> <!-- 商品名と数量・小計のまとまりを終了する -->
+
+                        <form action="{{ url_for('remove_from_cart') }}" method="POST"> <!-- カートから取り除くフォームを作る -->
+
+                            <input type="hidden" name="product_id" value="{{ item.product.id }}"> <!-- 取り除く商品のIDを非表示で保持する -->
+
+                            <button class="cart-item-remove" type="submit">削除</button> <!-- カートから取り除くボタン -->
+
+                        </form> <!-- 削除フォームを終了する -->
+
+                    </div> <!-- 1商品分のカート行を終了する -->
+
+                {% endfor %} <!-- カートの商品すべての表示処理を終了する -->
+
+            </div> <!-- カートの商品一覧領域を終了する -->
+
+            <div class="cart-total-row"> <!-- 合計金額を表示する行を作る -->
+
+                <span>合計</span> <!-- 合計であることを示す文字を表示する -->
+
+                <span class="cart-total-price">¥{{ "{:,}".format(cart_total) }}</span> <!-- カートの合計金額を表示する -->
+
+            </div> <!-- 合計金額の行を終了する -->
+
+            <form action="{{ url_for('confirm_cart') }}" method="POST"> <!-- 注文確定フォームを作る -->
+
+                <button class="cart-confirm-button" type="submit">注文を確定する</button> <!-- 注文を確定するボタン -->
+
+            </form> <!-- 注文確定フォームを終了する -->
+
+        {% else %} <!-- カートが空の場合 -->
+
+            <p class="reservation-empty-text">カートに商品がありません。</p> <!-- カートが空であることを知らせる -->
+
+        {% endif %} <!-- カートの中身の有無による表示切り替えを終了する -->
+
+    </main> <!-- メイン表示領域を終了する -->
+
+    <nav class="bottom-nav"> <!-- 画面下部に表示するナビゲーション全体を作る -->
+
+        <div class="nav-indicator" aria-hidden="true"> <!-- 現在選択中のタブを示す移動する肉球アイコン全体を作る -->
+
+            <svg class="nav-paw" viewBox="0 0 100 90"> <!-- 肉球を描画するSVG領域を作る -->
+
+                <ellipse cx="21" cy="31" rx="11" ry="16" transform="rotate(-18 21 31)"></ellipse> <!-- 左端の指を少し外側へ傾けて描く -->
+
+                <ellipse cx="41" cy="20" rx="11" ry="16"></ellipse> <!-- 左中央の指を縦長の楕円で描く -->
+
+                <ellipse cx="61" cy="20" rx="11" ry="16"></ellipse> <!-- 右中央の指を縦長の楕円で描く -->
+
+                <ellipse cx="81" cy="31" rx="11" ry="16" transform="rotate(18 81 31)"></ellipse> <!-- 右端の指を少し外側へ傾けて描く -->
+
+                <path
+                    d="
+                        M 50 38
+                        C 40 38, 35 46, 31 53
+                        C 28 58, 24 61, 24 68
+                        C 24 78, 33 80, 41 77
+                        C 47 75, 53 75, 59 77
+                        C 67 80, 76 78, 76 68
+                        C 76 61, 72 58, 69 53
+                        C 65 46, 60 38, 50 38
+                        Z
+                    "
+                ></path> <!-- 二枚目の画像に近い、上側がくびれた大きな肉球部分を描く -->
+
+            </svg> <!-- 肉球SVGを終了する -->
+
+        </div> <!-- 肉球型の選択表示を終了する -->
+
+        <a href="{{ url_for('home') }}" data-index="0"> <!-- ホーム画面へ移動するリンク -->
+            <span>ホーム</span> <!-- ナビゲーションにホームと表示する -->
+        </a>
+
+        <a href="{{ url_for('pets') }}" data-index="1"> <!-- ペット画面へ移動するリンク -->
+            <span>ペット</span> <!-- ナビゲーションにペットと表示する -->
+        </a>
+
+        <a href="{{ url_for('calendar') }}" data-index="2"> <!-- カレンダー画面へ移動するリンク -->
+            <span>カレンダー</span> <!-- ナビゲーションにカレンダーと表示する -->
+        </a>
+
+        <a href="{{ url_for('records') }}" data-index="3"> <!-- 記録画面へ移動するリンク -->
+            <span>記録</span> <!-- ナビゲーションに記録と表示する -->
+        </a>
+
+        <a href="{{ url_for('reservation') }}" class="active" data-index="4"> <!-- 予約画面へ移動するリンク -->
+            <span>予約</span> <!-- ナビゲーションに予約と表示する -->
+        </a>
+
+    </nav> <!-- 下部ナビゲーションを終了する -->
+
+    <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション用JavaScriptを読み込む -->
+
+</body> <!-- body部分を終了する -->
+
+</html> <!-- HTML全体を終了する -->
