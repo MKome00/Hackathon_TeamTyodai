@@ -12,6 +12,9 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> <!-- 共通のCSSファイルを読み込む -->
 
+    <!-- 予約画面専用のCSSファイルを読み込む(共通のstyle.cssは変更しない) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/reservation.css') }}">
+
 </head> <!-- head部分を終了する -->
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
@@ -19,6 +22,173 @@
     <main class="page-content"> <!-- 予約ページのメイン表示領域を作る -->
 
         <h1>📋予約</h1> <!-- 現在のページ名として予約を表示する -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %} <!-- Flaskに一時保存されているフラッシュメッセージを種類付きで取得する -->
+
+            {% if messages %} <!-- 表示するフラッシュメッセージが存在する場合 -->
+
+                {% for category, message in messages %} <!-- 保存されているメッセージを1件ずつ順番に処理する -->
+
+                    <div class="flash-message flash-{{ category }}"> <!-- successなどの種類に応じたCSSを適用できるメッセージ領域を作る -->
+
+                        {{ message }} <!-- Flask側で設定したメッセージ本文を表示する -->
+
+                    </div> <!-- 1件分のフラッシュメッセージ表示を終了する -->
+
+                {% endfor %} <!-- すべてのフラッシュメッセージ表示を終了する -->
+
+            {% endif %} <!-- メッセージが存在する場合の表示処理を終了する -->
+
+        {% endwith %} <!-- Flaskから取得したフラッシュメッセージを扱う範囲を終了する -->
+
+        <div class="reservation-tabs"> <!-- 「購入」「予約」を切り替えるタブのボタンを並べる領域を作る -->
+
+            <button type="button" class="reservation-tab active" data-target="reservation-panel-shop">🛒 購入</button> <!-- 購入タブへ切り替えるボタン -->
+
+            <button type="button" class="reservation-tab" data-target="reservation-panel-book">🏥 病院・トリミング予約</button> <!-- 予約タブへ切り替えるボタン -->
+
+        </div> <!-- タブのボタン領域を終了する -->
+
+        <div id="reservation-panel-shop" class="reservation-panel active"> <!-- 購入タブの中身を作る -->
+
+            <a class="reservation-cart-link" href="{{ url_for('view_cart') }}">🛒 カートを見る({{ cart_count }}点)</a> <!-- カート確認画面へ移動するリンク兼カートの点数表示 -->
+
+            <div class="product-grid"> <!-- 商品を並べるグリッド領域を作る -->
+
+                {% for product in products %} <!-- Flaskから渡された商品を1件ずつ処理する -->
+
+                    <div class="product-card"> <!-- 1商品分のカードを作る -->
+
+                        <span class="product-icon">{{ product.icon }}</span> <!-- 商品の絵文字を表示する -->
+
+                        <p class="product-name">{{ product.name }}</p> <!-- 商品名を表示する -->
+
+                        <p class="product-price">¥{{ "{:,}".format(product.price) }}</p> <!-- 商品の価格を3桁区切りで表示する -->
+
+                        <form action="{{ url_for('add_to_cart') }}" method="POST"> <!-- カートへ追加するフォームを作る -->
+
+                            <input type="hidden" name="product_id" value="{{ product.id }}"> <!-- 追加する商品のIDを非表示で保持する -->
+
+                            <button class="product-add-button" type="submit">カートに入れる</button> <!-- カートへ追加するボタン -->
+
+                        </form> <!-- カート追加フォームを終了する -->
+
+                    </div> <!-- 1商品分のカードを終了する -->
+
+                {% endfor %} <!-- すべての商品の表示処理を終了する -->
+
+            </div> <!-- 商品グリッド領域を終了する -->
+
+        </div> <!-- 購入タブの中身を終了する -->
+
+        <div id="reservation-panel-book" class="reservation-panel"> <!-- 予約タブの中身を作る -->
+
+            {% if not pets %} <!-- ペットが1匹も登録されていない場合 -->
+
+                <p class="reservation-empty-text">まだペットが登録されていません。「ペット」画面から登録してください。</p> <!-- ペット未登録時の案内を表示する -->
+
+            {% else %} <!-- ペットが1匹以上登録されている場合 -->
+
+                <input
+                    id="facility-search"
+                    class="facility-search"
+                    type="text"
+                    placeholder="施設名やエリアで検索"
+                > <!-- 施設名やエリアを入力して絞り込むための検索欄を作る -->
+
+                <div class="facility-list"> <!-- 施設のカードを並べる領域を作る -->
+
+                    {% for facility in facilities %} <!-- Flaskから渡された施設を1件ずつ処理する -->
+
+                        <div class="facility-card" data-facility-search="{{ facility.name }} {{ facility.area }}"> <!-- 1施設分のカードを作り、検索用に名前とエリアをまとめて持たせる -->
+
+                            <div class="facility-card-header"> <!-- 施設の見出し部分をまとめる -->
+
+                                <span class="facility-icon">{{ facility.icon }}</span> <!-- 施設種別の絵文字を表示する -->
+
+                                <div> <!-- 施設名とエリアをまとめる -->
+
+                                    <p class="facility-name">{{ facility.name }}</p> <!-- 施設名を表示する -->
+
+                                    <p class="facility-area">{{ facility.area }}</p> <!-- 施設のエリアを表示する -->
+
+                                </div> <!-- 施設名とエリアのまとまりを終了する -->
+
+                            </div> <!-- 施設の見出し部分を終了する -->
+
+                            <p class="facility-description">{{ facility.description }}</p> <!-- 施設の説明文を表示する -->
+
+                            <details class="facility-book-form"> <!-- タップすると予約フォームを開閉できる領域を作る -->
+
+                                <summary>この施設を予約する</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                                <form action="{{ url_for('book_facility') }}" method="POST" class="reservation-form"> <!-- 予約をFlaskへ送信するフォームを開始する -->
+
+                                    <input type="hidden" name="facility_id" value="{{ facility.id }}"> <!-- 予約先の施設IDを非表示で保持する -->
+
+                                    <div class="reservation-form-group"> <!-- ペット選択欄をまとめる -->
+
+                                        <label for="facility-{{ facility.id }}-pet">ペット</label> <!-- ペット選択欄の説明を表示する -->
+
+                                        <select id="facility-{{ facility.id }}-pet" name="pet_id" required> <!-- 予約対象のペットを選ぶプルダウンを作る -->
+
+                                            <option value="" disabled selected>選択してください</option> <!-- 未選択時に表示する初期の選択肢 -->
+
+                                            {% for pet in pets %} <!-- 登録済みペットを1匹ずつ処理する -->
+
+                                                <option value="{{ pet.id }}">{{ pet.name }}</option> <!-- ペットを選択肢として表示する -->
+
+                                            {% endfor %} <!-- ペットの選択肢すべての表示処理を終了する -->
+
+                                        </select> <!-- ペット選択欄を終了する -->
+
+                                    </div> <!-- ペット選択欄グループを終了する -->
+
+                                    <div class="reservation-form-group"> <!-- 予約日の入力欄をまとめる -->
+
+                                        <label for="facility-{{ facility.id }}-date">予約日</label> <!-- 予約日入力欄の説明を表示する -->
+
+                                        <input id="facility-{{ facility.id }}-date" name="event_date" type="date" min="{{ today }}" required> <!-- 予約日を選ぶ -->
+
+                                    </div> <!-- 予約日の入力欄グループを終了する -->
+
+                                    <div class="reservation-form-group"> <!-- 希望時間の入力欄をまとめる -->
+
+                                        <label for="facility-{{ facility.id }}-time">希望時間(任意)</label> <!-- 希望時間入力欄の説明を表示する -->
+
+                                        <input id="facility-{{ facility.id }}-time" name="start_time" type="time"> <!-- 希望時間を選ぶ -->
+
+                                    </div> <!-- 希望時間の入力欄グループを終了する -->
+
+                                    <div class="reservation-form-group"> <!-- ご要望の入力欄をまとめる -->
+
+                                        <label for="facility-{{ facility.id }}-note">ご要望(任意)</label> <!-- ご要望入力欄の説明を表示する -->
+
+                                        <input
+                                            id="facility-{{ facility.id }}-note"
+                                            name="note"
+                                            type="text"
+                                            maxlength="200"
+                                            placeholder="例: 爪切りもお願いしたいです"
+                                        > <!-- ご要望を最大200文字で入力する -->
+
+                                    </div> <!-- ご要望の入力欄グループを終了する -->
+
+                                    <button class="reservation-form-submit" type="submit">予約を確定する</button> <!-- 入力した予約をFlaskへ送信して保存する -->
+
+                                </form> <!-- 予約フォームを終了する -->
+
+                            </details> <!-- 予約フォームの開閉領域を終了する -->
+
+                        </div> <!-- 1施設分のカードを終了する -->
+
+                    {% endfor %} <!-- すべての施設の表示処理を終了する -->
+
+                </div> <!-- 施設一覧領域を終了する -->
+
+            {% endif %} <!-- ペット登録の有無による表示切り替えを終了する -->
+
+        </div> <!-- 予約タブの中身を終了する -->
 
     </main> <!-- メイン表示領域を終了する -->
 
@@ -77,6 +247,9 @@
     </nav> <!-- 下部ナビゲーションを終了する -->
 
     <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション用JavaScriptを読み込む -->
+
+    <!-- 予約画面専用のタブ切り替え・施設検索JavaScriptを読み込む -->
+    <script src="{{ url_for('static', filename='js/reservation.js') }}"></script>
 
 </body> <!-- body部分を終了する -->
 

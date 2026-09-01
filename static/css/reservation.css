@@ -1,0 +1,556 @@
+.reservation-tabs { /* 「購入」「予約」を切り替えるタブのボタンを並べる領域を設定する */
+
+    display: flex; /* タブを横並びにする */
+
+    gap: 8px; /* タブ同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.reservation-tab { /* タブ1つ分のボタンを設定する */
+
+    flex: 1; /* 2つのタブを均等な幅にする */
+
+    padding: 12px; /* ボタン内側に余白を作る */
+
+    background-color: #f3f3f3; /* 通常時のタブの背景を薄いグレーにする */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* タブの角を丸くする */
+
+    font-size: 14px; /* タブの文字サイズを設定する */
+
+    font-weight: 700; /* タブの文字を太字にする */
+
+    color: #666666; /* 通常時のタブの文字色を設定する */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.reservation-tab.active { /* 現在選ばれているタブを設定する */
+
+    background-color: #819aff; /* 選択中であることが分かるようアプリの基調色で塗りつぶす */
+
+    color: #ffffff; /* 選択中のタブの文字を白色にする */
+
+}
+
+.reservation-panel { /* タブに対応する中身のパネルを設定する */
+
+    display: none; /* 選ばれていないパネルは非表示にする */
+
+}
+
+.reservation-panel.active { /* 現在選ばれているタブに対応するパネルを設定する */
+
+    display: block; /* 選ばれているパネルだけ表示する */
+
+}
+
+.reservation-empty-text { /* ペット未登録・カートが空などの案内文を設定する */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+    font-size: 14px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}
+
+.reservation-cart-link { /* 購入タブからカート画面へ移動するリンクを設定する */
+
+    display: block; /* 横幅いっぱいの独立した行として表示する */
+
+    margin-top: 16px; /* タブとの間に余白を作る */
+
+    margin-bottom: 12px; /* 商品一覧との間に余白を作る */
+
+    padding: 10px 14px; /* リンク内側に余白を作る */
+
+    background-color: #eef1ff; /* リンクの背景を薄い青系にする */
+
+    border-radius: 10px; /* リンクの角を丸くする */
+
+    font-size: 14px; /* リンクの文字サイズを設定する */
+
+    font-weight: 700; /* リンクの文字を太字にする */
+
+    color: #4a5fc1; /* リンクの文字色を濃い青系にする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+    text-align: center; /* 文字を中央揃えにする */
+
+}
+
+.product-grid { /* 商品を並べるグリッド領域を設定する */
+
+    display: grid; /* 商品カードを格子状に並べる */
+
+    grid-template-columns: repeat(2, 1fr); /* 1行に2枚の商品カードを並べる */
+
+    gap: 12px; /* 商品カード同士の間隔を作る */
+
+}
+
+.product-card { /* 1商品分のカードを設定する */
+
+    display: flex; /* カード内の要素を縦に並べる */
+
+    flex-direction: column; /* 絵文字・商品名・価格・ボタンを縦方向に並べる */
+
+    align-items: center; /* カード内の要素を中央揃えにする */
+
+    gap: 6px; /* カード内の要素同士の間隔を作る */
+
+    padding: 14px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+    text-align: center; /* カード内の文字を中央揃えにする */
+
+}
+
+.product-icon { /* 商品の絵文字を設定する */
+
+    font-size: 32px; /* 絵文字を大きく表示する */
+
+}
+
+.product-name { /* 商品名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 13px; /* 商品名の文字サイズを設定する */
+
+    font-weight: 700; /* 商品名を太字にする */
+
+    color: #333333; /* 商品名の文字色を濃いグレーにする */
+
+}
+
+.product-price { /* 商品の価格を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 15px; /* 価格の文字サイズを設定する */
+
+    font-weight: 700; /* 価格を太字にする */
+
+    color: #819aff; /* 価格の文字色をアプリの基調色にする */
+
+}
+
+.product-card form { /* 商品カード内のカート追加フォームを設定する */
+
+    width: 100%; /* フォームをカードの横幅いっぱいに広げる */
+
+}
+
+.product-add-button { /* カートに入れるボタンを設定する */
+
+    width: 100%; /* ボタンをカードの横幅いっぱいに広げる */
+
+    padding: 8px; /* ボタン内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 12px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.product-add-button:active { /* カートに入れるボタンを押している間だけ適用する */
+
+    transform: scale(0.97); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
+.facility-search { /* 施設名・エリアで絞り込む検索欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    margin-top: 16px; /* タブとの間に余白を作る */
+
+    padding: 12px; /* 検索欄内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 検索欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 10px; /* 検索欄の角を丸くする */
+
+    font-size: 15px; /* スマホでも読みやすい文字サイズにする */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.facility-search:focus { /* 検索欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の検索欄の枠線を少し濃くする */
+
+}
+
+.facility-list { /* 施設のカードを並べる領域を設定する */
+
+    display: flex; /* 施設カードを並べるためflexを使用する */
+
+    flex-direction: column; /* 施設カードを縦方向に並べる */
+
+    gap: 12px; /* 施設カード同士の間隔を作る */
+
+    margin-top: 12px; /* 検索欄との間に余白を作る */
+
+}
+
+.facility-card { /* 1施設分のカードを設定する */
+
+    padding: 14px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.facility-card-header { /* 施設カード上部の絵文字と施設名をまとめる領域を設定する */
+
+    display: flex; /* 絵文字と施設名を横並びにする */
+
+    align-items: center; /* 絵文字と施設名を縦方向の中央に揃える */
+
+    gap: 10px; /* 絵文字と施設名の間隔を作る */
+
+}
+
+.facility-icon { /* 施設種別の絵文字を設定する */
+
+    font-size: 24px; /* 絵文字を大きく表示する */
+
+}
+
+.facility-name { /* 施設名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 15px; /* 施設名の文字サイズを設定する */
+
+    font-weight: 700; /* 施設名を太字にする */
+
+    color: #333333; /* 施設名の文字色を濃いグレーにする */
+
+}
+
+.facility-area { /* 施設のエリアを設定する */
+
+    margin: 2px 0 0; /* 施設名との間に少しだけ余白を作る */
+
+    font-size: 12px; /* エリアを施設名より小さく表示する */
+
+    color: #888888; /* エリアの文字色を薄いグレーにする */
+
+}
+
+.facility-description { /* 施設の説明文を設定する */
+
+    margin: 10px 0 0; /* 見出し部分との間に余白を作る */
+
+    font-size: 13px; /* 説明文の文字サイズを設定する */
+
+    color: #555555; /* 説明文の文字色を濃いめのグレーにする */
+
+}
+
+.facility-book-form { /* 予約フォームの開閉領域を設定する */
+
+    margin-top: 10px; /* 説明文との間に余白を作る */
+
+}
+
+.facility-book-form summary { /* 予約フォームの開閉用文字を設定する */
+
+    font-size: 13px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字を記録画面のリマインダーと同じ青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.facility-book-form[open] summary { /* 予約フォームを開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 10px; /* 開いたあとのフォームとの間に余白を作る */
+
+}
+
+.reservation-form { /* 予約フォーム内の入力欄をまとめる領域を設定する */
+
+    display: flex; /* 入力欄を並べるためflexを使用する */
+
+    flex-direction: column; /* 入力欄を縦方向に並べる */
+
+    gap: 10px; /* 入力欄同士の間隔を作る */
+
+}
+
+.reservation-form-group { /* 予約フォーム内の1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+}
+
+.reservation-form-group label { /* 予約フォームの入力欄の上に表示する項目名を設定する */
+
+    font-size: 12px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+.reservation-form-group input, /* 予約フォームの文字・日付・時刻入力欄をまとめて設定する */
+.reservation-form-group select { /* 予約フォームのペット選択欄も同じ見た目にする */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.reservation-form-submit { /* 予約を確定するボタンを設定する */
+
+    padding: 10px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 14px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.reservation-form-submit:active { /* 予約確定ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
+.reservation-back-link { /* カート画面から予約画面へ戻るリンクを設定する */
+
+    font-size: 13px; /* リンクの文字サイズを設定する */
+
+    font-weight: 700; /* リンクの文字を太字にする */
+
+    color: #4a5fc1; /* リンクの文字色を青系にする */
+
+    text-decoration: none; /* リンクの下線を消す */
+
+}
+
+.cart-item-list { /* カートの商品一覧を並べる領域を設定する */
+
+    display: flex; /* カート内の商品を並べるためflexを使用する */
+
+    flex-direction: column; /* カート内の商品を縦方向に並べる */
+
+    gap: 10px; /* 商品同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.cart-item { /* 1商品分のカート行を設定する */
+
+    display: flex; /* 絵文字・商品情報・削除ボタンを横並びにする */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    gap: 12px; /* 各要素の間に余白を作る */
+
+    padding: 12px 14px; /* カート行の内側に余白を作る */
+
+    background-color: #ffffff; /* カート行の背景を白色にする */
+
+    border: 1px solid #dddddd; /* カート行の周囲に薄いグレーの線を付ける */
+
+    border-radius: 14px; /* カート行の角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.cart-item-icon { /* カート行の商品絵文字を設定する */
+
+    font-size: 28px; /* 絵文字を大きく表示する */
+
+}
+
+.cart-item-info { /* カート行の商品名と数量・小計をまとめる領域を設定する */
+
+    flex: 1; /* 削除ボタン以外の残った横幅を使用する */
+
+}
+
+.cart-item-name { /* カート行の商品名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 14px; /* 商品名の文字サイズを設定する */
+
+    font-weight: 700; /* 商品名を太字にする */
+
+    color: #333333; /* 商品名の文字色を濃いグレーにする */
+
+}
+
+.cart-item-detail { /* カート行の単価・数量・小計を設定する */
+
+    margin: 2px 0 0; /* 商品名との間に少しだけ余白を作る */
+
+    font-size: 12px; /* 詳細の文字サイズを設定する */
+
+    color: #777777; /* 詳細の文字色を控えめなグレーにする */
+
+}
+
+.cart-item-remove { /* カートから商品を取り除くボタンを設定する */
+
+    padding: 6px 12px; /* ボタン内側に余白を作る */
+
+    background-color: #ffffff; /* ボタンの背景を白色にする */
+
+    border: 1px solid #d9534f; /* 削除操作であることが分かるよう赤系の枠線を付ける */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 12px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    color: #d9534f; /* ボタンの文字色を赤系にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.cart-total-row { /* カートの合計金額を表示する行を設定する */
+
+    display: flex; /* 「合計」と金額を横並びにする */
+
+    justify-content: space-between; /* 「合計」を左、金額を右に配置する */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    margin-top: 16px; /* カート一覧との間に余白を作る */
+
+    padding: 14px; /* 合計行の内側に余白を作る */
+
+    background-color: #eef1ff; /* 合計行の背景を薄い青系にする */
+
+    border-radius: 14px; /* 合計行の角を丸くする */
+
+    font-size: 15px; /* 合計行の文字サイズを設定する */
+
+    font-weight: 700; /* 合計行の文字を太字にする */
+
+    color: #333333; /* 「合計」の文字色を濃いグレーにする */
+
+}
+
+.cart-total-price { /* カートの合計金額の数値部分を設定する */
+
+    font-size: 20px; /* 合計金額を大きく表示する */
+
+    color: #4a5fc1; /* 合計金額の文字色を青系にする */
+
+}
+
+.cart-confirm-button { /* 注文を確定するボタンを設定する */
+
+    width: 100%; /* ボタンを横幅いっぱいに広げる */
+
+    margin-top: 16px; /* 合計行との間に余白を作る */
+
+    padding: 14px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 12px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 15px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.cart-confirm-button:active { /* 注文確定ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
+@media (max-width: 480px) { /* 画面幅が480px以下のスマホ向けデザインを設定する */
+
+    .product-grid { /* スマホでの商品グリッドを設定する */
+
+        grid-template-columns: repeat(2, 1fr); /* スマホでも1行2枚のまま表示する */
+
+    }
+
+}
