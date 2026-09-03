@@ -15,6 +15,12 @@
     <!-- 証明書セクション用のCSSファイルを読み込む(証明書機能をペット画面に統合したため) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/certificates.css') }}">
 
+    <!-- 保険情報セクション用のCSSファイルを読み込む(保険機能をペット画面に統合したため) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/insurance.css') }}">
+
+    <!-- お薬セクション用のCSSファイルを読み込む(お薬機能をペット画面に統合したため) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/medications.css') }}">
+
 </head> <!-- head部分を終了する -->
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
@@ -316,7 +322,320 @@
 
             {% endif %}
 
-            <a class="pet-insurance-link" href="{{ url_for('insurance') }}">🛡️ 保険情報を見る</a> <!-- ペット保険情報の画面へ移動するリンク -->
+            {% if selected_pet %} <!-- ペットが選択されている場合だけ保険情報セクションを表示する -->
+
+                <section class="insurance-card"> <!-- 保険情報の表示・登録フォームをまとめるカードを作る(保険機能をペット画面に統合) -->
+
+                    <p class="certificate-section-title">🛡️ 保険情報</p> <!-- セクションの見出しを表示する -->
+
+                    {% if insurance_policy %} <!-- このペットが保険に加入している場合 -->
+
+                        <div class="insurance-detail"> <!-- 加入中の保険内容をまとめる領域を作る -->
+
+                            <p class="insurance-detail-row"><span class="insurance-detail-label">保険会社</span>{{ insurance_policy.company_name }}</p> <!-- 保険会社名を表示する -->
+
+                            <p class="insurance-detail-row"><span class="insurance-detail-label">プラン</span>{{ insurance_policy.plan_name }}</p> <!-- プラン名を表示する -->
+
+                            {% if insurance_policy.premium_amount is not none %} <!-- 金額が入力されている場合 -->
+
+                                <p class="insurance-detail-row"><span class="insurance-detail-label">金額</span>¥{{ "{:,}".format(insurance_policy.premium_amount) }}</p> <!-- 金額を3桁区切りで表示する -->
+
+                            {% endif %} <!-- 金額の有無による表示切り替えを終了する -->
+
+                            <p class="insurance-detail-row {% if insurance_policy.urgent %}insurance-urgent-text{% endif %}"> <!-- 更新日が近い場合は文字色で目立たせる -->
+
+                                <span class="insurance-detail-label">更新日</span>{{ insurance_policy.renewal_date.strftime('%Y/%m/%d') }} <!-- 更新日を表示する -->
+
+                                {% if insurance_policy.days_until_renewal < 0 %} <!-- 更新日をすでに過ぎている場合 -->
+
+                                    (更新日を過ぎています) <!-- 期限切れであることを表示する -->
+
+                                {% elif insurance_policy.days_until_renewal <= 30 %} <!-- 更新日まで30日以内の場合 -->
+
+                                    (あと{{ insurance_policy.days_until_renewal }}日) <!-- 更新日までの残り日数を表示する -->
+
+                                {% endif %} <!-- 更新日の状態による表示切り替えを終了する -->
+
+                            </p> <!-- 更新日の行を終了する -->
+
+                            {% if insurance_policy.detail %} <!-- プランの詳細メモが入力されている場合 -->
+
+                                <p class="insurance-detail-note">{{ insurance_policy.detail }}</p> <!-- プランの詳細メモを表示する -->
+
+                            {% endif %} <!-- 詳細メモの有無による表示切り替えを終了する -->
+
+                        </div> <!-- 加入中の保険内容領域を終了する -->
+
+                    {% else %} <!-- このペットがまだ保険に加入していない場合 -->
+
+                        <p class="insurance-empty-text">まだ保険情報が登録されていません。</p> <!-- 未加入であることを知らせる -->
+
+                    {% endif %} <!-- 保険加入状況による表示切り替えを終了する -->
+
+                    <details class="insurance-edit-form"> <!-- タップすると保険情報の入力フォームを開閉できる領域を作る -->
+
+                        <summary>{{ 'この保険情報を更新する' if insurance_policy else '保険情報を登録する' }}</summary> <!-- 加入状況に応じて開閉用の文字を変える -->
+
+                        <form action="{{ url_for('insurance') }}" method="POST" class="insurance-form"> <!-- 保険情報をFlaskへ送信するフォームを開始する -->
+
+                            <input type="hidden" name="pet_id" value="{{ selected_pet['id'] }}"> <!-- 対象のペットIDを非表示で保持する -->
+
+                            <div class="insurance-form-group"> <!-- 保険会社名の入力欄をまとめる -->
+
+                                <label for="insurance-{{ selected_pet['id'] }}-company">保険会社名</label> <!-- 保険会社名入力欄の説明を表示する -->
+
+                                <input
+                                    id="insurance-{{ selected_pet['id'] }}-company"
+                                    name="company_name"
+                                    type="text"
+                                    maxlength="50"
+                                    value="{{ insurance_policy.company_name if insurance_policy else '' }}"
+                                    placeholder="例: ◯◯損保"
+                                    required
+                                > <!-- 保険会社名を最大50文字で入力する -->
+
+                            </div> <!-- 保険会社名の入力欄グループを終了する -->
+
+                            <div class="insurance-form-group"> <!-- プラン名の入力欄をまとめる -->
+
+                                <label for="insurance-{{ selected_pet['id'] }}-plan">プラン名</label> <!-- プラン名入力欄の説明を表示する -->
+
+                                <input
+                                    id="insurance-{{ selected_pet['id'] }}-plan"
+                                    name="plan_name"
+                                    type="text"
+                                    maxlength="50"
+                                    value="{{ insurance_policy.plan_name if insurance_policy else '' }}"
+                                    placeholder="例: プラン70%"
+                                    required
+                                > <!-- プラン名を最大50文字で入力する -->
+
+                            </div> <!-- プラン名の入力欄グループを終了する -->
+
+                            <div class="insurance-form-group"> <!-- 金額の入力欄をまとめる -->
+
+                                <label for="insurance-{{ selected_pet['id'] }}-premium">金額(任意)</label> <!-- 金額入力欄の説明を表示する -->
+
+                                <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+
+                                    <input
+                                        id="insurance-{{ selected_pet['id'] }}-premium"
+                                        name="premium_amount"
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value="{{ insurance_policy.premium_amount if insurance_policy and insurance_policy.premium_amount is not none else '' }}"
+                                        placeholder="2000"
+                                    > <!-- 金額を0円以上の整数で入力する -->
+
+                                    <span>円</span> <!-- 金額の単位を表示する -->
+
+                                </div> <!-- 数値入力欄と単位の領域を終了する -->
+
+                            </div> <!-- 金額の入力欄グループを終了する -->
+
+                            <div class="insurance-form-group"> <!-- 更新日の入力欄をまとめる -->
+
+                                <label for="insurance-{{ selected_pet['id'] }}-renewal">更新日</label> <!-- 更新日入力欄の説明を表示する -->
+
+                                <input
+                                    id="insurance-{{ selected_pet['id'] }}-renewal"
+                                    name="renewal_date"
+                                    type="date"
+                                    value="{{ insurance_policy.renewal_date.isoformat() if insurance_policy else today }}"
+                                    required
+                                > <!-- 保険の更新日を選ぶ -->
+
+                            </div> <!-- 更新日の入力欄グループを終了する -->
+
+                            <div class="insurance-form-group"> <!-- プランの詳細メモの入力欄をまとめる -->
+
+                                <label for="insurance-{{ selected_pet['id'] }}-detail">プランの詳細(任意)</label> <!-- プラン詳細入力欄の説明を表示する -->
+
+                                <textarea
+                                    id="insurance-{{ selected_pet['id'] }}-detail"
+                                    name="detail"
+                                    maxlength="500"
+                                    placeholder="例: 通院・入院・手術を補償率70%でカバー。免責金額は1回5,000円。"
+                                >{{ insurance_policy.detail if insurance_policy and insurance_policy.detail else '' }}</textarea> <!-- プランの詳細を最大500文字で入力する -->
+
+                            </div> <!-- プランの詳細メモの入力欄グループを終了する -->
+
+                            <button class="insurance-form-submit" type="submit">保存する</button> <!-- 入力した保険情報を保存するボタン -->
+
+                        </form> <!-- 保険情報フォームを終了する -->
+
+                    </details> <!-- 保険情報フォームの開閉領域を終了する -->
+
+                    {% if insurance_policy %} <!-- このペットが保険に加入している場合だけ解約ボタンを表示する -->
+
+                        <form
+                            action="{{ url_for('delete_insurance', pet_id=selected_pet['id']) }}"
+                            method="POST"
+                            class="insurance-delete-form"
+                            onsubmit="return confirm('{{ selected_pet['name'] }}の保険情報を削除しますか？');"
+                        > <!-- 削除前に確認画面を表示し、キャンセルされた場合は送信しない -->
+
+                            <button class="insurance-delete-button" type="submit">解約する(削除)</button> <!-- 保険情報を削除するボタン -->
+
+                        </form> <!-- 解約用フォームを終了する -->
+
+                    {% endif %} <!-- 加入状況による解約ボタンの表示切り替えを終了する -->
+
+                </section> <!-- 保険情報カードを終了する -->
+
+            {% endif %} <!-- ペット選択の有無による保険情報セクションの表示切り替えを終了する -->
+
+            {% if selected_pet %} <!-- ペットが選択されている場合だけお薬セクションを表示する -->
+
+                <section class="medication-pet-card"> <!-- お薬の一覧・登録フォームをまとめるカードを作る(お薬機能をペット画面に統合) -->
+
+                    <p class="certificate-section-title">💊 お薬</p> <!-- セクションの見出しを表示する -->
+
+                    {% if medications %} <!-- このペットにお薬が1件以上登録されている場合 -->
+
+                        <div class="medication-list"> <!-- お薬を並べる領域を作る -->
+
+                            {% for medication in medications %} <!-- お薬を1件ずつ処理する -->
+
+                                <div class="medication-item"> <!-- 1件分のお薬を表示する領域を作る -->
+
+                                    <div class="medication-item-header"> <!-- お薬の名前と削除ボタンを横に並べる領域を作る -->
+
+                                        <p class="medication-name">{{ medication.name }}</p> <!-- お薬の名前を表示する -->
+
+                                        <form
+                                            action="{{ url_for('delete_medication', medication_id=medication.id) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('{{ medication.name }}を削除しますか？');"
+                                        > <!-- 削除前に確認画面を表示し、キャンセルされた場合は送信しない -->
+
+                                            <button class="medication-delete-button" type="submit">削除</button> <!-- お薬を削除するボタン -->
+
+                                        </form> <!-- 削除フォームを終了する -->
+
+                                    </div> <!-- お薬の見出し行を終了する -->
+
+                                    {% if medication.note %} <!-- メモが入力されている場合 -->
+
+                                        <p class="medication-note">{{ medication.note }}</p> <!-- お薬に関するメモを表示する -->
+
+                                    {% endif %} <!-- メモの有無による表示切り替えを終了する -->
+
+                                    <div class="medication-time-list"> <!-- 服用時刻を並べる領域を作る -->
+
+                                        {% for time_entry in medication.times %} <!-- 服用時刻を1件ずつ処理する -->
+
+                                            <div class="medication-time-row {% if time_entry.overdue %}medication-time-overdue{% endif %}"> <!-- 時刻を過ぎて未服用の場合は目立たせる -->
+
+                                                <span class="medication-time-label">{{ time_entry.time_of_day }}</span> <!-- 服用時刻を表示する -->
+
+                                                {% if time_entry.taken_today %} <!-- 今日すでに服用済みとして記録されている場合 -->
+
+                                                    <form action="{{ url_for('unlog_medication') }}" method="POST"> <!-- 服用記録を取り消すフォームを作る -->
+
+                                                        <input type="hidden" name="medication_time_id" value="{{ time_entry.id }}"> <!-- 対象の服用時刻IDを非表示で保持する -->
+
+                                                        <button class="medication-check-button taken" type="submit">✅ 服用済み</button> <!-- タップすると服用記録を取り消せるボタン -->
+
+                                                    </form> <!-- 服用記録取り消しフォームを終了する -->
+
+                                                {% else %} <!-- まだ今日の服用記録が無い場合 -->
+
+                                                    <form action="{{ url_for('log_medication') }}" method="POST"> <!-- 服用記録を追加するフォームを作る -->
+
+                                                        <input type="hidden" name="medication_time_id" value="{{ time_entry.id }}"> <!-- 対象の服用時刻IDを非表示で保持する -->
+
+                                                        <button class="medication-check-button" type="submit">未服用</button> <!-- タップすると服用済みとして記録できるボタン -->
+
+                                                    </form> <!-- 服用記録追加フォームを終了する -->
+
+                                                {% endif %} <!-- 服用済みかどうかによる表示切り替えを終了する -->
+
+                                            </div> <!-- 1つの服用時刻の行を終了する -->
+
+                                        {% endfor %} <!-- すべての服用時刻の表示処理を終了する -->
+
+                                    </div> <!-- 服用時刻一覧を終了する -->
+
+                                </div> <!-- 1件分のお薬表示を終了する -->
+
+                            {% endfor %} <!-- すべてのお薬の表示処理を終了する -->
+
+                        </div> <!-- お薬一覧を終了する -->
+
+                    {% else %} <!-- このペットにお薬が1件も登録されていない場合 -->
+
+                        <p class="medication-empty-text">まだお薬が登録されていません。</p> <!-- 未登録であることを知らせる -->
+
+                    {% endif %} <!-- お薬の有無による表示切り替えを終了する -->
+
+                    <details class="medication-add-form"> <!-- タップするとお薬追加フォームを開閉できる領域を作る -->
+
+                        <summary>＋ お薬を追加</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                        <form action="{{ url_for('medications') }}" method="POST" class="medication-form"> <!-- お薬情報をFlaskへ送信するフォームを開始する -->
+
+                            <input type="hidden" name="pet_id" value="{{ selected_pet['id'] }}"> <!-- 対象のペットIDを非表示で保持する -->
+
+                            <div class="medication-form-group"> <!-- お薬の名前の入力欄をまとめる -->
+
+                                <label for="medication-{{ selected_pet['id'] }}-name">お薬の名前</label> <!-- お薬の名前入力欄の説明を表示する -->
+
+                                <input
+                                    id="medication-{{ selected_pet['id'] }}-name"
+                                    name="name"
+                                    type="text"
+                                    maxlength="50"
+                                    placeholder="例: 心臓のお薬"
+                                    required
+                                > <!-- お薬の名前を最大50文字で入力する -->
+
+                            </div> <!-- お薬の名前の入力欄グループを終了する -->
+
+                            <div class="medication-form-group"> <!-- 服用時刻の入力欄をまとめる -->
+
+                                <label>服用時刻(1つ以上入力)</label> <!-- 服用時刻入力欄の説明を表示する -->
+
+                                <div class="medication-time-inputs"> <!-- 服用時刻の入力欄を横に並べる領域を作る -->
+
+                                    {% for slot_number in range(1, time_slot_count + 1) %} <!-- 用意した時刻入力欄の数だけ繰り返す -->
+
+                                        <input
+                                            name="time_{{ slot_number }}"
+                                            type="time"
+                                            aria-label="服用時刻{{ slot_number }}"
+                                        > <!-- 服用時刻を1つ選ぶ(空欄のままでもよい) -->
+
+                                    {% endfor %} <!-- 服用時刻入力欄すべての表示処理を終了する -->
+
+                                </div> <!-- 服用時刻の入力欄の領域を終了する -->
+
+                            </div> <!-- 服用時刻の入力欄グループを終了する -->
+
+                            <div class="medication-form-group"> <!-- メモの入力欄をまとめる -->
+
+                                <label for="medication-{{ selected_pet['id'] }}-note">メモ(任意)</label> <!-- メモ入力欄の説明を表示する -->
+
+                                <input
+                                    id="medication-{{ selected_pet['id'] }}-note"
+                                    name="note"
+                                    type="text"
+                                    maxlength="200"
+                                    placeholder="例: ごはんの後に与える"
+                                > <!-- メモを最大200文字で入力する -->
+
+                            </div> <!-- メモの入力欄グループを終了する -->
+
+                            <button class="medication-form-submit" type="submit">登録する</button> <!-- 入力したお薬を保存するボタン -->
+
+                        </form> <!-- お薬追加フォームを終了する -->
+
+                    </details> <!-- お薬追加フォームの開閉領域を終了する -->
+
+                </section> <!-- お薬カードを終了する -->
+
+            {% endif %} <!-- ペット選択の有無によるお薬セクションの表示切り替えを終了する -->
 
             {% if selected_pet %} <!-- ペットが選択されている場合だけ証明書セクションを表示する -->
 
@@ -678,17 +997,6 @@
 
         </a> <!-- 予約リンクを終了する -->
 
-        <a href="{{ url_for('insurance') }}" data-index="5"> <!-- 保険情報画面へ移動するリンクを作る -->
-
-            <span>保険</span> <!-- 保険という文字を表示する -->
-
-        </a> <!-- 保険リンクを終了する -->
-
-        <a href="{{ url_for('medications') }}" data-index="6"> <!-- お薬管理画面へ移動するリンクを作る -->
-
-            <span>お薬</span> <!-- お薬という文字を表示する -->
-
-        </a> <!-- お薬リンクを終了する -->
 
     </nav> <!-- 下部ナビゲーションを終了する -->
 

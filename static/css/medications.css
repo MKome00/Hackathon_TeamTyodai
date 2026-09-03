@@ -1,16 +1,4 @@
-.medication-page-note { /* お薬管理ページの目的を説明する文章を設定する */
-
-    margin: 8px 0 0; /* タイトルとの間に余白を作る */
-
-    font-size: 13px; /* 説明文の文字サイズを設定する */
-
-    color: #777777; /* 説明文の文字色を控えめなグレーにする */
-
-    line-height: 1.6; /* 2行になっても読みやすいよう行間を広げる */
-
-}
-
-.medication-empty-text { /* ペット未登録・お薬未登録などの案内文を設定する */
+.medication-empty-text { /* お薬未登録であることを知らせる案内文を設定する */
 
     margin-top: 16px; /* 上の要素との間に余白を作る */
 
@@ -20,19 +8,7 @@
 
 }
 
-.medication-pet-list { /* ペットごとのお薬カードを並べる領域を設定する */
-
-    display: flex; /* カードを並べるためflexを使用する */
-
-    flex-direction: column; /* カードを縦方向に並べる */
-
-    gap: 12px; /* カード同士の間隔を作る */
-
-    margin-top: 16px; /* ページ上部との間に余白を作る */
-
-}
-
-.medication-pet-card { /* 1匹分のお薬カードを設定する */
+.medication-pet-card { /* お薬の一覧・登録フォームをまとめるカードを設定する */
 
     padding: 16px; /* カード内側に余白を作る */
 
@@ -44,101 +20,7 @@
 
     box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
 
-}
-
-.medication-pet-header { /* カード上部の写真と名前をまとめる領域を設定する */
-
-    display: flex; /* 写真と名前を横並びにする */
-
-    align-items: center; /* 写真と名前を縦方向の中央に揃える */
-
-    gap: 12px; /* 写真と名前の間隔を作る */
-
-}
-
-.medication-pet-photo { /* お薬カードに表示するペット写真の丸い枠を設定する */
-
-    width: 40px; /* 写真枠の横幅を設定する */
-
-    height: 40px; /* 写真枠の高さを設定する */
-
-    flex-shrink: 0; /* カード幅が狭くなっても写真枠が縮まないようにする */
-
-    display: flex; /* 写真や絵文字を中央配置できるようにする */
-
-    justify-content: center; /* 内容を横方向の中央に配置する */
-
-    align-items: center; /* 内容を縦方向の中央に配置する */
-
-    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
-
-    border-radius: 50%; /* 写真枠を丸く表示する */
-
-    overflow: hidden; /* 写真が枠からはみ出さないようにする */
-
-    font-size: 18px; /* 代わりに表示する絵文字の大きさを設定する */
-
-}
-
-.medication-pet-photo img { /* お薬カードに表示するペット写真そのものを設定する */
-
-    width: 100%; /* 写真枠いっぱいの横幅で表示する */
-
-    height: 100%; /* 写真枠いっぱいの高さで表示する */
-
-    object-fit: cover; /* 写真の縦横比を保ちながら枠いっぱいに表示する */
-
-}
-
-.medication-pet-name { /* お薬カードのペット名を設定する */
-
-    margin: 0; /* 段落が持つ余白をなくす */
-
-    font-size: 16px; /* ペット名を少し大きめに表示する */
-
-    font-weight: 700; /* ペット名を太字にする */
-
-    color: #333333; /* ペット名の文字色を濃いグレーにする */
-
-}
-
-.medication-reminder-banner { /* 服用を促すリマインダーをまとめる領域を設定する */
-
-    margin-top: 12px; /* カードヘッダーとの間に余白を作る */
-
-    padding: 12px 14px; /* バナー内側に余白を作る */
-
-    background-color: #fff8e6; /* 注意を促す薄い黄色の背景にする */
-
-    border: 1px solid #f0d38a; /* 薄い黄色の枠線を付ける */
-
-    border-radius: 14px; /* バナーの角を丸くする */
-
-    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
-
-}
-
-.medication-reminder-title { /* リマインダー全体の見出しを設定する */
-
-    margin: 0; /* 見出しが持つ余白をなくす */
-
-    font-size: 14px; /* 見出しの文字サイズを設定する */
-
-    font-weight: 700; /* 見出しを太字にする */
-
-    color: #8a6d1a; /* 見出しの文字色を濃い黄土色にする */
-
-}
-
-.medication-reminder-list { /* リマインダーの箇条書き一覧を設定する */
-
-    margin: 6px 0 0; /* 見出しとの間にだけ余白を作る */
-
-    padding-left: 18px; /* 標準の黒丸が収まる左余白を作る */
-
-    font-size: 13px; /* リマインダーの文字サイズを設定する */
-
-    color: #8a6d1a; /* リマインダーの文字色を見出しと揃える */
+    margin-top: 16px; /* 上の要素との間に余白を作る */
 
 }
 
