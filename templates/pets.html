@@ -210,6 +210,21 @@
 
                         </div> <!-- 種類入力グループを終了する -->
 
+                        <div class="pet-input-group"> <!-- 服のサイズ入力欄を1つのグループとしてまとめる -->
+
+                            <label for="pet-clothing-size">服のサイズ</label> <!-- 服のサイズ入力欄の説明を表示する -->
+
+                            <input
+                                id="pet-clothing-size"
+                                name="clothing_size"
+                                type="text"
+                                value="{{ selected_pet['clothing_size'] if selected_pet and selected_pet['clothing_size'] else '' }}"
+                                maxlength="20"
+                                placeholder="例：M、3号"
+                            > <!-- 服のサイズ表記(S/M/Lなど)を最大20文字までの自由入力にする -->
+
+                        </div> <!-- 服のサイズ入力グループを終了する -->
+
                         <div class="pet-input-row"> <!-- 年齢と体重を横並びにするための領域を作る -->
 
                             <div class="pet-input-group"> <!-- 年齢入力欄を1つのグループとしてまとめる -->

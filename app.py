@@ -76,6 +76,10 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
         connection.execute("ALTER TABLE pets ADD COLUMN photo TEXT")  # 既存テーブルに画像ファイル名保存用のphoto列を追加する
 
+    if "clothing_size" not in column_names:  # 既存のpetsテーブルにclothing_size列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE pets ADD COLUMN clothing_size TEXT")  # 既存テーブルに服のサイズ保存用のclothing_size列を追加する
+
     connection.execute(  # recordsテーブルが存在しない場合に新しく作成するSQLを実行する
 
         """
@@ -727,6 +731,8 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
         note = request.form.get("note", "").strip()  # その他の基本情報を取得し、前後の余分な空白を削除する
 
+        clothing_size = request.form.get("clothing_size", "").strip()  # 服のサイズ(S/M/Lなど)を取得し、前後の余分な空白を削除する
+
         photo = request.files.get("photo")  # フォームから送信されたペット写真ファイルを取得する
 
         photo_filename = None  # 新しい画像が送信されなかった場合に備えて画像ファイル名を空の状態にする
@@ -748,6 +754,10 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
         elif len(note) > 500:  # その他の基本情報が500文字を超えている場合
 
             error_message = "その他の基本情報は500文字以内で入力してください。"  # その他情報の文字数制限を知らせる
+
+        elif len(clothing_size) > 20:  # 服のサイズが20文字を超えている場合
+
+            error_message = "服のサイズは20文字以内で入力してください。"  # 服のサイズの文字数制限を知らせる
 
         age = None  # 年齢が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
 
@@ -788,7 +798,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             pet_list = connection.execute(  # 登録済みのペットをすべて取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 ORDER BY id
                 """  # ペット一覧を登録順に取得するSQLを書く
@@ -802,7 +812,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
                 selected_pet = connection.execute(  # 編集していたペット情報をもう一度取得する
 
                     """
-                    SELECT id, name, type, age, weight, note, photo
+                    SELECT id, name, type, age, weight, note, photo, clothing_size
                     FROM pets
                     WHERE id = ?
                     """,  # 編集対象のペット1匹を取得するSQLを書く
@@ -842,11 +852,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
                     """
                     UPDATE pets
-                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, photo = ?
+                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, photo = ?, clothing_size = ?
                     WHERE id = ?
                     """,  # 指定されたIDのペット情報と写真を更新するSQLを書く
 
-                    (name, pet_type, age, weight, note, photo_filename, pet_id)  # 更新する値と対象ペットIDをSQLへ渡す
+                    (name, pet_type, age, weight, note, photo_filename, clothing_size, pet_id)  # 更新する値と対象ペットIDをSQLへ渡す
 
                 )  # 写真を含むUPDATE処理を終了する
 
@@ -856,11 +866,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
                     """
                     UPDATE pets
-                    SET name = ?, type = ?, age = ?, weight = ?, note = ?
+                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, clothing_size = ?
                     WHERE id = ?
                     """,  # 写真列には触れずプロフィール情報だけ更新するSQLを書く
 
-                    (name, pet_type, age, weight, note, pet_id)  # 更新する文字情報と対象ペットIDをSQLへ渡す
+                    (name, pet_type, age, weight, note, clothing_size, pet_id)  # 更新する文字情報と対象ペットIDをSQLへ渡す
 
                 )  # 写真を変更しないUPDATE処理を終了する
 
@@ -869,11 +879,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             cursor = connection.execute(  # 新しいペット情報をpetsテーブルへ登録し、新しく作られたIDも取得できるようにする
 
                 """
-                INSERT INTO pets (name, type, age, weight, note, photo)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO pets (name, type, age, weight, note, photo, clothing_size)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,  # 新しいペットの基本情報と画像ファイル名を保存するSQLを書く
 
-                (name, pet_type, age, weight, note, photo_filename)  # 入力されたプロフィール情報と画像ファイル名をSQLへ渡す
+                (name, pet_type, age, weight, note, photo_filename, clothing_size)  # 入力されたプロフィール情報と画像ファイル名をSQLへ渡す
 
             )  # INSERT処理を終了する
 
@@ -892,7 +902,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
     pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
 
         """
-        SELECT id, name, type, age, weight, note, photo
+        SELECT id, name, type, age, weight, note, photo, clothing_size
         FROM pets
         ORDER BY id
         """  # 登録された順番でペット情報を取得するSQLを書く
@@ -914,7 +924,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             selected_pet = connection.execute(  # 指定されたIDのペット情報を取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 WHERE id = ?
                 """,  # URLで指定されたペット1匹を取得するSQLを書く
@@ -928,7 +938,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             selected_pet = connection.execute(  # 登録されている中で最もIDが小さいペットを取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 ORDER BY id ASC
                 LIMIT 1
