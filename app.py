@@ -294,6 +294,12 @@ FOOD_DANGER_DAYS = 10  # この日数を切ったらフード残量バーを赤�
 
 FOOD_WARNING_DAYS = 20  # この日数を切ったらフード残量バーを黄色にするしきい値を設定する
 
+TREAT_BAR_MAX_DAYS = 30  # おやつ残量バーが満タン表示になる日数のしきい値を設定する
+
+TREAT_DANGER_DAYS = 10  # この日数を切ったらおやつ残量バーを赤色にするしきい値を設定する
+
+TREAT_WARNING_DAYS = 20  # この日数を切ったらおやつ残量バーを黄色にするしきい値を設定する
+
 def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミー情報を組み立てる関数を定義する
 
     rng = random.Random(pet["id"])  # ペットIDを種にして、同じペットなら毎回同じダミー内容になるようにする
@@ -314,6 +320,22 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
 
         food_level = "safe"  # フード残量バーを青色にする
 
+    treat_days_left = rng.randint(1, 35)  # おやつがなくなるまでの残り日数をダミーで決める(フードとは別の値になるよう続けて乱数を取り出す)
+
+    treat_percent = min(round(treat_days_left / TREAT_BAR_MAX_DAYS * 100), 100)  # 残り日数をもとにバーの表示割合を計算し、実際の日数と矛盾しないようにする
+
+    if treat_days_left < TREAT_DANGER_DAYS:  # 残り日数がしきい値を切って少ない場合
+
+        treat_level = "danger"  # おやつ残量バーを赤色にする
+
+    elif treat_days_left < TREAT_WARNING_DAYS:  # 残り日数がまだ危険域ではないが少なめの場合
+
+        treat_level = "warning"  # おやつ残量バーを黄色にする
+
+    else:  # 残り日数に十分な余裕がある場合
+
+        treat_level = "safe"  # おやつ残量バーを青色にする
+
     weight_diff = round(rng.uniform(-0.3, 0.3), 1)  # 前回記録からの体重の増減をダミーで決める
 
     return {  # 組み立てたダミー情報をまとめて返す
@@ -323,6 +345,10 @@ def build_home_dummy_data(pet):  # ペット1匹分のホーム画面用ダミ�
         "food_percent": food_percent,  # フードの残量バーの表示割合(0〜100)
         "food_max_days": FOOD_BAR_MAX_DAYS,  # フード残量バーが満タンとして扱う日数
         "food_level": food_level,  # フード残量バーの色分け("danger" / "warning" / "safe")
+        "treat_days_left": treat_days_left,  # おやつが残っている日数
+        "treat_percent": treat_percent,  # おやつの残量バーの表示割合(0〜100)
+        "treat_max_days": TREAT_BAR_MAX_DAYS,  # おやつ残量バーが満タンとして扱う日数
+        "treat_level": treat_level,  # おやつ残量バーの色分け("danger" / "warning" / "safe")
         "weight_diff": weight_diff,  # 前回からの体重の増減
 
     }  # ペット1匹分のダミー情報組み立てを終了する
