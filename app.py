@@ -76,6 +76,10 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
         connection.execute("ALTER TABLE pets ADD COLUMN photo TEXT")  # 既存テーブルに画像ファイル名保存用のphoto列を追加する
 
+    if "clothing_size" not in column_names:  # 既存のpetsテーブルにclothing_size列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE pets ADD COLUMN clothing_size TEXT")  # 既存テーブルに服のサイズ保存用のclothing_size列を追加する
+
     connection.execute(  # recordsテーブルが存在しない場合に新しく作成するSQLを実行する
 
         """
@@ -727,6 +731,8 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
         note = request.form.get("note", "").strip()  # その他の基本情報を取得し、前後の余分な空白を削除する
 
+        clothing_size = request.form.get("clothing_size", "").strip()  # 服のサイズ(S/M/Lなど)を取得し、前後の余分な空白を削除する
+
         photo = request.files.get("photo")  # フォームから送信されたペット写真ファイルを取得する
 
         photo_filename = None  # 新しい画像が送信されなかった場合に備えて画像ファイル名を空の状態にする
@@ -748,6 +754,10 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
         elif len(note) > 500:  # その他の基本情報が500文字を超えている場合
 
             error_message = "その他の基本情報は500文字以内で入力してください。"  # その他情報の文字数制限を知らせる
+
+        elif len(clothing_size) > 20:  # 服のサイズが20文字を超えている場合
+
+            error_message = "服のサイズは20文字以内で入力してください。"  # 服のサイズの文字数制限を知らせる
 
         age = None  # 年齢が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
 
@@ -788,7 +798,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             pet_list = connection.execute(  # 登録済みのペットをすべて取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 ORDER BY id
                 """  # ペット一覧を登録順に取得するSQLを書く
@@ -802,7 +812,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
                 selected_pet = connection.execute(  # 編集していたペット情報をもう一度取得する
 
                     """
-                    SELECT id, name, type, age, weight, note, photo
+                    SELECT id, name, type, age, weight, note, photo, clothing_size
                     FROM pets
                     WHERE id = ?
                     """,  # 編集対象のペット1匹を取得するSQLを書く
@@ -817,7 +827,10 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
                 "pets.html",  # ペットページを再表示する
                 pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
                 selected_pet=selected_pet,  # 編集中だったペット情報をHTMLへ渡す
-                error_message=error_message  # 入力エラーメッセージをHTMLへ渡す
+                error_message=error_message,  # 入力エラーメッセージをHTMLへ渡す
+                certificates=fetch_certificates_for_pet(selected_pet["id"]) if selected_pet else [],  # 編集中だったペットの証明書一覧をHTMLへ渡す
+                certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
+                certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
             )  # DBへの保存処理は行わず、ペットページへ戻る
 
         connection = get_db_connection()  # SQLiteへ接続する
@@ -842,11 +855,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
                     """
                     UPDATE pets
-                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, photo = ?
+                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, photo = ?, clothing_size = ?
                     WHERE id = ?
                     """,  # 指定されたIDのペット情報と写真を更新するSQLを書く
 
-                    (name, pet_type, age, weight, note, photo_filename, pet_id)  # 更新する値と対象ペットIDをSQLへ渡す
+                    (name, pet_type, age, weight, note, photo_filename, clothing_size, pet_id)  # 更新する値と対象ペットIDをSQLへ渡す
 
                 )  # 写真を含むUPDATE処理を終了する
 
@@ -856,11 +869,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
                     """
                     UPDATE pets
-                    SET name = ?, type = ?, age = ?, weight = ?, note = ?
+                    SET name = ?, type = ?, age = ?, weight = ?, note = ?, clothing_size = ?
                     WHERE id = ?
                     """,  # 写真列には触れずプロフィール情報だけ更新するSQLを書く
 
-                    (name, pet_type, age, weight, note, pet_id)  # 更新する文字情報と対象ペットIDをSQLへ渡す
+                    (name, pet_type, age, weight, note, clothing_size, pet_id)  # 更新する文字情報と対象ペットIDをSQLへ渡す
 
                 )  # 写真を変更しないUPDATE処理を終了する
 
@@ -869,11 +882,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             cursor = connection.execute(  # 新しいペット情報をpetsテーブルへ登録し、新しく作られたIDも取得できるようにする
 
                 """
-                INSERT INTO pets (name, type, age, weight, note, photo)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO pets (name, type, age, weight, note, photo, clothing_size)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,  # 新しいペットの基本情報と画像ファイル名を保存するSQLを書く
 
-                (name, pet_type, age, weight, note, photo_filename)  # 入力されたプロフィール情報と画像ファイル名をSQLへ渡す
+                (name, pet_type, age, weight, note, photo_filename, clothing_size)  # 入力されたプロフィール情報と画像ファイル名をSQLへ渡す
 
             )  # INSERT処理を終了する
 
@@ -892,7 +905,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
     pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
 
         """
-        SELECT id, name, type, age, weight, note, photo
+        SELECT id, name, type, age, weight, note, photo, clothing_size
         FROM pets
         ORDER BY id
         """  # 登録された順番でペット情報を取得するSQLを書く
@@ -914,7 +927,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             selected_pet = connection.execute(  # 指定されたIDのペット情報を取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 WHERE id = ?
                 """,  # URLで指定されたペット1匹を取得するSQLを書く
@@ -928,7 +941,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
             selected_pet = connection.execute(  # 登録されている中で最もIDが小さいペットを取得する
 
                 """
-                SELECT id, name, type, age, weight, note, photo
+                SELECT id, name, type, age, weight, note, photo, clothing_size
                 FROM pets
                 ORDER BY id ASC
                 LIMIT 1
@@ -942,7 +955,10 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
         "pets.html",  # pets.htmlを表示する
         pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
         selected_pet=selected_pet,  # 現在選択されているペット情報をHTMLへ渡す
-        view_mode=view_mode  # 「profile」または「list」をHTMLへ渡す
+        view_mode=view_mode,  # 「profile」または「list」をHTMLへ渡す
+        certificates=fetch_certificates_for_pet(selected_pet["id"]) if selected_pet else [],  # 現在選択されているペットの証明書一覧をHTMLへ渡す
+        certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
+        certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
     )
 
 @app.route("/pets/delete/<int:pet_id>", methods=["POST"])  # 指定されたIDのペットを削除するPOST専用URLを設定する
@@ -1595,156 +1611,121 @@ def fetch_certificates_for_pet(pet_id):  # 指定したペットに登録され�
 
     return certificates  # このペットの証明書一覧を返す
 
-@app.route("/certificates", methods=["GET", "POST"])  # 証明書管理画面の表示と登録の両方を受け付ける
-def certificates():  # ペットごとの証明書一覧・新規登録を行う関数を定義する
+@app.route("/certificates", methods=["POST"])  # ペット画面の証明書追加フォームからのPOSTだけを受け付ける
+def certificates():  # 証明書の新規登録を行い、ペットプロフィール画面へ戻る関数を定義する
 
-    if request.method == "POST":  # 証明書追加フォームからPOSTで送信された場合
+    pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
 
-        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+    certificate_type = request.form.get("certificate_type", "")  # フォームから証明書の種類を取得する
 
-        certificate_type = request.form.get("certificate_type", "")  # フォームから証明書の種類を取得する
+    custom_name = request.form.get("custom_name", "").strip()  # 「その他」を選んだ場合の証明書名を取得し、前後の余分な空白を削除する
 
-        custom_name = request.form.get("custom_name", "").strip()  # 「その他」を選んだ場合の証明書名を取得し、前後の余分な空白を削除する
+    acquired_date_text = request.form.get("acquired_date", "").strip()  # 取得日を文字列として取得する
 
-        acquired_date_text = request.form.get("acquired_date", "").strip()  # 取得日を文字列として取得する
+    expiry_date_text = request.form.get("expiry_date", "").strip()  # 有効期限を文字列として取得する
 
-        expiry_date_text = request.form.get("expiry_date", "").strip()  # 有効期限を文字列として取得する
+    certificate_file = request.files.get("certificate_file")  # フォームから送信された証明書ファイルを取得する
 
-        certificate_file = request.files.get("certificate_file")  # フォームから送信された証明書ファイルを取得する
+    error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
 
-        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+    certificate_type_options = CERTIFICATE_TYPE_PRESETS + [CERTIFICATE_OTHER_TYPE]  # 選択できる証明書の種類(プリセット+その他)をまとめる
 
-        certificate_type_options = CERTIFICATE_TYPE_PRESETS + [CERTIFICATE_OTHER_TYPE]  # 選択できる証明書の種類(プリセット+その他)をまとめる
+    if not pet_id:  # 対象のペットが選ばれていない場合
 
-        if not pet_id:  # 対象のペットが選ばれていない場合
+        error_message = "ペットを選択してください。"  # ペット選択を促す
 
-            error_message = "ペットを選択してください。"  # ペット選択を促す
+    elif certificate_type not in certificate_type_options:  # 証明書の種類が選択肢に無い値だった場合
 
-        elif certificate_type not in certificate_type_options:  # 証明書の種類が選択肢に無い値だった場合
+        error_message = "証明書の種類を選択してください。"  # 種類が未選択・不正であることを知らせる
 
-            error_message = "証明書の種類を選択してください。"  # 種類が未選択・不正であることを知らせる
+    elif certificate_type == CERTIFICATE_OTHER_TYPE and not custom_name:  # 「その他」を選んだのに名前が入力されていない場合
 
-        elif certificate_type == CERTIFICATE_OTHER_TYPE and not custom_name:  # 「その他」を選んだのに名前が入力されていない場合
+        error_message = "証明書の名前を入力してください。"  # 名前の入力を促す
 
-            error_message = "証明書の名前を入力してください。"  # 名前の入力を促す
+    elif certificate_type == CERTIFICATE_OTHER_TYPE and len(custom_name) > 50:  # 「その他」の名前が50文字を超えている場合
 
-        elif certificate_type == CERTIFICATE_OTHER_TYPE and len(custom_name) > 50:  # 「その他」の名前が50文字を超えている場合
+        error_message = "証明書の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "証明書の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
+    acquired_date = None  # 変換できた取得日を保存する変数を用意する
 
-        acquired_date = None  # 変換できた取得日を保存する変数を用意する
+    if not error_message and acquired_date_text:  # ここまでエラーが無く、取得日が入力されている場合
 
-        if not error_message and acquired_date_text:  # ここまでエラーが無く、取得日が入力されている場合
+        try:  # 取得日を日付として解釈できるか確認する
 
-            try:  # 取得日を日付として解釈できるか確認する
+            acquired_date = date.fromisoformat(acquired_date_text)  # 入力された取得日を日付型に変換する
 
-                acquired_date = date.fromisoformat(acquired_date_text)  # 入力された取得日を日付型に変換する
+        except ValueError:  # 日付として解釈できない値が入力されていた場合
 
-            except ValueError:  # 日付として解釈できない値が入力されていた場合
+            error_message = "取得日を正しく選択してください。"  # 取得日の入力形式が不正であることを知らせる
 
-                error_message = "取得日を正しく選択してください。"  # 取得日の入力形式が不正であることを知らせる
+    if not error_message and expiry_date_text:  # ここまでエラーが無く、有効期限が入力されている場合
 
-        if not error_message and expiry_date_text:  # ここまでエラーが無く、有効期限が入力されている場合
+        try:  # 有効期限を日付として解釈できるか確認する
 
-            try:  # 有効期限を日付として解釈できるか確認する
+            date.fromisoformat(expiry_date_text)  # 入力された有効期限を日付型に変換できるか確認する
 
-                date.fromisoformat(expiry_date_text)  # 入力された有効期限を日付型に変換できるか確認する
+        except ValueError:  # 日付として解釈できない値が入力されていた場合
 
-            except ValueError:  # 日付として解釈できない値が入力されていた場合
+            error_message = "有効期限を正しく選択してください。"  # 有効期限の入力形式が不正であることを知らせる
 
-                error_message = "有効期限を正しく選択してください。"  # 有効期限の入力形式が不正であることを知らせる
+    if not error_message and certificate_file and certificate_file.filename and not allowed_certificate_file(certificate_file.filename):  # ファイルが選択されているのに許可された形式ではない場合
 
-        if not error_message and certificate_file and certificate_file.filename and not allowed_certificate_file(certificate_file.filename):  # ファイルが選択されているのに許可された形式ではない場合
+        error_message = "証明書ファイルは画像(png/jpg/jpeg/webp)またはPDFのみアップロードできます。"  # 許可されている形式を知らせる
 
-            error_message = "証明書ファイルは画像(png/jpg/jpeg/webp)またはPDFのみアップロードできます。"  # 許可されている形式を知らせる
+    if error_message:  # 入力内容に何らかのエラーが存在する場合
 
-        if error_message:  # 入力内容に何らかのエラーが存在する場合
+        flash(error_message, "error")  # エラーメッセージを一時保存する
 
-            flash(error_message, "error")  # エラーメッセージを一時保存する
+        return redirect(url_for("pets", pet_id=pet_id))  # 保存せずペットプロフィール画面へ戻る
 
-            return redirect(url_for("certificates"))  # 保存せず証明書管理画面へ戻る
+    file_name = None  # 新しいファイルが送信されなかった場合に備えてファイル名を空の状態にする
 
-        file_name = None  # 新しいファイルが送信されなかった場合に備えてファイル名を空の状態にする
+    if certificate_file and certificate_file.filename and allowed_certificate_file(certificate_file.filename):  # ファイルが選択されていて、許可された形式の場合だけ保存処理を行う
 
-        if certificate_file and certificate_file.filename and allowed_certificate_file(certificate_file.filename):  # ファイルが選択されていて、許可された形式の場合だけ保存処理を行う
+        original_filename = secure_filename(certificate_file.filename)  # アップロードされた元のファイル名を安全な形式に変換する
 
-            original_filename = secure_filename(certificate_file.filename)  # アップロードされた元のファイル名を安全な形式に変換する
+        extension = original_filename.rsplit(".", 1)[1].lower()  # ファイル名から拡張子部分だけを取得する
 
-            extension = original_filename.rsplit(".", 1)[1].lower()  # ファイル名から拡張子部分だけを取得する
+        file_name = f"{uuid.uuid4().hex}.{extension}"  # 他のファイルと名前が重複しないようランダムな一意のファイル名を作る
 
-            file_name = f"{uuid.uuid4().hex}.{extension}"  # 他のファイルと名前が重複しないようランダムな一意のファイル名を作る
+        certificate_file.save(os.path.join(CERTIFICATE_UPLOAD_FOLDER, file_name))  # アップロードされたファイルをstatic/certificatesフォルダへ保存する
 
-            certificate_file.save(os.path.join(CERTIFICATE_UPLOAD_FOLDER, file_name))  # アップロードされたファイルをstatic/certificatesフォルダへ保存する
+    connection = get_db_connection()  # 証明書を保存するためSQLiteへ接続する
 
-        connection = get_db_connection()  # 証明書を保存するためSQLiteへ接続する
-
-        connection.execute(  # 新しい証明書をcertificatesテーブルへ登録する
-
-            """
-            INSERT INTO certificates (pet_id, certificate_type, custom_name, acquired_date, expiry_date, file_name)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,  # 1件分の証明書情報を保存するSQLを書く
-
-            (
-                pet_id,  # 対象のペットID
-                certificate_type,  # 証明書の種類(プリセットまたは「その他」)
-                custom_name if certificate_type == CERTIFICATE_OTHER_TYPE else None,  # 「その他」の場合だけ名前を保存する
-                acquired_date_text if acquired_date_text else None,  # 取得日が未入力ならNULLにする
-                expiry_date_text if expiry_date_text else None,  # 有効期限が未入力ならNULLにする
-                file_name  # 保存したファイル名(未アップロードならNone)
-            )  # 入力された証明書の内容をSQLへ渡す
-
-        )  # INSERT処理を終了する
-
-        connection.commit()  # 証明書の追加をSQLiteへ確定する
-
-        connection.close()  # SQLiteとの接続を終了する
-
-        flash("証明書を登録しました。", "success")  # 登録完了メッセージを一時保存する
-
-        return redirect(url_for("certificates"))  # 証明書管理画面へ戻る
-
-    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
-
-    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+    connection.execute(  # 新しい証明書をcertificatesテーブルへ登録する
 
         """
-        SELECT id, name, type, photo
-        FROM pets
-        ORDER BY id
-        """  # 登録された順番でペット情報を取得するSQLを書く
+        INSERT INTO certificates (pet_id, certificate_type, custom_name, acquired_date, expiry_date, file_name)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,  # 1件分の証明書情報を保存するSQLを書く
 
-    ).fetchall()  # SQLの検索結果をすべて取得する
+        (
+            pet_id,  # 対象のペットID
+            certificate_type,  # 証明書の種類(プリセットまたは「その他」)
+            custom_name if certificate_type == CERTIFICATE_OTHER_TYPE else None,  # 「その他」の場合だけ名前を保存する
+            acquired_date_text if acquired_date_text else None,  # 取得日が未入力ならNULLにする
+            expiry_date_text if expiry_date_text else None,  # 有効期限が未入力ならNULLにする
+            file_name  # 保存したファイル名(未アップロードならNone)
+        )  # 入力された証明書の内容をSQLへ渡す
+
+    )  # INSERT処理を終了する
+
+    connection.commit()  # 証明書の追加をSQLiteへ確定する
 
     connection.close()  # SQLiteとの接続を終了する
 
-    pets_with_certificates = []  # 画面に表示するペットごとの証明書情報を追加していくリストを用意する
+    flash("証明書を登録しました。", "success")  # 登録完了メッセージを一時保存する
 
-    for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
-
-        pets_with_certificates.append({  # 1匹分の表示情報をリストへ追加する
-
-            "pet": pet,  # 表示対象のペット情報
-            "certificates": fetch_certificates_for_pet(pet["id"]),  # このペットの証明書一覧
-
-        })  # 1匹分の表示情報の追加を終了する
-
-    return render_template(
-        "certificates.html",  # templatesフォルダ内のcertificates.htmlを表示する
-        pets=pet_list,  # 証明書追加フォームのペット選択欄に使うペット一覧をHTMLへ渡す
-        pets_with_certificates=pets_with_certificates,  # ペットごとの証明書一覧をHTMLへ渡す
-        certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
-        certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
-    )  # 証明書管理画面の表示処理を終了する
+    return redirect(url_for("pets", pet_id=pet_id))  # ペットプロフィール画面へ戻る
 
 @app.route("/certificates/delete/<int:certificate_id>", methods=["POST"])  # 指定された証明書を削除するPOST専用URLを設定する
 def delete_certificate(certificate_id):  # 証明書とアップロード済みファイルをまとめて削除する関数を定義する
 
     connection = get_db_connection()  # 削除する証明書の情報を取得するためSQLiteへ接続する
 
-    certificate = connection.execute(  # 削除対象の証明書に登録されているファイル名を取得する
+    certificate = connection.execute(  # 削除対象の証明書に登録されているファイル名と対象ペットIDを取得する
 
-        "SELECT file_name FROM certificates WHERE id = ?",  # 指定されたIDの証明書のファイル名だけを取得するSQLを書く
+        "SELECT pet_id, file_name FROM certificates WHERE id = ?",  # 指定されたIDの証明書のペットIDとファイル名を取得するSQLを書く
 
         (certificate_id,)  # 削除対象の証明書IDをSQLへ渡す
 
@@ -1766,7 +1747,7 @@ def delete_certificate(certificate_id):  # 証明書とアップロード済み�
 
     flash("証明書を削除しました。", "success")  # 削除完了メッセージを一時保存する
 
-    return redirect(url_for("certificates"))  # 証明書管理画面へ戻る
+    return redirect(url_for("pets", pet_id=certificate["pet_id"] if certificate else None))  # 対象ペットのプロフィール画面へ戻る
 
 @app.route("/calendar", methods=["GET", "POST"])  # カレンダー画面の表示と予定保存の両方を受け付ける
 def calendar():  # カレンダー画面の表示と予定追加を行う関数を定義する
@@ -2514,7 +2495,11 @@ def book_facility():  # 選択された施設への予約をcalendar_eventsへ�
 
     event_date_text = request.form.get("event_date", "").strip()  # 予約日を文字列として取得する
 
+    end_date_text = request.form.get("end_date", "").strip()
+
     start_time = request.form.get("start_time", "").strip()  # 希望時間を取得する
+
+    end_time = request.form.get("end_time", "").strip()
 
     note = request.form.get("note", "").strip()  # ご要望・メモを取得し、前後の余分な空白を削除する
 
@@ -2557,6 +2542,20 @@ def book_facility():  # 選択された施設への予約をcalendar_eventsへ�
         return redirect(url_for("reservation"))  # 保存せず予約画面へ戻る
 
     note_with_facility = f"{facility['name']}を予約"  # 予約した施設名を必ずメモの先頭に残す
+
+    # ホテルでチェックアウト日が入力されている場合、メモに期間を追記する
+    if facility["category"] == "hotel" and end_date_text:
+
+        # 日付と時間をくっつける（時間が未入力の場合は日付だけになる）
+
+        in_str = f"{event_date_text} {start_time}".strip()
+        
+        out_str = f"{end_date_text} {end_time}".strip()
+        
+        note_with_facility += f"（期間: {in_str} 〜 {out_str}）"
+
+    if note: 
+        note_with_facility += f"({note})"
 
     if note:  # ユーザーがご要望を入力していた場合
 
