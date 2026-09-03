@@ -95,6 +95,12 @@
 
                                 <p class="insurance-detail-row"><span class="insurance-detail-label">プラン</span>{{ policy.plan_name }}</p> <!-- プラン名を表示する -->
 
+                                {% if policy.premium_amount is not none %} <!-- 金額が入力されている場合 -->
+
+                                    <p class="insurance-detail-row"><span class="insurance-detail-label">金額</span>¥{{ "{:,}".format(policy.premium_amount) }}</p> <!-- 金額を3桁区切りで表示する -->
+
+                                {% endif %} <!-- 金額の有無による表示切り替えを終了する -->
+
                                 <p class="insurance-detail-row {% if policy.urgent %}insurance-urgent-text{% endif %}"> <!-- 更新日が近い場合は文字色で目立たせる -->
 
                                     <span class="insurance-detail-label">更新日</span>{{ policy.renewal_date.strftime('%Y/%m/%d') }} <!-- 更新日を表示する -->
@@ -164,6 +170,28 @@
                                     > <!-- プラン名を最大50文字で入力する -->
 
                                 </div> <!-- プラン名の入力欄グループを終了する -->
+
+                                <div class="insurance-form-group"> <!-- 金額の入力欄をまとめる -->
+
+                                    <label for="insurance-{{ pet['id'] }}-premium">金額(任意)</label> <!-- 金額入力欄の説明を表示する -->
+
+                                    <div class="input-with-unit"> <!-- 数値入力欄と単位を横並びにする -->
+
+                                        <input
+                                            id="insurance-{{ pet['id'] }}-premium"
+                                            name="premium_amount"
+                                            type="number"
+                                            min="0"
+                                            step="1"
+                                            value="{{ policy.premium_amount if policy and policy.premium_amount is not none else '' }}"
+                                            placeholder="2000"
+                                        > <!-- 金額を0円以上の整数で入力する -->
+
+                                        <span>円</span> <!-- 金額の単位を表示する -->
+
+                                    </div> <!-- 数値入力欄と単位の領域を終了する -->
+
+                                </div> <!-- 金額の入力欄グループを終了する -->
 
                                 <div class="insurance-form-group"> <!-- 更新日の入力欄をまとめる -->
 

@@ -115,9 +115,10 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
             plan_name TEXT NOT NULL,
             renewal_date TEXT NOT NULL,
             detail TEXT,
+            premium_amount INTEGER,
             FOREIGN KEY (pet_id) REFERENCES pets (id)
         )
-        """  # ペットごとの現在加入中のペット保険(保険会社・プラン・更新日・プランの詳細)を1件だけ保存するテーブルを定義する
+        """  # ペットごとの現在加入中のペット保険(保険会社・プラン・更新日・プランの詳細・金額)を1件だけ保存するテーブルを定義する
 
     )  # insurance_policiesテーブル作成処理を終了する
 
@@ -128,6 +129,10 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
     if "detail" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにdetail列がまだ存在しない場合
 
         connection.execute("ALTER TABLE insurance_policies ADD COLUMN detail TEXT")  # 既存テーブルにプラン詳細保存用のdetail列を追加する
+
+    if "premium_amount" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにpremium_amount列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE insurance_policies ADD COLUMN premium_amount INTEGER")  # 既存テーブルに金額保存用のpremium_amount列を追加する
 
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
@@ -829,7 +834,7 @@ def fetch_all_insurance():  # 登録されているすべてのペットの保�
     rows = connection.execute(  # 保険情報をすべて取得する
 
         """
-        SELECT pet_id, company_name, plan_name, renewal_date, detail
+        SELECT pet_id, company_name, plan_name, renewal_date, detail, premium_amount
         FROM insurance_policies
         """  # 登録されているすべてのペット保険情報を取得するSQLを書く
 
@@ -851,6 +856,7 @@ def fetch_all_insurance():  # 登録されているすべてのペットの保�
             "plan_name": row["plan_name"],  # プラン名
             "renewal_date": renewal_date,  # 更新日
             "detail": row["detail"],  # プランの詳細メモ(未入力ならNone)
+            "premium_amount": row["premium_amount"],  # 保険料の金額(円、未入力ならNone)
             "days_until_renewal": days_until_renewal,  # 更新日までの残り日数
             "urgent": days_until_renewal <= INSURANCE_URGENT_DAYS,  # 更新日が近く目立たせるべきかどうか
 
@@ -872,6 +878,8 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
         renewal_date_text = request.form.get("renewal_date", "").strip()  # 更新日を文字列として取得する
 
         detail = request.form.get("detail", "").strip()  # プランの詳細メモを取得し、前後の余分な空白を削除する
+
+        premium_amount_text = request.form.get("premium_amount", "").strip()  # 金額をまず文字列として取得する
 
         error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
 
@@ -913,6 +921,22 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
 
                 error_message = "更新日を正しく選択してください。"  # 更新日の入力形式が不正であることを知らせる
 
+        premium_amount = None  # 金額が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
+
+        if not error_message and premium_amount_text:  # ここまでエラーが無く、金額が入力されている場合
+
+            try:  # 金額を整数へ変換できるか確認する
+
+                premium_amount = int(premium_amount_text)  # 入力された金額を整数へ変換する
+
+            except ValueError:  # 整数へ変換できない値が入力されていた場合
+
+                error_message = "金額は整数で入力してください。"  # 金額の入力形式が不正であることを知らせる
+
+            if error_message is None and premium_amount < 0:  # 変換できた金額が0円未満だった場合
+
+                error_message = "金額は0円以上で入力してください。"  # 金額の範囲を知らせる
+
         if error_message:  # 入力内容に何らかのエラーが存在する場合
 
             flash(error_message, "error")  # エラーメッセージを一時保存する
@@ -924,16 +948,17 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
         connection.execute(  # 同じペットの保険情報がすでにあれば置き換え、無ければ新しく登録する
 
             """
-            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail, premium_amount)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT (pet_id) DO UPDATE SET
                 company_name = excluded.company_name,
                 plan_name = excluded.plan_name,
                 renewal_date = excluded.renewal_date,
-                detail = excluded.detail
+                detail = excluded.detail,
+                premium_amount = excluded.premium_amount
             """,  # ペットIDが同じなら上書き更新するSQLを書く(1匹につき現在の契約1件だけを保持する)
 
-            (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None)  # 入力された保険情報をSQLへ渡す(詳細メモが未入力ならNULLにする)
+            (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None, premium_amount)  # 入力された保険情報をSQLへ渡す(詳細メモ・金額が未入力ならNULLにする)
 
         )  # 保険情報の登録・更新処理を終了する
 
