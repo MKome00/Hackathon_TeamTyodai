@@ -117,7 +117,7 @@
 
                                 </ul> <!-- リマインダー一覧を終了する -->
 
-                                <a class="home-reminder-link" href="{{ url_for('medications') }}">お薬画面を見る</a> <!-- お薬画面へ移動してチェックできるようにする -->
+                                <a class="home-reminder-link" href="{{ url_for('pets', pet_id=item.pet['id']) }}">お薬をチェックする</a> <!-- ペットプロフィール画面のお薬セクションへ移動してチェックできるようにする -->
 
                             </div> <!-- リマインダー領域を終了する -->
 
@@ -477,10 +477,6 @@
 
         <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンク -->
             <span>予約</span> <!-- ナビゲーションに予約と表示する -->
-        </a>
-
-        <a href="{{ url_for('medications') }}" data-index="5"> <!-- お薬管理画面へ移動するリンク -->
-            <span>お薬</span> <!-- ナビゲーションにお薬と表示する -->
         </a>
 
     </nav> <!-- 下部ナビゲーションを終了する -->

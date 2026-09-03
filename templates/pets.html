@@ -18,6 +18,9 @@
     <!-- 保険情報セクション用のCSSファイルを読み込む(保険機能をペット画面に統合したため) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/insurance.css') }}">
 
+    <!-- お薬セクション用のCSSファイルを読み込む(お薬機能をペット画面に統合したため) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/medications.css') }}">
+
 </head> <!-- head部分を終了する -->
 
 <body> <!-- ブラウザに表示する内容を書く部分 -->
@@ -483,6 +486,157 @@
 
             {% endif %} <!-- ペット選択の有無による保険情報セクションの表示切り替えを終了する -->
 
+            {% if selected_pet %} <!-- ペットが選択されている場合だけお薬セクションを表示する -->
+
+                <section class="medication-pet-card"> <!-- お薬の一覧・登録フォームをまとめるカードを作る(お薬機能をペット画面に統合) -->
+
+                    <p class="certificate-section-title">💊 お薬</p> <!-- セクションの見出しを表示する -->
+
+                    {% if medications %} <!-- このペットにお薬が1件以上登録されている場合 -->
+
+                        <div class="medication-list"> <!-- お薬を並べる領域を作る -->
+
+                            {% for medication in medications %} <!-- お薬を1件ずつ処理する -->
+
+                                <div class="medication-item"> <!-- 1件分のお薬を表示する領域を作る -->
+
+                                    <div class="medication-item-header"> <!-- お薬の名前と削除ボタンを横に並べる領域を作る -->
+
+                                        <p class="medication-name">{{ medication.name }}</p> <!-- お薬の名前を表示する -->
+
+                                        <form
+                                            action="{{ url_for('delete_medication', medication_id=medication.id) }}"
+                                            method="POST"
+                                            onsubmit="return confirm('{{ medication.name }}を削除しますか？');"
+                                        > <!-- 削除前に確認画面を表示し、キャンセルされた場合は送信しない -->
+
+                                            <button class="medication-delete-button" type="submit">削除</button> <!-- お薬を削除するボタン -->
+
+                                        </form> <!-- 削除フォームを終了する -->
+
+                                    </div> <!-- お薬の見出し行を終了する -->
+
+                                    {% if medication.note %} <!-- メモが入力されている場合 -->
+
+                                        <p class="medication-note">{{ medication.note }}</p> <!-- お薬に関するメモを表示する -->
+
+                                    {% endif %} <!-- メモの有無による表示切り替えを終了する -->
+
+                                    <div class="medication-time-list"> <!-- 服用時刻を並べる領域を作る -->
+
+                                        {% for time_entry in medication.times %} <!-- 服用時刻を1件ずつ処理する -->
+
+                                            <div class="medication-time-row {% if time_entry.overdue %}medication-time-overdue{% endif %}"> <!-- 時刻を過ぎて未服用の場合は目立たせる -->
+
+                                                <span class="medication-time-label">{{ time_entry.time_of_day }}</span> <!-- 服用時刻を表示する -->
+
+                                                {% if time_entry.taken_today %} <!-- 今日すでに服用済みとして記録されている場合 -->
+
+                                                    <form action="{{ url_for('unlog_medication') }}" method="POST"> <!-- 服用記録を取り消すフォームを作る -->
+
+                                                        <input type="hidden" name="medication_time_id" value="{{ time_entry.id }}"> <!-- 対象の服用時刻IDを非表示で保持する -->
+
+                                                        <button class="medication-check-button taken" type="submit">✅ 服用済み</button> <!-- タップすると服用記録を取り消せるボタン -->
+
+                                                    </form> <!-- 服用記録取り消しフォームを終了する -->
+
+                                                {% else %} <!-- まだ今日の服用記録が無い場合 -->
+
+                                                    <form action="{{ url_for('log_medication') }}" method="POST"> <!-- 服用記録を追加するフォームを作る -->
+
+                                                        <input type="hidden" name="medication_time_id" value="{{ time_entry.id }}"> <!-- 対象の服用時刻IDを非表示で保持する -->
+
+                                                        <button class="medication-check-button" type="submit">未服用</button> <!-- タップすると服用済みとして記録できるボタン -->
+
+                                                    </form> <!-- 服用記録追加フォームを終了する -->
+
+                                                {% endif %} <!-- 服用済みかどうかによる表示切り替えを終了する -->
+
+                                            </div> <!-- 1つの服用時刻の行を終了する -->
+
+                                        {% endfor %} <!-- すべての服用時刻の表示処理を終了する -->
+
+                                    </div> <!-- 服用時刻一覧を終了する -->
+
+                                </div> <!-- 1件分のお薬表示を終了する -->
+
+                            {% endfor %} <!-- すべてのお薬の表示処理を終了する -->
+
+                        </div> <!-- お薬一覧を終了する -->
+
+                    {% else %} <!-- このペットにお薬が1件も登録されていない場合 -->
+
+                        <p class="medication-empty-text">まだお薬が登録されていません。</p> <!-- 未登録であることを知らせる -->
+
+                    {% endif %} <!-- お薬の有無による表示切り替えを終了する -->
+
+                    <details class="medication-add-form"> <!-- タップするとお薬追加フォームを開閉できる領域を作る -->
+
+                        <summary>＋ お薬を追加</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                        <form action="{{ url_for('medications') }}" method="POST" class="medication-form"> <!-- お薬情報をFlaskへ送信するフォームを開始する -->
+
+                            <input type="hidden" name="pet_id" value="{{ selected_pet['id'] }}"> <!-- 対象のペットIDを非表示で保持する -->
+
+                            <div class="medication-form-group"> <!-- お薬の名前の入力欄をまとめる -->
+
+                                <label for="medication-{{ selected_pet['id'] }}-name">お薬の名前</label> <!-- お薬の名前入力欄の説明を表示する -->
+
+                                <input
+                                    id="medication-{{ selected_pet['id'] }}-name"
+                                    name="name"
+                                    type="text"
+                                    maxlength="50"
+                                    placeholder="例: 心臓のお薬"
+                                    required
+                                > <!-- お薬の名前を最大50文字で入力する -->
+
+                            </div> <!-- お薬の名前の入力欄グループを終了する -->
+
+                            <div class="medication-form-group"> <!-- 服用時刻の入力欄をまとめる -->
+
+                                <label>服用時刻(1つ以上入力)</label> <!-- 服用時刻入力欄の説明を表示する -->
+
+                                <div class="medication-time-inputs"> <!-- 服用時刻の入力欄を横に並べる領域を作る -->
+
+                                    {% for slot_number in range(1, time_slot_count + 1) %} <!-- 用意した時刻入力欄の数だけ繰り返す -->
+
+                                        <input
+                                            name="time_{{ slot_number }}"
+                                            type="time"
+                                            aria-label="服用時刻{{ slot_number }}"
+                                        > <!-- 服用時刻を1つ選ぶ(空欄のままでもよい) -->
+
+                                    {% endfor %} <!-- 服用時刻入力欄すべての表示処理を終了する -->
+
+                                </div> <!-- 服用時刻の入力欄の領域を終了する -->
+
+                            </div> <!-- 服用時刻の入力欄グループを終了する -->
+
+                            <div class="medication-form-group"> <!-- メモの入力欄をまとめる -->
+
+                                <label for="medication-{{ selected_pet['id'] }}-note">メモ(任意)</label> <!-- メモ入力欄の説明を表示する -->
+
+                                <input
+                                    id="medication-{{ selected_pet['id'] }}-note"
+                                    name="note"
+                                    type="text"
+                                    maxlength="200"
+                                    placeholder="例: ごはんの後に与える"
+                                > <!-- メモを最大200文字で入力する -->
+
+                            </div> <!-- メモの入力欄グループを終了する -->
+
+                            <button class="medication-form-submit" type="submit">登録する</button> <!-- 入力したお薬を保存するボタン -->
+
+                        </form> <!-- お薬追加フォームを終了する -->
+
+                    </details> <!-- お薬追加フォームの開閉領域を終了する -->
+
+                </section> <!-- お薬カードを終了する -->
+
+            {% endif %} <!-- ペット選択の有無によるお薬セクションの表示切り替えを終了する -->
+
             {% if selected_pet %} <!-- ペットが選択されている場合だけ証明書セクションを表示する -->
 
                 <section class="certificate-pet-card"> <!-- 証明書の一覧・登録フォームをまとめるカードを作る(証明書機能をペット画面に統合) -->
@@ -843,12 +997,6 @@
 
         </a> <!-- 予約リンクを終了する -->
 
-
-        <a href="{{ url_for('medications') }}" data-index="5"> <!-- お薬管理画面へ移動するリンクを作る -->
-
-            <span>お薬</span> <!-- お薬という文字を表示する -->
-
-        </a> <!-- お薬リンクを終了する -->
 
     </nav> <!-- 下部ナビゲーションを終了する -->
 
