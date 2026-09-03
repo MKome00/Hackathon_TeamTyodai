@@ -419,6 +419,24 @@ def build_record_reminders(pet, pet_records):  # 病院の予定日を過ぎて�
 
     return reminders  # 組み立てたリマインダー一覧を返す
 
+# アプリ起動時にSQLiteのテーブルを準備する(mobileアプリのように、初回起動時に自動でテーブルを作るイメージ)
+# APIエンドポイントを定義する
+@app.route("/api/pets", methods=["GET"])
+def api_pets():
+    connection = get_db_connection()
+
+    rows = connection.execute("""
+        SELECT id, name, type, age, weight, note, photo
+        FROM pets
+        ORDER BY id
+    """).fetchall()
+
+    connection.close()
+
+    return {
+        "pets": [dict(row) for row in rows]
+    }
+
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
 def home():  # ホーム画面を表示する関数を定義する
