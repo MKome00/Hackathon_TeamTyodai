@@ -36,6 +36,15 @@ def allowed_file(filename):  # アップロードされたファイルが許可�
 
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS  # 拡張子が存在し、許可された形式に含まれている場合だけTrueを返す
 
+CERTIFICATE_UPLOAD_FOLDER = os.path.join("static", "certificates")  # 証明書ファイルを保存するフォルダの場所を設定する
+os.makedirs(CERTIFICATE_UPLOAD_FOLDER, exist_ok=True)  # フォルダが無い場合に備えて起動時に作成しておく
+
+CERTIFICATE_ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "pdf"}  # 証明書ファイルとしてアップロードを許可する拡張子を設定する(写真だけでなくPDFも許可する)
+
+def allowed_certificate_file(filename):  # アップロードされた証明書ファイルが許可された形式か確認する関数を定義する
+
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in CERTIFICATE_ALLOWED_EXTENSIONS  # 拡張子が存在し、許可された形式に含まれている場合だけTrueを返す
+
 def init_db():  # ペット情報を保存するテーブルを準備する関数を定義する
 
     connection = get_db_connection()  # SQLiteデータベースへ接続する
@@ -174,6 +183,23 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
         """  # どの服用時刻を、どの日に「飲んだ」とチェックしたかを保存するテーブルを定義する(1つの時刻・日付につき1行だけ存在=服用済みの印)
 
     )  # medication_logsテーブル作成処理を終了する
+
+    connection.execute(  # certificatesテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS certificates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pet_id INTEGER NOT NULL,
+            certificate_type TEXT NOT NULL,
+            custom_name TEXT,
+            acquired_date TEXT,
+            expiry_date TEXT,
+            file_name TEXT,
+            FOREIGN KEY (pet_id) REFERENCES pets (id)
+        )
+        """  # ペットごとの証明書(種類・名前・取得日・有効期限・ファイル)を保存するテーブルを定義する(1匹に複数登録できる)
+
+    )  # certificatesテーブル作成処理を終了する
 
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
@@ -1370,6 +1396,258 @@ def unlog_medication():  # 押し間違いなどで、今日の服用記録を�
         connection.close()  # SQLiteとの接続を終了する
 
     return redirect(url_for("medications"))  # お薬管理画面へ戻る
+
+CERTIFICATE_TYPE_PRESETS = [  # よく提出を求められる証明書の種類を、手入力せずに選べる選択肢として用意する
+
+    "狂犬病予防注射済票",
+    "混合ワクチン接種証明書",
+    "犬の鑑札",
+    "健康診断書",
+    "ノミ・マダニ駆除証明書",
+    "マイクロチップ登録証明書",
+
+]  # 証明書の種類プリセットの定義を終了する
+
+CERTIFICATE_OTHER_TYPE = "その他"  # プリセットに無い証明書を登録するときに選ぶ種類名を設定する
+
+CERTIFICATE_EXPIRY_WARNING_DAYS = 30  # 有効期限までこの日数を切ったら目立たせるしきい値を設定する
+
+def fetch_certificates_for_pet(pet_id):  # 指定したペットに登録されている証明書を、期限切れ判定付きで取得する関数を定義する
+
+    connection = get_db_connection()  # certificatesテーブルを読み取るためSQLiteへ接続する
+
+    rows = connection.execute(  # このペットに登録されている証明書を新しい順に取得する
+
+        """
+        SELECT id, certificate_type, custom_name, acquired_date, expiry_date, file_name
+        FROM certificates
+        WHERE pet_id = ?
+        ORDER BY id DESC
+        """,  # 登録した順とは逆に、新しく登録したものが上に来るよう取得するSQLを書く
+
+        (pet_id,)  # 対象のペットIDをSQLへ渡す
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    today = date.today()  # 有効期限が近い・過ぎているかを判定する基準の日付を取得する
+
+    certificates = []  # 表示用の証明書情報を追加していくリストを用意する
+
+    for row in rows:  # 取得した証明書を1件ずつ処理する
+
+        if row["certificate_type"] == CERTIFICATE_OTHER_TYPE and row["custom_name"]:  # 「その他」を選び、名前も入力されていた場合
+
+            display_name = row["custom_name"]  # 入力されたその他の名前を表示名として使う
+
+        else:  # プリセットから選ばれていた場合
+
+            display_name = row["certificate_type"]  # プリセットの種類名をそのまま表示名として使う
+
+        expiry_date = date.fromisoformat(row["expiry_date"]) if row["expiry_date"] else None  # 有効期限が入力されていればdate型に変換する
+
+        is_expired = expiry_date is not None and expiry_date < today  # 有効期限がすでに過ぎているかどうかを判定する
+
+        is_expiring_soon = (  # 有効期限が近づいているかどうかを判定する
+            expiry_date is not None
+            and not is_expired
+            and (expiry_date - today).days <= CERTIFICATE_EXPIRY_WARNING_DAYS
+        )  # 期限切れではなく、かつ設定した日数以内かどうかで判定する
+
+        file_extension = None  # ファイルの拡張子を保存する変数を用意する(未登録ならNoneのまま)
+
+        if row["file_name"] and "." in row["file_name"]:  # ファイルが登録されていて、拡張子が含まれている場合
+
+            file_extension = row["file_name"].rsplit(".", 1)[1].lower()  # ファイル名から拡張子部分だけを取得する
+
+        certificates.append({  # 1件分の証明書情報をリストへ追加する
+
+            "id": row["id"],  # 証明書のID
+            "display_name": display_name,  # 画面に表示する証明書の名前
+            "acquired_date": date.fromisoformat(row["acquired_date"]) if row["acquired_date"] else None,  # 取得日(未入力ならNone)
+            "expiry_date": expiry_date,  # 有効期限(未入力ならNone)
+            "is_expired": is_expired,  # 有効期限が過ぎているかどうか
+            "is_expiring_soon": is_expiring_soon,  # 有効期限が近づいているかどうか
+            "file_name": row["file_name"],  # 保存されているファイル名(未登録ならNone)
+            "is_pdf": file_extension == "pdf",  # ファイルがPDFかどうか(表示を画像かPDFかで切り替えるために使う)
+
+        })  # 1件分の証明書情報の追加を終了する
+
+    return certificates  # このペットの証明書一覧を返す
+
+@app.route("/certificates", methods=["GET", "POST"])  # 証明書管理画面の表示と登録の両方を受け付ける
+def certificates():  # ペットごとの証明書一覧・新規登録を行う関数を定義する
+
+    if request.method == "POST":  # 証明書追加フォームからPOSTで送信された場合
+
+        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+
+        certificate_type = request.form.get("certificate_type", "")  # フォームから証明書の種類を取得する
+
+        custom_name = request.form.get("custom_name", "").strip()  # 「その他」を選んだ場合の証明書名を取得し、前後の余分な空白を削除する
+
+        acquired_date_text = request.form.get("acquired_date", "").strip()  # 取得日を文字列として取得する
+
+        expiry_date_text = request.form.get("expiry_date", "").strip()  # 有効期限を文字列として取得する
+
+        certificate_file = request.files.get("certificate_file")  # フォームから送信された証明書ファイルを取得する
+
+        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+
+        certificate_type_options = CERTIFICATE_TYPE_PRESETS + [CERTIFICATE_OTHER_TYPE]  # 選択できる証明書の種類(プリセット+その他)をまとめる
+
+        if not pet_id:  # 対象のペットが選ばれていない場合
+
+            error_message = "ペットを選択してください。"  # ペット選択を促す
+
+        elif certificate_type not in certificate_type_options:  # 証明書の種類が選択肢に無い値だった場合
+
+            error_message = "証明書の種類を選択してください。"  # 種類が未選択・不正であることを知らせる
+
+        elif certificate_type == CERTIFICATE_OTHER_TYPE and not custom_name:  # 「その他」を選んだのに名前が入力されていない場合
+
+            error_message = "証明書の名前を入力してください。"  # 名前の入力を促す
+
+        elif certificate_type == CERTIFICATE_OTHER_TYPE and len(custom_name) > 50:  # 「その他」の名前が50文字を超えている場合
+
+            error_message = "証明書の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
+
+        acquired_date = None  # 変換できた取得日を保存する変数を用意する
+
+        if not error_message and acquired_date_text:  # ここまでエラーが無く、取得日が入力されている場合
+
+            try:  # 取得日を日付として解釈できるか確認する
+
+                acquired_date = date.fromisoformat(acquired_date_text)  # 入力された取得日を日付型に変換する
+
+            except ValueError:  # 日付として解釈できない値が入力されていた場合
+
+                error_message = "取得日を正しく選択してください。"  # 取得日の入力形式が不正であることを知らせる
+
+        if not error_message and expiry_date_text:  # ここまでエラーが無く、有効期限が入力されている場合
+
+            try:  # 有効期限を日付として解釈できるか確認する
+
+                date.fromisoformat(expiry_date_text)  # 入力された有効期限を日付型に変換できるか確認する
+
+            except ValueError:  # 日付として解釈できない値が入力されていた場合
+
+                error_message = "有効期限を正しく選択してください。"  # 有効期限の入力形式が不正であることを知らせる
+
+        if not error_message and certificate_file and certificate_file.filename and not allowed_certificate_file(certificate_file.filename):  # ファイルが選択されているのに許可された形式ではない場合
+
+            error_message = "証明書ファイルは画像(png/jpg/jpeg/webp)またはPDFのみアップロードできます。"  # 許可されている形式を知らせる
+
+        if error_message:  # 入力内容に何らかのエラーが存在する場合
+
+            flash(error_message, "error")  # エラーメッセージを一時保存する
+
+            return redirect(url_for("certificates"))  # 保存せず証明書管理画面へ戻る
+
+        file_name = None  # 新しいファイルが送信されなかった場合に備えてファイル名を空の状態にする
+
+        if certificate_file and certificate_file.filename and allowed_certificate_file(certificate_file.filename):  # ファイルが選択されていて、許可された形式の場合だけ保存処理を行う
+
+            original_filename = secure_filename(certificate_file.filename)  # アップロードされた元のファイル名を安全な形式に変換する
+
+            extension = original_filename.rsplit(".", 1)[1].lower()  # ファイル名から拡張子部分だけを取得する
+
+            file_name = f"{uuid.uuid4().hex}.{extension}"  # 他のファイルと名前が重複しないようランダムな一意のファイル名を作る
+
+            certificate_file.save(os.path.join(CERTIFICATE_UPLOAD_FOLDER, file_name))  # アップロードされたファイルをstatic/certificatesフォルダへ保存する
+
+        connection = get_db_connection()  # 証明書を保存するためSQLiteへ接続する
+
+        connection.execute(  # 新しい証明書をcertificatesテーブルへ登録する
+
+            """
+            INSERT INTO certificates (pet_id, certificate_type, custom_name, acquired_date, expiry_date, file_name)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,  # 1件分の証明書情報を保存するSQLを書く
+
+            (
+                pet_id,  # 対象のペットID
+                certificate_type,  # 証明書の種類(プリセットまたは「その他」)
+                custom_name if certificate_type == CERTIFICATE_OTHER_TYPE else None,  # 「その他」の場合だけ名前を保存する
+                acquired_date_text if acquired_date_text else None,  # 取得日が未入力ならNULLにする
+                expiry_date_text if expiry_date_text else None,  # 有効期限が未入力ならNULLにする
+                file_name  # 保存したファイル名(未アップロードならNone)
+            )  # 入力された証明書の内容をSQLへ渡す
+
+        )  # INSERT処理を終了する
+
+        connection.commit()  # 証明書の追加をSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+        flash("証明書を登録しました。", "success")  # 登録完了メッセージを一時保存する
+
+        return redirect(url_for("certificates"))  # 証明書管理画面へ戻る
+
+    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name, type, photo
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    pets_with_certificates = []  # 画面に表示するペットごとの証明書情報を追加していくリストを用意する
+
+    for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
+
+        pets_with_certificates.append({  # 1匹分の表示情報をリストへ追加する
+
+            "pet": pet,  # 表示対象のペット情報
+            "certificates": fetch_certificates_for_pet(pet["id"]),  # このペットの証明書一覧
+
+        })  # 1匹分の表示情報の追加を終了する
+
+    return render_template(
+        "certificates.html",  # templatesフォルダ内のcertificates.htmlを表示する
+        pets=pet_list,  # 証明書追加フォームのペット選択欄に使うペット一覧をHTMLへ渡す
+        pets_with_certificates=pets_with_certificates,  # ペットごとの証明書一覧をHTMLへ渡す
+        certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
+        certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
+    )  # 証明書管理画面の表示処理を終了する
+
+@app.route("/certificates/delete/<int:certificate_id>", methods=["POST"])  # 指定された証明書を削除するPOST専用URLを設定する
+def delete_certificate(certificate_id):  # 証明書とアップロード済みファイルをまとめて削除する関数を定義する
+
+    connection = get_db_connection()  # 削除する証明書の情報を取得するためSQLiteへ接続する
+
+    certificate = connection.execute(  # 削除対象の証明書に登録されているファイル名を取得する
+
+        "SELECT file_name FROM certificates WHERE id = ?",  # 指定されたIDの証明書のファイル名だけを取得するSQLを書く
+
+        (certificate_id,)  # 削除対象の証明書IDをSQLへ渡す
+
+    ).fetchone()  # 条件に一致する証明書1件分を取得する
+
+    if certificate and certificate["file_name"]:  # 削除する証明書にファイルが登録されている場合
+
+        file_path = os.path.join(CERTIFICATE_UPLOAD_FOLDER, certificate["file_name"])  # 保存されているファイルの場所を作成する
+
+        if os.path.exists(file_path):  # 実際にファイルが存在する場合
+
+            os.remove(file_path)  # static/certificates内のファイルを削除する
+
+    connection.execute("DELETE FROM certificates WHERE id = ?", (certificate_id,))  # 証明書そのものをテーブルから削除する
+
+    connection.commit()  # 削除内容をSQLiteへ確定する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    flash("証明書を削除しました。", "success")  # 削除完了メッセージを一時保存する
+
+    return redirect(url_for("certificates"))  # 証明書管理画面へ戻る
 
 @app.route("/calendar", methods=["GET", "POST"])  # カレンダー画面の表示と予定保存の両方を受け付ける
 def calendar():  # カレンダー画面の表示と予定追加を行う関数を定義する
