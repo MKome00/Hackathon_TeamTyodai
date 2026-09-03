@@ -969,7 +969,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
                 error_message=error_message,  # 入力エラーメッセージをHTMLへ渡す
                 certificates=fetch_certificates_for_pet(selected_pet["id"]) if selected_pet else [],  # 編集中だったペットの証明書一覧をHTMLへ渡す
                 certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
-                certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
+                certificate_other_type=CERTIFICATE_OTHER_TYPE,  # 「その他」を表す種類名をHTMLへ渡す
+                insurance_policy=fetch_all_insurance().get(selected_pet["id"]) if selected_pet else None,  # 編集中だったペットの保険情報をHTMLへ渡す(未加入ならNone)
+                today=date.today().isoformat(),  # 更新日入力欄の初期値に使う今日の日付をHTMLへ渡す
+                medications=fetch_medications_for_pet(selected_pet["id"], date.today().isoformat(), datetime.now().strftime("%H:%M")) if selected_pet else [],  # 編集中だったペットのお薬一覧をHTMLへ渡す
+                time_slot_count=MEDICATION_TIME_SLOT_COUNT  # 服用時刻の入力欄をいくつ表示するかをHTMLへ渡す
             )  # DBへの保存処理は行わず、ペットページへ戻る
 
         connection = get_db_connection()  # SQLiteへ接続する
@@ -1097,7 +1101,11 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
         view_mode=view_mode,  # 「profile」または「list」をHTMLへ渡す
         certificates=fetch_certificates_for_pet(selected_pet["id"]) if selected_pet else [],  # 現在選択されているペットの証明書一覧をHTMLへ渡す
         certificate_type_presets=CERTIFICATE_TYPE_PRESETS,  # 証明書の種類プリセットをHTMLへ渡す
-        certificate_other_type=CERTIFICATE_OTHER_TYPE  # 「その他」を表す種類名をHTMLへ渡す
+        certificate_other_type=CERTIFICATE_OTHER_TYPE,  # 「その他」を表す種類名をHTMLへ渡す
+        insurance_policy=fetch_all_insurance().get(selected_pet["id"]) if selected_pet else None,  # 現在選択されているペットの保険情報をHTMLへ渡す(未加入ならNone)
+        today=date.today().isoformat(),  # 更新日入力欄の初期値に使う今日の日付をHTMLへ渡す
+        medications=fetch_medications_for_pet(selected_pet["id"], date.today().isoformat(), datetime.now().strftime("%H:%M")) if selected_pet else [],  # 現在選択されているペットのお薬一覧をHTMLへ渡す
+        time_slot_count=MEDICATION_TIME_SLOT_COUNT  # 服用時刻の入力欄をいくつ表示するかをHTMLへ渡す
     )
 
 @app.route("/pets/delete/<int:pet_id>", methods=["POST"])  # 指定されたIDのペットを削除するPOST専用URLを設定する
@@ -1227,134 +1235,109 @@ def fetch_all_insurance():  # 登録されているすべてのペットの保�
 
     return insurance_by_pet_id  # ペットIDをキーにした保険情報の対応表を返す
 
-@app.route("/insurance", methods=["GET", "POST"])  # 保険情報画面の表示と登録・更新の両方を受け付ける
-def insurance():  # ペットごとの保険情報を一覧表示し、登録・更新する関数を定義する
+@app.route("/insurance", methods=["POST"])  # ペット画面の保険情報フォームからのPOSTだけを受け付ける
+def insurance():  # 保険情報の登録・更新を行い、ペットプロフィール画面へ戻る関数を定義する
 
-    if request.method == "POST":  # 保険情報フォームからPOSTで送信された場合
+    pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
 
-        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+    company_name = request.form.get("company_name", "").strip()  # 保険会社名を取得し、前後の余分な空白を削除する
 
-        company_name = request.form.get("company_name", "").strip()  # 保険会社名を取得し、前後の余分な空白を削除する
+    plan_name = request.form.get("plan_name", "").strip()  # プラン名を取得し、前後の余分な空白を削除する
 
-        plan_name = request.form.get("plan_name", "").strip()  # プラン名を取得し、前後の余分な空白を削除する
+    renewal_date_text = request.form.get("renewal_date", "").strip()  # 更新日を文字列として取得する
 
-        renewal_date_text = request.form.get("renewal_date", "").strip()  # 更新日を文字列として取得する
+    detail = request.form.get("detail", "").strip()  # プランの詳細メモを取得し、前後の余分な空白を削除する
 
-        detail = request.form.get("detail", "").strip()  # プランの詳細メモを取得し、前後の余分な空白を削除する
+    premium_amount_text = request.form.get("premium_amount", "").strip()  # 金額をまず文字列として取得する
 
-        premium_amount_text = request.form.get("premium_amount", "").strip()  # 金額をまず文字列として取得する
+    error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
 
-        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+    if not pet_id:  # 対象のペットが選ばれていない場合
 
-        if not pet_id:  # 対象のペットが選ばれていない場合
+        error_message = "ペットを選択してください。"  # ペット選択を促す
 
-            error_message = "ペットを選択してください。"  # ペット選択を促す
+    elif not company_name:  # 保険会社名が入力されていない場合
 
-        elif not company_name:  # 保険会社名が入力されていない場合
+        error_message = "保険会社名を入力してください。"  # 保険会社名の入力を促す
 
-            error_message = "保険会社名を入力してください。"  # 保険会社名の入力を促す
+    elif len(company_name) > 50:  # 保険会社名が50文字を超えている場合
 
-        elif len(company_name) > 50:  # 保険会社名が50文字を超えている場合
+        error_message = "保険会社名は50文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "保険会社名は50文字以内で入力してください。"  # 文字数制限を知らせる
+    elif not plan_name:  # プラン名が入力されていない場合
 
-        elif not plan_name:  # プラン名が入力されていない場合
+        error_message = "プラン名を入力してください。"  # プラン名の入力を促す
 
-            error_message = "プラン名を入力してください。"  # プラン名の入力を促す
+    elif len(plan_name) > 50:  # プラン名が50文字を超えている場合
 
-        elif len(plan_name) > 50:  # プラン名が50文字を超えている場合
+        error_message = "プラン名は50文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "プラン名は50文字以内で入力してください。"  # 文字数制限を知らせる
+    elif not renewal_date_text:  # 更新日が入力されていない場合
 
-        elif not renewal_date_text:  # 更新日が入力されていない場合
+        error_message = "更新日を選択してください。"  # 更新日の入力を促す
 
-            error_message = "更新日を選択してください。"  # 更新日の入力を促す
+    elif len(detail) > 500:  # プランの詳細メモが500文字を超えている場合
 
-        elif len(detail) > 500:  # プランの詳細メモが500文字を超えている場合
+        error_message = "プランの詳細は500文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "プランの詳細は500文字以内で入力してください。"  # 文字数制限を知らせる
+    if not error_message:  # ここまでエラーが無い場合
 
-        if not error_message:  # ここまでエラーが無い場合
+        try:  # 更新日を日付として解釈できるか確認する
 
-            try:  # 更新日を日付として解釈できるか確認する
+            date.fromisoformat(renewal_date_text)  # 入力された更新日を日付型に変換できるか確認する
 
-                date.fromisoformat(renewal_date_text)  # 入力された更新日を日付型に変換できるか確認する
+        except ValueError:  # 日付として解釈できない値が入力されていた場合
 
-            except ValueError:  # 日付として解釈できない値が入力されていた場合
+            error_message = "更新日を正しく選択してください。"  # 更新日の入力形式が不正であることを知らせる
 
-                error_message = "更新日を正しく選択してください。"  # 更新日の入力形式が不正であることを知らせる
+    premium_amount = None  # 金額が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
 
-        premium_amount = None  # 金額が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
+    if not error_message and premium_amount_text:  # ここまでエラーが無く、金額が入力されている場合
 
-        if not error_message and premium_amount_text:  # ここまでエラーが無く、金額が入力されている場合
+        try:  # 金額を整数へ変換できるか確認する
 
-            try:  # 金額を整数へ変換できるか確認する
+            premium_amount = int(premium_amount_text)  # 入力された金額を整数へ変換する
 
-                premium_amount = int(premium_amount_text)  # 入力された金額を整数へ変換する
+        except ValueError:  # 整数へ変換できない値が入力されていた場合
 
-            except ValueError:  # 整数へ変換できない値が入力されていた場合
+            error_message = "金額は整数で入力してください。"  # 金額の入力形式が不正であることを知らせる
 
-                error_message = "金額は整数で入力してください。"  # 金額の入力形式が不正であることを知らせる
+        if error_message is None and premium_amount < 0:  # 変換できた金額が0円未満だった場合
 
-            if error_message is None and premium_amount < 0:  # 変換できた金額が0円未満だった場合
+            error_message = "金額は0円以上で入力してください。"  # 金額の範囲を知らせる
 
-                error_message = "金額は0円以上で入力してください。"  # 金額の範囲を知らせる
+    if error_message:  # 入力内容に何らかのエラーが存在する場合
 
-        if error_message:  # 入力内容に何らかのエラーが存在する場合
+        flash(error_message, "error")  # エラーメッセージを一時保存する
 
-            flash(error_message, "error")  # エラーメッセージを一時保存する
+        return redirect(url_for("pets", pet_id=pet_id))  # 保存せずペットプロフィール画面へ戻る
 
-            return redirect(url_for("insurance"))  # 保存せず保険情報画面へ戻る
+    connection = get_db_connection()  # 保険情報を保存するためSQLiteへ接続する
 
-        connection = get_db_connection()  # 保険情報を保存するためSQLiteへ接続する
-
-        connection.execute(  # 同じペットの保険情報がすでにあれば置き換え、無ければ新しく登録する
-
-            """
-            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail, premium_amount)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT (pet_id) DO UPDATE SET
-                company_name = excluded.company_name,
-                plan_name = excluded.plan_name,
-                renewal_date = excluded.renewal_date,
-                detail = excluded.detail,
-                premium_amount = excluded.premium_amount
-            """,  # ペットIDが同じなら上書き更新するSQLを書く(1匹につき現在の契約1件だけを保持する)
-
-            (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None, premium_amount)  # 入力された保険情報をSQLへ渡す(詳細メモ・金額が未入力ならNULLにする)
-
-        )  # 保険情報の登録・更新処理を終了する
-
-        connection.commit()  # 保険情報の変更をSQLiteへ確定する
-
-        connection.close()  # SQLiteとの接続を終了する
-
-        flash("保険情報を保存しました。", "success")  # 保存完了メッセージを一時保存する
-
-        return redirect(url_for("insurance"))  # 保険情報画面へ戻る
-
-    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
-
-    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+    connection.execute(  # 同じペットの保険情報がすでにあれば置き換え、無ければ新しく登録する
 
         """
-        SELECT id, name, type, photo
-        FROM pets
-        ORDER BY id
-        """  # 登録された順番でペット情報を取得するSQLを書く
+        INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail, premium_amount)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT (pet_id) DO UPDATE SET
+            company_name = excluded.company_name,
+            plan_name = excluded.plan_name,
+            renewal_date = excluded.renewal_date,
+            detail = excluded.detail,
+            premium_amount = excluded.premium_amount
+        """,  # ペットIDが同じなら上書き更新するSQLを書く(1匹につき現在の契約1件だけを保持する)
 
-    ).fetchall()  # SQLの検索結果をすべて取得する
+        (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None, premium_amount)  # 入力された保険情報をSQLへ渡す(詳細メモ・金額が未入力ならNULLにする)
+
+    )  # 保険情報の登録・更新処理を終了する
+
+    connection.commit()  # 保険情報の変更をSQLiteへ確定する
 
     connection.close()  # SQLiteとの接続を終了する
 
-    insurance_by_pet_id = fetch_all_insurance()  # ペットごとの保険情報を取得する
+    flash("保険情報を保存しました。", "success")  # 保存完了メッセージを一時保存する
 
-    return render_template(
-        "insurance.html",  # templatesフォルダ内のinsurance.htmlを表示する
-        pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
-        insurance_by_pet_id=insurance_by_pet_id,  # ペットIDをキーにした保険情報の対応表をHTMLへ渡す
-        today=date.today().isoformat()  # 更新日入力欄の初期値に使う今日の日付をHTMLへ渡す
-    )  # 保険情報画面の表示処理を終了する
+    return redirect(url_for("pets", pet_id=pet_id))  # ペットプロフィール画面へ戻る
 
 @app.route("/insurance/delete/<int:pet_id>", methods=["POST"])  # 指定されたペットの保険情報を解約(削除)するPOST専用URLを設定する
 def delete_insurance(pet_id):  # 保険情報を削除する関数を定義する
@@ -1369,7 +1352,7 @@ def delete_insurance(pet_id):  # 保険情報を削除する関数を定義す�
 
     flash("保険情報を削除しました。", "success")  # 削除完了メッセージを一時保存する
 
-    return redirect(url_for("insurance"))  # 保険情報画面へ戻る
+    return redirect(url_for("pets", pet_id=pet_id))  # ペットプロフィール画面へ戻る
 
 MEDICATION_TIME_SLOT_COUNT = 4  # お薬の登録フォームで一度に入力できる服用時刻の欄の数を設定する(自由な時刻を複数登録できるようにする)
 
@@ -1466,134 +1449,101 @@ def build_medication_reminders(medications):  # お薬一覧から、時刻を�
 
     return reminders  # 組み立てたリマインダー一覧を返す
 
-@app.route("/medications", methods=["GET", "POST"])  # お薬管理画面の表示と登録の両方を受け付ける
-def medications():  # ペットごとのお薬一覧・今日の服用チェック・新規登録を行う関数を定義する
+@app.route("/medications", methods=["POST"])  # ペット画面のお薬追加フォームからのPOSTだけを受け付ける
+def medications():  # お薬の新規登録を行い、ペットプロフィール画面へ戻る関数を定義する
 
-    if request.method == "POST":  # お薬追加フォームからPOSTで送信された場合
+    pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
 
-        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+    name = request.form.get("name", "").strip()  # お薬の名前を取得し、前後の余分な空白を削除する
 
-        name = request.form.get("name", "").strip()  # お薬の名前を取得し、前後の余分な空白を削除する
+    note = request.form.get("note", "").strip()  # お薬に関するメモを取得し、前後の余分な空白を削除する
 
-        note = request.form.get("note", "").strip()  # お薬に関するメモを取得し、前後の余分な空白を削除する
+    time_values = []  # 入力された服用時刻を追加していくリストを用意する
 
-        time_values = []  # 入力された服用時刻を追加していくリストを用意する
+    for slot_number in range(1, MEDICATION_TIME_SLOT_COUNT + 1):  # 用意した時刻入力欄の数だけ繰り返す
 
-        for slot_number in range(1, MEDICATION_TIME_SLOT_COUNT + 1):  # 用意した時刻入力欄の数だけ繰り返す
+        time_value = request.form.get(f"time_{slot_number}", "").strip()  # この欄に入力された時刻を取得する
 
-            time_value = request.form.get(f"time_{slot_number}", "").strip()  # この欄に入力された時刻を取得する
+        if time_value:  # この欄に時刻が入力されていた場合
 
-            if time_value:  # この欄に時刻が入力されていた場合
+            time_values.append(time_value)  # 服用時刻のリストへ追加する
 
-                time_values.append(time_value)  # 服用時刻のリストへ追加する
+    error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
 
-        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+    if not pet_id:  # 対象のペットが選ばれていない場合
 
-        if not pet_id:  # 対象のペットが選ばれていない場合
+        error_message = "ペットを選択してください。"  # ペット選択を促す
 
-            error_message = "ペットを選択してください。"  # ペット選択を促す
+    elif not name:  # お薬の名前が入力されていない場合
 
-        elif not name:  # お薬の名前が入力されていない場合
+        error_message = "お薬の名前を入力してください。"  # お薬の名前の入力を促す
 
-            error_message = "お薬の名前を入力してください。"  # お薬の名前の入力を促す
+    elif len(name) > 50:  # お薬の名前が50文字を超えている場合
 
-        elif len(name) > 50:  # お薬の名前が50文字を超えている場合
+        error_message = "お薬の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "お薬の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
+    elif len(note) > 200:  # メモが200文字を超えている場合
 
-        elif len(note) > 200:  # メモが200文字を超えている場合
+        error_message = "メモは200文字以内で入力してください。"  # 文字数制限を知らせる
 
-            error_message = "メモは200文字以内で入力してください。"  # 文字数制限を知らせる
+    elif not time_values:  # 服用時刻が1つも入力されていない場合
 
-        elif not time_values:  # 服用時刻が1つも入力されていない場合
+        error_message = "服用時刻を1つ以上入力してください。"  # 服用時刻の入力を促す
 
-            error_message = "服用時刻を1つ以上入力してください。"  # 服用時刻の入力を促す
+    if error_message:  # 入力内容に何らかのエラーが存在する場合
 
-        if error_message:  # 入力内容に何らかのエラーが存在する場合
+        flash(error_message, "error")  # エラーメッセージを一時保存する
 
-            flash(error_message, "error")  # エラーメッセージを一時保存する
+        return redirect(url_for("pets", pet_id=pet_id))  # 保存せずペットプロフィール画面へ戻る
 
-            return redirect(url_for("medications"))  # 保存せずお薬管理画面へ戻る
+    connection = get_db_connection()  # お薬を保存するためSQLiteへ接続する
 
-        connection = get_db_connection()  # お薬を保存するためSQLiteへ接続する
-
-        cursor = connection.execute(  # 新しいお薬をmedicationsテーブルへ登録し、新しく作られたIDも取得できるようにする
-
-            """
-            INSERT INTO medications (pet_id, name, note)
-            VALUES (?, ?, ?)
-            """,  # 新しいお薬の名前とメモを保存するSQLを書く
-
-            (pet_id, name, note if note else None)  # 入力されたお薬の内容をSQLへ渡す
-
-        )  # INSERT処理を終了する
-
-        medication_id = cursor.lastrowid  # 今登録したお薬のIDを取得する
-
-        for time_value in time_values:  # 入力された服用時刻を1つずつ処理する
-
-            connection.execute(  # 服用時刻をmedication_timesテーブルへ登録する
-
-                """
-                INSERT INTO medication_times (medication_id, time_of_day)
-                VALUES (?, ?)
-                """,  # 1件分の服用時刻を保存するSQLを書く
-
-                (medication_id, time_value)  # 登録したお薬のIDと服用時刻をSQLへ渡す
-
-            )  # 1件分の服用時刻登録を終了する
-
-        connection.commit()  # お薬と服用時刻の追加をSQLiteへ確定する
-
-        connection.close()  # SQLiteとの接続を終了する
-
-        flash("お薬を登録しました。", "success")  # 登録完了メッセージを一時保存する
-
-        return redirect(url_for("medications"))  # お薬管理画面へ戻る
-
-    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
-
-    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+    cursor = connection.execute(  # 新しいお薬をmedicationsテーブルへ登録し、新しく作られたIDも取得できるようにする
 
         """
-        SELECT id, name, type, photo
-        FROM pets
-        ORDER BY id
-        """  # 登録された順番でペット情報を取得するSQLを書く
+        INSERT INTO medications (pet_id, name, note)
+        VALUES (?, ?, ?)
+        """,  # 新しいお薬の名前とメモを保存するSQLを書く
 
-    ).fetchall()  # SQLの検索結果をすべて取得する
+        (pet_id, name, note if note else None)  # 入力されたお薬の内容をSQLへ渡す
+
+    )  # INSERT処理を終了する
+
+    medication_id = cursor.lastrowid  # 今登録したお薬のIDを取得する
+
+    for time_value in time_values:  # 入力された服用時刻を1つずつ処理する
+
+        connection.execute(  # 服用時刻をmedication_timesテーブルへ登録する
+
+            """
+            INSERT INTO medication_times (medication_id, time_of_day)
+            VALUES (?, ?)
+            """,  # 1件分の服用時刻を保存するSQLを書く
+
+            (medication_id, time_value)  # 登録したお薬のIDと服用時刻をSQLへ渡す
+
+        )  # 1件分の服用時刻登録を終了する
+
+    connection.commit()  # お薬と服用時刻の追加をSQLiteへ確定する
 
     connection.close()  # SQLiteとの接続を終了する
 
-    today_text = date.today().isoformat()  # 今日の服用記録を判定する基準の日付を取得する
+    flash("お薬を登録しました。", "success")  # 登録完了メッセージを一時保存する
 
-    now_text = datetime.now().strftime("%H:%M")  # 「時刻を過ぎているか」を判定する基準の現在時刻を取得する
-
-    pets_with_medications = []  # 画面に表示するペットごとのお薬情報を追加していくリストを用意する
-
-    for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
-
-        medications_for_pet = fetch_medications_for_pet(pet["id"], today_text, now_text)  # このペットのお薬一覧(今日の服用状況付き)を取得する
-
-        pets_with_medications.append({  # 1匹分の表示情報をリストへ追加する
-
-            "pet": pet,  # 表示対象のペット情報
-            "medications": medications_for_pet,  # このペットのお薬一覧
-            "reminders": build_medication_reminders(medications_for_pet),  # 時刻を過ぎても未服用のリマインダー
-
-        })  # 1匹分の表示情報の追加を終了する
-
-    return render_template(
-        "medications.html",  # templatesフォルダ内のmedications.htmlを表示する
-        pets=pet_list,  # お薬追加フォームのペット選択欄に使うペット一覧をHTMLへ渡す
-        pets_with_medications=pets_with_medications,  # ペットごとのお薬一覧・服用状況をHTMLへ渡す
-        time_slot_count=MEDICATION_TIME_SLOT_COUNT  # 服用時刻の入力欄をいくつ表示するかをHTMLへ渡す
-    )  # お薬管理画面の表示処理を終了する
+    return redirect(url_for("pets", pet_id=pet_id))  # ペットプロフィール画面へ戻る
 
 @app.route("/medications/delete/<int:medication_id>", methods=["POST"])  # 指定されたお薬を削除するPOST専用URLを設定する
 def delete_medication(medication_id):  # お薬とその服用時刻・服用記録をまとめて削除する関数を定義する
 
     connection = get_db_connection()  # お薬を削除するためSQLiteへ接続する
+
+    medication_row = connection.execute(  # 削除対象のお薬が登録されているペットIDを取得する
+
+        "SELECT pet_id FROM medications WHERE id = ?",  # 指定されたIDのお薬のペットIDだけを取得するSQLを書く
+
+        (medication_id,)  # 削除対象のお薬IDをSQLへ渡す
+
+    ).fetchone()  # 条件に一致するお薬1件分を取得する
 
     time_ids = [  # このお薬に登録されている服用時刻のIDだけを取り出す
 
@@ -1617,16 +1567,33 @@ def delete_medication(medication_id):  # お薬とその服用時刻・服用記
 
     flash("お薬を削除しました。", "success")  # 削除完了メッセージを一時保存する
 
-    return redirect(url_for("medications"))  # お薬管理画面へ戻る
+    return redirect(url_for("pets", pet_id=medication_row["pet_id"] if medication_row else None))  # 対象ペットのプロフィール画面へ戻る
 
 @app.route("/medications/log", methods=["POST"])  # 今日の服用を「飲んだ」として記録するPOST専用URLを設定する
 def log_medication():  # 指定された服用時刻について、今日分を服用済みとして記録する関数を定義する
 
     medication_time_id = request.form.get("medication_time_id", "")  # フォームから対象の服用時刻IDを取得する
 
+    pet_id = None  # 戻り先のペットIDを保存する変数を用意する(見つからない場合に備えてNoneで初期化する)
+
     if medication_time_id.isdigit():  # 服用時刻IDが数値として正しい場合だけ処理する
 
         connection = get_db_connection()  # 服用記録を保存するためSQLiteへ接続する
+
+        pet_row = connection.execute(  # この服用時刻がどのペットのお薬か調べる
+
+            """
+            SELECT medications.pet_id AS pet_id
+            FROM medication_times
+            JOIN medications ON medications.id = medication_times.medication_id
+            WHERE medication_times.id = ?
+            """,  # 服用時刻IDからペットIDをたどるSQLを書く
+
+            (medication_time_id,)  # 対象の服用時刻IDをSQLへ渡す
+
+        ).fetchone()  # 条件に一致する1件を取得する
+
+        pet_id = pet_row["pet_id"] if pet_row else None  # 見つかったペットIDを保存する(見つからなければNoneのまま)
 
         connection.execute(  # すでに記録済みなら何もせず、無ければ今日の分を記録する
 
@@ -1643,16 +1610,33 @@ def log_medication():  # 指定された服用時刻について、今日分を�
 
         connection.close()  # SQLiteとの接続を終了する
 
-    return redirect(url_for("medications"))  # お薬管理画面へ戻る
+    return redirect(url_for("pets", pet_id=pet_id))  # 対象ペットのプロフィール画面へ戻る
 
 @app.route("/medications/unlog", methods=["POST"])  # 今日の服用記録を取り消すPOST専用URLを設定する
 def unlog_medication():  # 押し間違いなどで、今日の服用記録を取り消す関数を定義する
 
     medication_time_id = request.form.get("medication_time_id", "")  # フォームから対象の服用時刻IDを取得する
 
+    pet_id = None  # 戻り先のペットIDを保存する変数を用意する(見つからない場合に備えてNoneで初期化する)
+
     if medication_time_id.isdigit():  # 服用時刻IDが数値として正しい場合だけ処理する
 
         connection = get_db_connection()  # 服用記録を取り消すためSQLiteへ接続する
+
+        pet_row = connection.execute(  # この服用時刻がどのペットのお薬か調べる
+
+            """
+            SELECT medications.pet_id AS pet_id
+            FROM medication_times
+            JOIN medications ON medications.id = medication_times.medication_id
+            WHERE medication_times.id = ?
+            """,  # 服用時刻IDからペットIDをたどるSQLを書く
+
+            (medication_time_id,)  # 対象の服用時刻IDをSQLへ渡す
+
+        ).fetchone()  # 条件に一致する1件を取得する
+
+        pet_id = pet_row["pet_id"] if pet_row else None  # 見つかったペットIDを保存する(見つからなければNoneのまま)
 
         connection.execute(  # 今日分の服用記録だけを取り消す
 
@@ -1669,7 +1653,7 @@ def unlog_medication():  # 押し間違いなどで、今日の服用記録を�
 
         connection.close()  # SQLiteとの接続を終了する
 
-    return redirect(url_for("medications"))  # お薬管理画面へ戻る
+    return redirect(url_for("pets", pet_id=pet_id))  # 対象ペットのプロフィール画面へ戻る
 
 CERTIFICATE_TYPE_PRESETS = [  # よく提出を求められる証明書の種類を、手入力せずに選べる選択肢として用意する
 
