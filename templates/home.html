@@ -83,6 +83,28 @@
 
                         {% endif %} <!-- リマインダーの有無による表示切り替えを終了する -->
 
+                        {% if item.medication_reminders %} <!-- 服用時刻を過ぎても未服用のお薬がある場合 -->
+
+                            <div class="home-reminder-banner"> <!-- 服用を促すリマインダーをまとめる領域を作る -->
+
+                                <p class="home-reminder-title">💊 服用時刻を過ぎています</p> <!-- リマインダー全体の見出しを表示する -->
+
+                                <ul class="home-reminder-list"> <!-- リマインダーを箇条書きで並べるリストを作る -->
+
+                                    {% for reminder in item.medication_reminders %} <!-- リマインダーを1件ずつ処理する -->
+
+                                        <li>{{ reminder.time_of_day }}の{{ reminder.medication_name }}</li> <!-- 予定時刻と薬の名前を表示する -->
+
+                                    {% endfor %} <!-- すべてのリマインダー表示を終了する -->
+
+                                </ul> <!-- リマインダー一覧を終了する -->
+
+                                <a class="home-reminder-link" href="{{ url_for('medications') }}">お薬画面を見る</a> <!-- お薬画面へ移動してチェックできるようにする -->
+
+                            </div> <!-- リマインダー領域を終了する -->
+
+                        {% endif %} <!-- リマインダーの有無による表示切り替えを終了する -->
+
                         <div class="home-section"> <!-- 「今日のやること」を表示する領域を作る -->
 
                             <p class="home-section-title">今日のやること</p> <!-- 見出しを表示する -->
@@ -313,6 +335,10 @@
 
         <a href="{{ url_for('insurance') }}" data-index="5"> <!-- 保険情報画面へ移動するリンク -->
             <span>保険</span> <!-- ナビゲーションに保険と表示する -->
+        </a>
+
+        <a href="{{ url_for('medications') }}" data-index="6"> <!-- お薬管理画面へ移動するリンク -->
+            <span>お薬</span> <!-- ナビゲーションにお薬と表示する -->
         </a>
 
     </nav> <!-- 下部ナビゲーションを終了する -->

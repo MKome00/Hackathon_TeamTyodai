@@ -307,6 +307,10 @@
             <span>保険</span> <!-- ナビゲーションに保険と表示する -->
         </a>
 
+        <a href="{{ url_for('medications') }}" data-index="6"> <!-- お薬管理画面へ移動するリンク -->
+            <span>お薬</span> <!-- ナビゲーションにお薬と表示する -->
+        </a>
+
     </nav> <!-- 下部ナビゲーションを終了する -->
 
     <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション用JavaScriptを読み込む -->

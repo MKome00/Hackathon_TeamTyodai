@@ -1,0 +1,415 @@
+.medication-page-note { /* お薬管理ページの目的を説明する文章を設定する */
+
+    margin: 8px 0 0; /* タイトルとの間に余白を作る */
+
+    font-size: 13px; /* 説明文の文字サイズを設定する */
+
+    color: #777777; /* 説明文の文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 2行になっても読みやすいよう行間を広げる */
+
+}
+
+.medication-empty-text { /* ペット未登録・お薬未登録などの案内文を設定する */
+
+    margin-top: 16px; /* 上の要素との間に余白を作る */
+
+    font-size: 14px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}
+
+.medication-pet-list { /* ペットごとのお薬カードを並べる領域を設定する */
+
+    display: flex; /* カードを並べるためflexを使用する */
+
+    flex-direction: column; /* カードを縦方向に並べる */
+
+    gap: 12px; /* カード同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.medication-pet-card { /* 1匹分のお薬カードを設定する */
+
+    padding: 16px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 16px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.medication-pet-header { /* カード上部の写真と名前をまとめる領域を設定する */
+
+    display: flex; /* 写真と名前を横並びにする */
+
+    align-items: center; /* 写真と名前を縦方向の中央に揃える */
+
+    gap: 12px; /* 写真と名前の間隔を作る */
+
+}
+
+.medication-pet-photo { /* お薬カードに表示するペット写真の丸い枠を設定する */
+
+    width: 40px; /* 写真枠の横幅を設定する */
+
+    height: 40px; /* 写真枠の高さを設定する */
+
+    flex-shrink: 0; /* カード幅が狭くなっても写真枠が縮まないようにする */
+
+    display: flex; /* 写真や絵文字を中央配置できるようにする */
+
+    justify-content: center; /* 内容を横方向の中央に配置する */
+
+    align-items: center; /* 内容を縦方向の中央に配置する */
+
+    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
+
+    border-radius: 50%; /* 写真枠を丸く表示する */
+
+    overflow: hidden; /* 写真が枠からはみ出さないようにする */
+
+    font-size: 18px; /* 代わりに表示する絵文字の大きさを設定する */
+
+}
+
+.medication-pet-photo img { /* お薬カードに表示するペット写真そのものを設定する */
+
+    width: 100%; /* 写真枠いっぱいの横幅で表示する */
+
+    height: 100%; /* 写真枠いっぱいの高さで表示する */
+
+    object-fit: cover; /* 写真の縦横比を保ちながら枠いっぱいに表示する */
+
+}
+
+.medication-pet-name { /* お薬カードのペット名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 16px; /* ペット名を少し大きめに表示する */
+
+    font-weight: 700; /* ペット名を太字にする */
+
+    color: #333333; /* ペット名の文字色を濃いグレーにする */
+
+}
+
+.medication-reminder-banner { /* 服用を促すリマインダーをまとめる領域を設定する */
+
+    margin-top: 12px; /* カードヘッダーとの間に余白を作る */
+
+    padding: 12px 14px; /* バナー内側に余白を作る */
+
+    background-color: #fff8e6; /* 注意を促す薄い黄色の背景にする */
+
+    border: 1px solid #f0d38a; /* 薄い黄色の枠線を付ける */
+
+    border-radius: 14px; /* バナーの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.medication-reminder-title { /* リマインダー全体の見出しを設定する */
+
+    margin: 0; /* 見出しが持つ余白をなくす */
+
+    font-size: 14px; /* 見出しの文字サイズを設定する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #8a6d1a; /* 見出しの文字色を濃い黄土色にする */
+
+}
+
+.medication-reminder-list { /* リマインダーの箇条書き一覧を設定する */
+
+    margin: 6px 0 0; /* 見出しとの間にだけ余白を作る */
+
+    padding-left: 18px; /* 標準の黒丸が収まる左余白を作る */
+
+    font-size: 13px; /* リマインダーの文字サイズを設定する */
+
+    color: #8a6d1a; /* リマインダーの文字色を見出しと揃える */
+
+}
+
+.medication-list { /* お薬を並べる領域を設定する */
+
+    display: flex; /* お薬を並べるためflexを使用する */
+
+    flex-direction: column; /* お薬を縦方向に並べる */
+
+    gap: 10px; /* お薬同士の間隔を作る */
+
+    margin-top: 12px; /* 上の要素との間に余白を作る */
+
+}
+
+.medication-item { /* 1件分のお薬を表示する領域を設定する */
+
+    padding: 12px 14px; /* お薬1件分の内側に余白を作る */
+
+    background-color: #fafafa; /* カード内で区別できるようごく薄いグレーの背景にする */
+
+    border: 1px solid #eeeeee; /* お薬1件分の周囲に薄いグレーの線を付ける */
+
+    border-radius: 12px; /* お薬1件分の角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.medication-item-header { /* お薬の名前と削除ボタンを横に並べる領域を設定する */
+
+    display: flex; /* 名前と削除ボタンを横並びにする */
+
+    justify-content: space-between; /* 名前を左、削除ボタンを右に配置する */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    gap: 8px; /* 名前と削除ボタンの間に余白を作る */
+
+}
+
+.medication-name { /* お薬の名前を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 14px; /* お薬の名前の文字サイズを設定する */
+
+    font-weight: 700; /* お薬の名前を太字にする */
+
+    color: #333333; /* お薬の名前の文字色を濃いグレーにする */
+
+}
+
+.medication-note { /* お薬に関するメモを設定する */
+
+    margin: 4px 0 0; /* お薬の名前との間に少しだけ余白を作る */
+
+    font-size: 12px; /* メモの文字サイズを設定する */
+
+    color: #888888; /* メモの文字色を薄いグレーにする */
+
+}
+
+.medication-delete-button { /* お薬を削除するボタンを設定する */
+
+    padding: 4px 10px; /* ボタン内側に余白を作る */
+
+    background-color: #ffffff; /* ボタンの背景を白色にする */
+
+    border: 1px solid #d9534f; /* 削除操作であることが分かるよう赤系の枠線を付ける */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 11px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    color: #d9534f; /* ボタンの文字色を赤系にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.medication-time-list { /* 服用時刻を並べる領域を設定する */
+
+    display: flex; /* 服用時刻を並べるためflexを使用する */
+
+    flex-direction: column; /* 服用時刻を縦方向に並べる */
+
+    gap: 6px; /* 服用時刻同士の間隔を作る */
+
+    margin-top: 8px; /* お薬の名前・メモとの間に余白を作る */
+
+}
+
+.medication-time-row { /* 1つの服用時刻の行を設定する */
+
+    display: flex; /* 時刻とボタンを横並びにする */
+
+    align-items: center; /* 縦方向の中央に揃える */
+
+    justify-content: space-between; /* 時刻を左、ボタンを右に配置する */
+
+    padding: 6px 10px; /* 行の内側に余白を作る */
+
+    background-color: #ffffff; /* 行の背景を白色にする */
+
+    border: 1px solid #e0e0e0; /* 行の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 行の角を丸くする */
+
+}
+
+.medication-time-row.medication-time-overdue { /* 時刻を過ぎても未服用の行を設定する */
+
+    background-color: #fff2f2; /* 未服用であることが分かるよう薄い赤色の背景にする */
+
+    border-color: #e6a0a0; /* 薄い赤色の枠線に変える */
+
+}
+
+.medication-time-label { /* 服用時刻の文字を設定する */
+
+    font-size: 13px; /* 服用時刻の文字サイズを設定する */
+
+    font-weight: 700; /* 服用時刻を太字にする */
+
+    color: #333333; /* 服用時刻の文字色を濃いグレーにする */
+
+}
+
+.medication-check-button { /* 服用済み・未服用を切り替えるボタンを設定する */
+
+    padding: 4px 10px; /* ボタン内側に余白を作る */
+
+    background-color: #f3f3f3; /* 未服用ボタンの背景を薄いグレーにする */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 999px; /* ボタンを丸いピル型にする */
+
+    font-size: 11px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    color: #666666; /* 未服用ボタンの文字色を設定する */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.medication-check-button.taken { /* 服用済みのボタンを設定する */
+
+    background-color: #e6f4ea; /* 服用済みであることが分かるよう薄い緑色の背景にする */
+
+    color: #2e7d4f; /* 服用済みボタンの文字色を緑系にする */
+
+}
+
+.medication-add-form { /* お薬追加フォームの開閉領域を設定する */
+
+    margin-top: 12px; /* 上の要素との間に余白を作る */
+
+}
+
+.medication-add-form summary { /* お薬追加フォームの開閉用文字を設定する */
+
+    font-size: 13px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字を青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.medication-add-form[open] summary { /* お薬追加フォームを開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 10px; /* 開いたあとのフォームとの間に余白を作る */
+
+}
+
+.medication-form { /* お薬追加フォーム内の入力欄をまとめる領域を設定する */
+
+    display: flex; /* 入力欄を並べるためflexを使用する */
+
+    flex-direction: column; /* 入力欄を縦方向に並べる */
+
+    gap: 10px; /* 入力欄同士の間隔を作る */
+
+}
+
+.medication-form-group { /* お薬追加フォーム内の1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+}
+
+.medication-form-group label { /* お薬追加フォームの入力欄の上に表示する項目名を設定する */
+
+    font-size: 12px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+.medication-form-group input { /* お薬追加フォームの文字・時刻入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.medication-form-group input:focus { /* お薬追加フォームの入力欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.medication-time-inputs { /* 服用時刻の入力欄を並べる領域を設定する */
+
+    display: grid; /* 時刻入力欄を格子状に並べる */
+
+    grid-template-columns: repeat(2, 1fr); /* 1行に2つの時刻入力欄を並べる */
+
+    gap: 8px; /* 時刻入力欄同士の間隔を作る */
+
+}
+
+.medication-form-submit { /* お薬を保存するボタンを設定する */
+
+    padding: 10px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 14px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.medication-form-submit:active { /* お薬保存ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
