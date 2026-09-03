@@ -106,24 +106,45 @@
 
         <div class="pet-view-tabs"> <!-- プロフィール画面とペット一覧画面を切り替える領域を作る -->
 
-            <a
-                href="{{ url_for('pets') }}"
-                class="pet-view-tab {% if view_mode != 'list' %}active{% endif %}"
-            > <!-- プロフィール表示へ移動するタブを作る -->
+            <div class="pet-view-tab-links"> <!-- プロフィール・ペット一覧の2つのタブをまとめる領域を作る -->
 
-                プロフィール
+                <a
+                    href="{{ url_for('pets') }}"
+                    class="pet-view-tab {% if view_mode != 'list' %}active{% endif %}"
+                > <!-- プロフィール表示へ移動するタブを作る -->
 
-            </a>
+                    プロフィール
+
+                </a>
 
 
-            <a
-                href="{{ url_for('pets', view='list') }}"
-                class="pet-view-tab {% if view_mode == 'list' %}active{% endif %}"
-            > <!-- ペット一覧表示へ移動するタブを作る -->
+                <a
+                    href="{{ url_for('pets', view='list') }}"
+                    class="pet-view-tab {% if view_mode == 'list' %}active{% endif %}"
+                > <!-- ペット一覧表示へ移動するタブを作る -->
 
-                ペット一覧
+                    ペット一覧
 
-            </a>
+                </a>
+
+            </div> <!-- タブのまとまりを終了する -->
+
+            {% if view_mode != "list" and selected_pet %} <!-- プロフィール画面で、かつペットが選択されている場合だけ削除ボタンを表示する -->
+
+                <form
+                    action="{{ url_for('delete_pet', pet_id=selected_pet['id']) }}"
+                    method="POST"
+                    class="pet-delete-form"
+                    onsubmit="return confirm('このペットを削除しますか？');"
+                > <!-- タブと同じ高さの右側にペット削除ボタンを配置する -->
+
+                    <button class="pet-delete-button" type="submit">
+                        ペットを削除
+                    </button>
+
+                </form>
+
+            {% endif %} <!-- 削除ボタンの表示切り替えを終了する -->
 
         </div>
 
@@ -306,23 +327,6 @@
                 </section> <!-- ペットプロフィールカードを終了する -->
         
             </form> <!-- ペット情報を送信するフォームを終了する -->
-
-            {% if selected_pet %}
-
-                <form
-                    action="{{ url_for('delete_pet', pet_id=selected_pet['id']) }}"
-                    method="POST"
-                    class="pet-delete-form"
-                    onsubmit="return confirm('このペットを削除しますか？');"
-                >
-
-                    <button class="pet-delete-button" type="submit">
-                        ペットを削除
-                    </button>
-
-                </form>
-
-            {% endif %}
 
             {% if selected_pet %} <!-- ペットが選択されている場合だけ保険情報セクションを表示する -->
 
