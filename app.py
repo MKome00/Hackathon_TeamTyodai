@@ -6,7 +6,7 @@ import sqlite3  # Python標準のSQLiteを操作するためのsqlite3モジュ�
 
 import random  # ホーム画面のダミー表示データをペットごとに再現性を持って生成するためにrandomモジュールを読み込む
 
-from datetime import date, timedelta  # 記録画面のダミー日付を計算するためにdateとtimedeltaを読み込む
+from datetime import date, datetime, timedelta  # 記録画面のダミー日付や、お薬の時刻判定に使う現在時刻を扱うためにdate・datetime・timedeltaを読み込む
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示、カート保存に必要な機能を読み込む
 
@@ -134,6 +134,46 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
     if "premium_amount" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにpremium_amount列がまだ存在しない場合
 
         connection.execute("ALTER TABLE insurance_policies ADD COLUMN premium_amount INTEGER")  # 既存テーブルに金額保存用のpremium_amount列を追加する
+
+    connection.execute(  # medicationsテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS medications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            pet_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            note TEXT,
+            FOREIGN KEY (pet_id) REFERENCES pets (id)
+        )
+        """  # ペットごとに服用しているお薬(名前・メモ)を保存するテーブルを定義する
+
+    )  # medicationsテーブル作成処理を終了する
+
+    connection.execute(  # medication_timesテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS medication_times (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            medication_id INTEGER NOT NULL,
+            time_of_day TEXT NOT NULL,
+            FOREIGN KEY (medication_id) REFERENCES medications (id)
+        )
+        """  # 1つのお薬につき複数登録できる、服用時刻(自由な時刻)を保存するテーブルを定義する
+
+    )  # medication_timesテーブル作成処理を終了する
+
+    connection.execute(  # medication_logsテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS medication_logs (
+            medication_time_id INTEGER NOT NULL,
+            log_date TEXT NOT NULL,
+            PRIMARY KEY (medication_time_id, log_date),
+            FOREIGN KEY (medication_time_id) REFERENCES medication_times (id)
+        )
+        """  # どの服用時刻を、どの日に「飲んだ」とチェックしたかを保存するテーブルを定義する(1つの時刻・日付につき1行だけ存在=服用済みの印)
+
+    )  # medication_logsテーブル作成処理を終了する
 
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
@@ -516,6 +556,10 @@ def home():  # ホーム画面を表示する関数を定義する
             home_pet["next_event"] = None  # 次の予定が無いことをホーム画面へ伝える
 
         home_pet["insurance"] = insurance_by_pet_id.get(pet["id"])  # このペットの保険情報を追加する(未加入ならNone)
+
+        pet_medications = fetch_medications_for_pet(pet["id"], date.today().isoformat(), datetime.now().strftime("%H:%M"))  # このペットのお薬一覧(今日の服用状況付き)を取得する
+
+        home_pet["medication_reminders"] = build_medication_reminders(pet_medications)  # 時刻を過ぎても未服用のお薬リマインダーを追加する
 
         home_pets.append(home_pet)  # 組み立てた1匹分の情報をリストへ追加する
 
@@ -1026,6 +1070,306 @@ def delete_insurance(pet_id):  # 保険情報を削除する関数を定義す�
     flash("保険情報を削除しました。", "success")  # 削除完了メッセージを一時保存する
 
     return redirect(url_for("insurance"))  # 保険情報画面へ戻る
+
+MEDICATION_TIME_SLOT_COUNT = 4  # お薬の登録フォームで一度に入力できる服用時刻の欄の数を設定する(自由な時刻を複数登録できるようにする)
+
+def fetch_medications_for_pet(pet_id, today_text, now_text):  # 指定したペットが服用しているお薬と、今日の服用状況をまとめて取得する関数を定義する
+
+    connection = get_db_connection()  # medicationsテーブルなどを読み取るためSQLiteへ接続する
+
+    medication_rows = connection.execute(  # このペットが服用しているお薬をすべて取得する
+
+        """
+        SELECT id, name, note
+        FROM medications
+        WHERE pet_id = ?
+        ORDER BY id
+        """,  # 登録された順番でこのペットのお薬を取得するSQLを書く
+
+        (pet_id,)  # 対象のペットIDをSQLへ渡す
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    medications = []  # 表示用のお薬情報を追加していくリストを用意する
+
+    for medication_row in medication_rows:  # このペットのお薬を1件ずつ処理する
+
+        time_rows = connection.execute(  # このお薬に登録されている服用時刻をすべて取得する
+
+            """
+            SELECT id, time_of_day
+            FROM medication_times
+            WHERE medication_id = ?
+            ORDER BY time_of_day ASC
+            """,  # 時刻の早い順に服用時刻を取得するSQLを書く
+
+            (medication_row["id"],)  # 対象のお薬IDをSQLへ渡す
+
+        ).fetchall()  # SQLの検索結果をすべて取得する
+
+        times = []  # 表示用の服用時刻情報を追加していくリストを用意する
+
+        for time_row in time_rows:  # このお薬の服用時刻を1件ずつ処理する
+
+            already_taken = connection.execute(  # 今日この時刻の分をすでに「飲んだ」と記録しているか確認する
+
+                """
+                SELECT 1
+                FROM medication_logs
+                WHERE medication_time_id = ? AND log_date = ?
+                """,  # 指定した服用時刻・今日の日付の記録があるか調べるSQLを書く
+
+                (time_row["id"], today_text)  # 対象の服用時刻IDと今日の日付をSQLへ渡す
+
+            ).fetchone() is not None  # 記録が見つかればTrue、見つからなければFalseにする
+
+            times.append({  # 1つの服用時刻分の情報をリストへ追加する
+
+                "id": time_row["id"],  # 服用時刻のID
+                "time_of_day": time_row["time_of_day"],  # 服用時刻(HH:MM)
+                "taken_today": already_taken,  # 今日すでに服用済みとして記録されているか
+                "overdue": (not already_taken) and time_row["time_of_day"] <= now_text,  # 時刻を過ぎているのに未記録かどうか
+
+            })  # 1つの服用時刻分の追加を終了する
+
+        medications.append({  # 1件分のお薬情報をリストへ追加する
+
+            "id": medication_row["id"],  # お薬のID
+            "name": medication_row["name"],  # お薬の名前
+            "note": medication_row["note"],  # お薬に関するメモ(未入力ならNone)
+            "times": times,  # このお薬の服用時刻一覧
+
+        })  # 1件分のお薬情報の追加を終了する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    return medications  # このペットのお薬一覧(今日の服用状況付き)を返す
+
+def build_medication_reminders(medications):  # お薬一覧から、時刻を過ぎても未服用のものだけを抜き出してリマインダーを組み立てる関数を定義する
+
+    reminders = []  # 服用を促す必要があるものを追加していくリストを用意する
+
+    for medication in medications:  # お薬を1件ずつ処理する
+
+        for time_entry in medication["times"]:  # そのお薬の服用時刻を1件ずつ処理する
+
+            if time_entry["overdue"]:  # 時刻を過ぎているのにまだ服用記録が無い場合
+
+                reminders.append({  # リマインダーとして追加する
+
+                    "medication_name": medication["name"],  # お薬の名前
+                    "time_of_day": time_entry["time_of_day"],  # 服用予定だった時刻
+
+                })  # リマインダー1件分の追加を終了する
+
+    reminders.sort(key=lambda reminder: reminder["time_of_day"])  # 時刻が早いものから並べる
+
+    return reminders  # 組み立てたリマインダー一覧を返す
+
+@app.route("/medications", methods=["GET", "POST"])  # お薬管理画面の表示と登録の両方を受け付ける
+def medications():  # ペットごとのお薬一覧・今日の服用チェック・新規登録を行う関数を定義する
+
+    if request.method == "POST":  # お薬追加フォームからPOSTで送信された場合
+
+        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+
+        name = request.form.get("name", "").strip()  # お薬の名前を取得し、前後の余分な空白を削除する
+
+        note = request.form.get("note", "").strip()  # お薬に関するメモを取得し、前後の余分な空白を削除する
+
+        time_values = []  # 入力された服用時刻を追加していくリストを用意する
+
+        for slot_number in range(1, MEDICATION_TIME_SLOT_COUNT + 1):  # 用意した時刻入力欄の数だけ繰り返す
+
+            time_value = request.form.get(f"time_{slot_number}", "").strip()  # この欄に入力された時刻を取得する
+
+            if time_value:  # この欄に時刻が入力されていた場合
+
+                time_values.append(time_value)  # 服用時刻のリストへ追加する
+
+        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+
+        if not pet_id:  # 対象のペットが選ばれていない場合
+
+            error_message = "ペットを選択してください。"  # ペット選択を促す
+
+        elif not name:  # お薬の名前が入力されていない場合
+
+            error_message = "お薬の名前を入力してください。"  # お薬の名前の入力を促す
+
+        elif len(name) > 50:  # お薬の名前が50文字を超えている場合
+
+            error_message = "お薬の名前は50文字以内で入力してください。"  # 文字数制限を知らせる
+
+        elif len(note) > 200:  # メモが200文字を超えている場合
+
+            error_message = "メモは200文字以内で入力してください。"  # 文字数制限を知らせる
+
+        elif not time_values:  # 服用時刻が1つも入力されていない場合
+
+            error_message = "服用時刻を1つ以上入力してください。"  # 服用時刻の入力を促す
+
+        if error_message:  # 入力内容に何らかのエラーが存在する場合
+
+            flash(error_message, "error")  # エラーメッセージを一時保存する
+
+            return redirect(url_for("medications"))  # 保存せずお薬管理画面へ戻る
+
+        connection = get_db_connection()  # お薬を保存するためSQLiteへ接続する
+
+        cursor = connection.execute(  # 新しいお薬をmedicationsテーブルへ登録し、新しく作られたIDも取得できるようにする
+
+            """
+            INSERT INTO medications (pet_id, name, note)
+            VALUES (?, ?, ?)
+            """,  # 新しいお薬の名前とメモを保存するSQLを書く
+
+            (pet_id, name, note if note else None)  # 入力されたお薬の内容をSQLへ渡す
+
+        )  # INSERT処理を終了する
+
+        medication_id = cursor.lastrowid  # 今登録したお薬のIDを取得する
+
+        for time_value in time_values:  # 入力された服用時刻を1つずつ処理する
+
+            connection.execute(  # 服用時刻をmedication_timesテーブルへ登録する
+
+                """
+                INSERT INTO medication_times (medication_id, time_of_day)
+                VALUES (?, ?)
+                """,  # 1件分の服用時刻を保存するSQLを書く
+
+                (medication_id, time_value)  # 登録したお薬のIDと服用時刻をSQLへ渡す
+
+            )  # 1件分の服用時刻登録を終了する
+
+        connection.commit()  # お薬と服用時刻の追加をSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+        flash("お薬を登録しました。", "success")  # 登録完了メッセージを一時保存する
+
+        return redirect(url_for("medications"))  # お薬管理画面へ戻る
+
+    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name, type, photo
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    today_text = date.today().isoformat()  # 今日の服用記録を判定する基準の日付を取得する
+
+    now_text = datetime.now().strftime("%H:%M")  # 「時刻を過ぎているか」を判定する基準の現在時刻を取得する
+
+    pets_with_medications = []  # 画面に表示するペットごとのお薬情報を追加していくリストを用意する
+
+    for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
+
+        medications_for_pet = fetch_medications_for_pet(pet["id"], today_text, now_text)  # このペットのお薬一覧(今日の服用状況付き)を取得する
+
+        pets_with_medications.append({  # 1匹分の表示情報をリストへ追加する
+
+            "pet": pet,  # 表示対象のペット情報
+            "medications": medications_for_pet,  # このペットのお薬一覧
+            "reminders": build_medication_reminders(medications_for_pet),  # 時刻を過ぎても未服用のリマインダー
+
+        })  # 1匹分の表示情報の追加を終了する
+
+    return render_template(
+        "medications.html",  # templatesフォルダ内のmedications.htmlを表示する
+        pets=pet_list,  # お薬追加フォームのペット選択欄に使うペット一覧をHTMLへ渡す
+        pets_with_medications=pets_with_medications,  # ペットごとのお薬一覧・服用状況をHTMLへ渡す
+        time_slot_count=MEDICATION_TIME_SLOT_COUNT  # 服用時刻の入力欄をいくつ表示するかをHTMLへ渡す
+    )  # お薬管理画面の表示処理を終了する
+
+@app.route("/medications/delete/<int:medication_id>", methods=["POST"])  # 指定されたお薬を削除するPOST専用URLを設定する
+def delete_medication(medication_id):  # お薬とその服用時刻・服用記録をまとめて削除する関数を定義する
+
+    connection = get_db_connection()  # お薬を削除するためSQLiteへ接続する
+
+    time_ids = [  # このお薬に登録されている服用時刻のIDだけを取り出す
+
+        row["id"] for row in connection.execute(
+            "SELECT id FROM medication_times WHERE medication_id = ?", (medication_id,)
+        ).fetchall()
+
+    ]  # 服用時刻IDの取り出しを終了する
+
+    for time_id in time_ids:  # このお薬の服用時刻を1つずつ処理する
+
+        connection.execute("DELETE FROM medication_logs WHERE medication_time_id = ?", (time_id,))  # その時刻に紐づく服用記録を削除する
+
+    connection.execute("DELETE FROM medication_times WHERE medication_id = ?", (medication_id,))  # このお薬に登録されている服用時刻をすべて削除する
+
+    connection.execute("DELETE FROM medications WHERE id = ?", (medication_id,))  # お薬そのものを削除する
+
+    connection.commit()  # 削除内容をSQLiteへ確定する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    flash("お薬を削除しました。", "success")  # 削除完了メッセージを一時保存する
+
+    return redirect(url_for("medications"))  # お薬管理画面へ戻る
+
+@app.route("/medications/log", methods=["POST"])  # 今日の服用を「飲んだ」として記録するPOST専用URLを設定する
+def log_medication():  # 指定された服用時刻について、今日分を服用済みとして記録する関数を定義する
+
+    medication_time_id = request.form.get("medication_time_id", "")  # フォームから対象の服用時刻IDを取得する
+
+    if medication_time_id.isdigit():  # 服用時刻IDが数値として正しい場合だけ処理する
+
+        connection = get_db_connection()  # 服用記録を保存するためSQLiteへ接続する
+
+        connection.execute(  # すでに記録済みなら何もせず、無ければ今日の分を記録する
+
+            """
+            INSERT OR IGNORE INTO medication_logs (medication_time_id, log_date)
+            VALUES (?, ?)
+            """,  # 同じ服用時刻・同じ日付の記録が重複しないようにするSQLを書く
+
+            (medication_time_id, date.today().isoformat())  # 対象の服用時刻IDと今日の日付をSQLへ渡す
+
+        )  # 服用記録の追加を終了する
+
+        connection.commit()  # 服用記録の追加をSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+    return redirect(url_for("medications"))  # お薬管理画面へ戻る
+
+@app.route("/medications/unlog", methods=["POST"])  # 今日の服用記録を取り消すPOST専用URLを設定する
+def unlog_medication():  # 押し間違いなどで、今日の服用記録を取り消す関数を定義する
+
+    medication_time_id = request.form.get("medication_time_id", "")  # フォームから対象の服用時刻IDを取得する
+
+    if medication_time_id.isdigit():  # 服用時刻IDが数値として正しい場合だけ処理する
+
+        connection = get_db_connection()  # 服用記録を取り消すためSQLiteへ接続する
+
+        connection.execute(  # 今日分の服用記録だけを取り消す
+
+            """
+            DELETE FROM medication_logs
+            WHERE medication_time_id = ? AND log_date = ?
+            """,  # 対象の服用時刻・今日の日付の記録だけを削除するSQLを書く
+
+            (medication_time_id, date.today().isoformat())  # 対象の服用時刻IDと今日の日付をSQLへ渡す
+
+        )  # 服用記録の取り消しを終了する
+
+        connection.commit()  # 服用記録の取り消しをSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+    return redirect(url_for("medications"))  # お薬管理画面へ戻る
 
 @app.route("/calendar", methods=["GET", "POST"])  # カレンダー画面の表示と予定保存の両方を受け付ける
 def calendar():  # カレンダー画面の表示と予定追加を行う関数を定義する
