@@ -28,6 +28,7 @@ def get_db_connection():  # SQLiteデータベースへ接続するための関�
     return connection  # 作成したデータベース接続を呼び出し元へ返す
 
 UPLOAD_FOLDER = os.path.join("static", "images", "pets")  # ペット画像を保存するフォルダの場所を設定する
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp"}  # アップロードを許可する画像ファイルの拡張子を設定する
 
@@ -501,7 +502,7 @@ def pets():  # ペット画面の表示、新規登録、既存情報の更新�
 
             error_message = "ペットの名前は30文字以内で入力してください。"  # 名前の文字数制限を知らせる
 
-        elif len(pet_type) > 50:  # 種類が50文字を超えている場合
+        elif len(pet_type) > 30:  # 種類が30文字を超えている場合
 
             error_message = "ペットの種類は50文字以内で入力してください。"  # 種類の文字数制限を知らせる
 
