@@ -183,6 +183,7 @@ CALENDAR_CATEGORY_LABELS = {  # calendar_eventsテーブルの英語カテゴリ
 
     "hospital": "病院",
     "trimming": "トリミング",
+    "hotel": "ホテル",
     "other": "その他",
 
 }  # カレンダー種類名の変換表を終了する
@@ -191,6 +192,7 @@ CALENDAR_CATEGORY_ICONS = {  # calendar_eventsテーブルの英語カテゴリ�
 
     "hospital": "🏥",
     "trimming": "✂️",
+    "hotel": "🏡",
     "other": "📝",
 
 }  # カレンダー種類の絵文字の定義を終了する
@@ -1398,6 +1400,8 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
             "hospital",  # 病院
 
             "trimming",  # トリミング
+            
+            "hotel" # ホテル
 
             "other"  # その他
 
@@ -1583,6 +1587,8 @@ def calendar():  # カレンダー画面の表示と予定追加を行う関数�
         "hospital": "病院",
 
         "trimming": "トリミング",
+
+        "hotel": "ホテル",
 
         "other": "その他"
 
@@ -1973,6 +1979,14 @@ FACILITY_POOL = [  # 病院・トリミングサロン予約デモで表示す�
     {
         "id": 4, "icon": "✂️", "category": "trimming", "name": "Pet Beauty MOMO",
         "area": "石橋駅から徒歩9分", "description": "大型犬から小動物まで対応可能なトリミングサロン。"
+    },
+    {
+        "id": 5, "icon": "🏡", "category": "hotel", "name": "ワンニャン ペットホテル",
+        "area": "長崎駅から徒歩5分", "description": "24時間スタッフ常駐。広々とした個室でお預かりします。"
+    },
+    {
+        "id": 6, "icon": "🏡", "category": "hotel", "name": "アニマルペットホテル",
+        "area": "現川駅から徒歩13分", "description": "安心安全の環境。お手軽に預けられます。"
     },
 
 ]  # 施設一覧の定義を終了する
