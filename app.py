@@ -10,11 +10,14 @@ from datetime import date, datetime, timedelta  # 記録画面のダミー日付
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session  # Flask本体、HTML表示、フォーム受信、画面移動、URL生成、一時メッセージ表示、カート保存に必要な機能を読み込む
 
+from flask_cors import CORS # クロスオリジンリソース共有(CORS)を許可するためのFlask拡張機能を読み込む
+
 from urllib.parse import quote  # 商品名を外部通販サイトの検索URLに埋め込めるようURLエンコードするための関数を読み込む
 
 from werkzeug.utils import secure_filename  # アップロードされたファイル名を安全な形式へ変換する関数を読み込む
 
 app = Flask(__name__)  # このPythonファイルをもとにFlaskアプリを作成する
+CORS(app) # FlaskアプリでCORSを許可する
 app.secret_key = "team-tyodai-secret-key"  # flashメッセージを一時的に保存するセッション機能を使うための秘密鍵を設定する
 
 DATABASE = "pets.db"  # ペット情報を保存するSQLiteデータベースのファイル名を設定する
@@ -531,6 +534,94 @@ def api_pets():
     return {
         "pets": [dict(row) for row in rows]
     }
+
+@app.route("/api/pets", methods=["POST"])
+def api_create_pet():
+    data = request.get_json()
+
+    name = data.get("name", "").strip()
+    pet_type = data.get("type", "").strip()
+    age = data.get("age")
+    weight = data.get("weight")
+    note = data.get("note", "").strip()
+
+    if not name:
+        return {
+            "error": "名前を入力してください。"
+        }, 400
+
+    connection = get_db_connection()
+
+    cursor = connection.execute("""
+        INSERT INTO pets (name, type, age, weight, note)
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        name,
+        pet_type,
+        age,
+        weight,
+        note
+    ))
+
+    connection.commit()
+
+    pet_id = cursor.lastrowid
+
+    connection.close()
+
+    return {
+        "message": "ペットを登録しました。",
+        "pet_id": pet_id
+    }, 201
+
+@app.route("/api/pets/<int:pet_id>", methods=["PUT"])
+def api_update_pet(pet_id):
+    data = request.get_json()
+
+    name = data.get("name", "").strip()
+    pet_type = data.get("type", "").strip()
+    age = data.get("age")
+    weight = data.get("weight")
+    note = data.get("note", "").strip()
+
+    if not name:
+        return {
+            "error": "名前を入力してください。"
+        }, 400
+
+    connection = get_db_connection()
+
+    pet = connection.execute(
+        "SELECT id FROM pets WHERE id = ?",
+        (pet_id,)
+    ).fetchone()
+
+    if not pet:
+        connection.close()
+        return {
+            "error": "ペットが見つかりません。"
+        }, 404
+
+    connection.execute("""
+        UPDATE pets
+        SET name = ?, type = ?, age = ?, weight = ?, note = ?
+        WHERE id = ?
+    """, (
+        name,
+        pet_type,
+        age,
+        weight,
+        note,
+        pet_id
+    ))
+
+    connection.commit()
+    connection.close()
+
+    return {
+        "message": "ペット情報を更新しました。",
+        "pet_id": pet_id
+    }, 200
 
 @app.route("/")  # ルートURL「/」にアクセスされたときの処理を指定する
 @app.route("/home")  # 「/home」にアクセスされたときも同じホーム画面を表示する
