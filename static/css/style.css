@@ -1946,13 +1946,21 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 .share-button {
     border: none;
-    background: #ff9fbc;
+    background: #e96b93;
     color: #fff;
     padding: 10px 14px;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
+}
+
+.share-button:hover {
+    background: #d95780;
+}
+
+.share-button:active {
+    transform: scale(0.97);
 }
 
 .share-modal {
@@ -1997,13 +2005,21 @@ html { /* ページによってスクロールバーの有無が変わっても�
 .share-submit {
     width: 100%;
     border: none;
-    background: #ff9fbc;
+    background: #e96b93;
     color: #fff;
     padding: 12px;
     border-radius: 12px;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
+}
+
+.share-submit:hover {
+    background: #d95780;
+}
+
+.share-submit:active {
+    transform: scale(0.98);
 }
 
 .share-modal-close {
