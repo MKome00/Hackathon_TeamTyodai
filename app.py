@@ -2495,7 +2495,11 @@ def book_facility():  # 選択された施設への予約をcalendar_eventsへ�
 
     event_date_text = request.form.get("event_date", "").strip()  # 予約日を文字列として取得する
 
+    end_date_text = request.form.get("end_date", "").strip()
+
     start_time = request.form.get("start_time", "").strip()  # 希望時間を取得する
+
+    end_time = request.form.get("end_time", "").strip()
 
     note = request.form.get("note", "").strip()  # ご要望・メモを取得し、前後の余分な空白を削除する
 
@@ -2538,6 +2542,20 @@ def book_facility():  # 選択された施設への予約をcalendar_eventsへ�
         return redirect(url_for("reservation"))  # 保存せず予約画面へ戻る
 
     note_with_facility = f"{facility['name']}を予約"  # 予約した施設名を必ずメモの先頭に残す
+
+    # ホテルでチェックアウト日が入力されている場合、メモに期間を追記する
+    if facility["category"] == "hotel" and end_date_text:
+
+        # 日付と時間をくっつける（時間が未入力の場合は日付だけになる）
+
+        in_str = f"{event_date_text} {start_time}".strip()
+        
+        out_str = f"{end_date_text} {end_time}".strip()
+        
+        note_with_facility += f"（期間: {in_str} 〜 {out_str}）"
+
+    if note: 
+        note_with_facility += f"({note})"
 
     if note:  # ユーザーがご要望を入力していた場合
 
