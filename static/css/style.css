@@ -1586,8 +1586,6 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     overflow-y: auto; /* 内容が多い場合はモーダル内部をスクロールできるようにする */
 
-    overflow-x: hidden; /* 入力欄がはみ出しても横方向にはスクロールさせず、必ず幅の中に収める */
-
     padding: 20px; /* モーダル内部に余白を作る */
 
     background-color: #ffffff; /* モーダル本体を白にする */
@@ -1670,6 +1668,15 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
 }
 
+.event-input-group input[type="date"],
+.event-input-group input[type="time"] { /* 日付・時刻入力欄はスマホ標準の見た目をリセットする */
+
+    -webkit-appearance: none; /* iOSなどのスマホでブラウザ標準の見た目のまま描画され、指定した幅からはみ出すのを防ぐ */
+
+    appearance: none; /* 上記をブラウザ横断で効かせる */
+
+}
+
 .event-input-group textarea { /* 詳細メモ欄を設定する */
 
     min-height: 100px; /* 詳細を書きやすい最低限の高さを確保する */
@@ -1682,8 +1689,6 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     display: flex; /* 2つの時間入力欄を横並びにする */
 
-    gap: 12px; /* 開始時間と終了時間の間に余白を作る */
-
 }
 
 .event-time-row .event-input-group { /* 時間入力欄それぞれの横幅を設定する */
@@ -1691,6 +1696,12 @@ html { /* ページによってスクロールバーの有無が変わっても�
     flex: 1; /* 開始時間と終了時間を同じ横幅にする */
 
     min-width: 0; /* flexアイテムがネイティブUIの最小幅で突っ張らず、正しく半分ずつに縮むようにする(これが無いと2つの時間欄が重なって表示されることがある) */
+
+}
+
+.event-time-row .event-input-group + .event-input-group { /* 2つ目(終了時間)の入力欄グループにだけ適用する */
+
+    margin-left: 12px; /* flexのgapプロパティに対応していない古いブラウザでも、2つの枠の間に確実に余白を作る */
 
 }
 
