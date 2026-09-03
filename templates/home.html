@@ -20,6 +20,24 @@
 
         <h1>🏠ホーム</h1> <!-- 現在のページ名としてホームを表示する -->
 
+        {% with messages = get_flashed_messages(with_categories=true) %} <!-- Flaskに一時保存されているフラッシュメッセージを種類付きで取得する -->
+
+            {% if messages %} <!-- 表示するフラッシュメッセージが存在する場合 -->
+
+                {% for category, message in messages %} <!-- 保存されているメッセージを1件ずつ順番に処理する -->
+
+                    <div class="flash-message flash-{{ category }}"> <!-- successなどの種類に応じたCSSを適用できるメッセージ領域を作る -->
+
+                        {{ message }} <!-- Flask側で設定したメッセージ本文を表示する -->
+
+                    </div> <!-- 1件分のフラッシュメッセージ表示を終了する -->
+
+                {% endfor %} <!-- すべてのフラッシュメッセージ表示を終了する -->
+
+            {% endif %} <!-- メッセージが存在する場合の表示処理を終了する -->
+
+        {% endwith %} <!-- Flaskから取得したフラッシュメッセージを扱う範囲を終了する -->
+
         {% if home_pets %} <!-- ペットが1匹以上登録されている場合だけ一覧を表示する -->
 
             <div class="home-pet-list"> <!-- 登録済みペットのカードを縦に並べる領域を作る -->
@@ -149,31 +167,79 @@
 
                             <p class="home-section-title">フードの残量</p> <!-- 見出しを表示する -->
 
-                            <div class="home-food-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
+                            {% if item.food_stock %} <!-- 補充が記録されている場合だけ残量バーを表示する -->
 
-                                <div
-                                    class="home-food-bar"
-                                    role="progressbar"
-                                    aria-valuenow="{{ item.food_days_left }}"
-                                    aria-valuemin="0"
-                                    aria-valuemax="{{ item.food_max_days }}"
-                                    aria-label="{{ item.pet['name'] }}のフード残量"
-                                > <!-- フード残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
+                                <div class="home-food-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
 
                                     <div
-                                        class="home-food-bar-fill home-food-bar-{{ item.food_level }}"
-                                        style="width: {{ item.food_percent }}%;"
-                                    ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
+                                        class="home-food-bar"
+                                        role="progressbar"
+                                        aria-valuenow="{{ item.food_stock.days_left }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="{{ item.food_stock.max_days }}"
+                                        aria-label="{{ item.pet['name'] }}のフード残量"
+                                    > <!-- フード残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
 
-                                </div> <!-- フード残量バーを終了する -->
+                                        <div
+                                            class="home-food-bar-fill home-food-bar-{{ item.food_stock.level }}"
+                                            style="width: {{ item.food_stock.percent }}%;"
+                                        ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
 
-                                <span class="home-food-days home-food-days-{{ item.food_level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
+                                    </div> <!-- フード残量バーを終了する -->
 
-                                    あと{{ item.food_days_left }}日分 <!-- フードがなくなるまでの残り日数を表示する -->
+                                    <span class="home-food-days home-food-days-{{ item.food_stock.level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
 
-                                </span> <!-- 残り日数表示を終了する -->
+                                        あと{{ item.food_stock.days_left }}日分 <!-- フードがなくなるまでの残り日数を表示する -->
 
-                            </div> <!-- フード残量の行を終了する -->
+                                    </span> <!-- 残り日数表示を終了する -->
+
+                                </div> <!-- フード残量の行を終了する -->
+
+                            {% else %} <!-- まだ一度も補充が記録されていない場合 -->
+
+                                <p class="home-stock-empty-text">まだ補充が記録されていません。</p> <!-- 未登録であることを知らせる -->
+
+                            {% endif %} <!-- 補充記録の有無による表示切り替えを終了する -->
+
+                            <details class="home-stock-form"> <!-- タップすると補充記録フォームを開閉できる領域を作る -->
+
+                                <summary>＋ 補充を記録</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                                <form action="{{ url_for('update_pet_stock') }}" method="POST" class="stock-form"> <!-- 補充情報をFlaskへ送信するフォームを開始する -->
+
+                                    <input type="hidden" name="pet_id" value="{{ item.pet['id'] }}"> <!-- 対象のペットIDを非表示で保持する -->
+
+                                    <input type="hidden" name="stock_type" value="food"> <!-- 対象の種類がフードであることを非表示で保持する -->
+
+                                    <div class="stock-form-group"> <!-- 袋の重量入力欄をまとめる -->
+
+                                        <label for="food-weight-{{ item.pet['id'] }}">袋の重量(g)</label> <!-- 重量入力欄の説明を表示する -->
+
+                                        <input id="food-weight-{{ item.pet['id'] }}" name="package_weight_g" type="number" min="0" step="1" placeholder="1000" required> <!-- 袋の総重量をgで入力する -->
+
+                                    </div> <!-- 重量入力欄グループを終了する -->
+
+                                    <div class="stock-form-group"> <!-- 1日あたりの給餌量入力欄をまとめる -->
+
+                                        <label for="food-daily-{{ item.pet['id'] }}">1日の給餌量(g)</label> <!-- 1日あたりの給餌量入力欄の説明を表示する -->
+
+                                        <input id="food-daily-{{ item.pet['id'] }}" name="daily_amount_g" type="number" min="0" step="1" placeholder="150" required> <!-- 1日にあげる量をgで入力する -->
+
+                                    </div> <!-- 1日あたりの給餌量入力欄グループを終了する -->
+
+                                    <div class="stock-form-group"> <!-- 補充日入力欄をまとめる -->
+
+                                        <label for="food-date-{{ item.pet['id'] }}">補充日</label> <!-- 補充日入力欄の説明を表示する -->
+
+                                        <input id="food-date-{{ item.pet['id'] }}" name="refilled_date" type="date" value="{{ today }}"> <!-- 補充した日を選ぶ(未入力なら今日の日付として保存される) -->
+
+                                    </div> <!-- 補充日入力欄グループを終了する -->
+
+                                    <button class="stock-form-submit" type="submit">記録する</button> <!-- 入力した補充情報を保存するボタン -->
+
+                                </form> <!-- 補充記録フォームを終了する -->
+
+                            </details> <!-- 補充記録フォームの開閉領域を終了する -->
 
                         </div> <!-- フードの残量領域を終了する -->
 
@@ -181,31 +247,79 @@
 
                             <p class="home-section-title">おやつの残量</p> <!-- 見出しを表示する -->
 
-                            <div class="home-treat-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
+                            {% if item.treat_stock %} <!-- 補充が記録されている場合だけ残量バーを表示する -->
 
-                                <div
-                                    class="home-treat-bar"
-                                    role="progressbar"
-                                    aria-valuenow="{{ item.treat_days_left }}"
-                                    aria-valuemin="0"
-                                    aria-valuemax="{{ item.treat_max_days }}"
-                                    aria-label="{{ item.pet['name'] }}のおやつ残量"
-                                > <!-- おやつ残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
+                                <div class="home-treat-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
 
                                     <div
-                                        class="home-treat-bar-fill home-treat-bar-{{ item.treat_level }}"
-                                        style="width: {{ item.treat_percent }}%;"
-                                    ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
+                                        class="home-treat-bar"
+                                        role="progressbar"
+                                        aria-valuenow="{{ item.treat_stock.days_left }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="{{ item.treat_stock.max_days }}"
+                                        aria-label="{{ item.pet['name'] }}のおやつ残量"
+                                    > <!-- おやつ残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
 
-                                </div> <!-- おやつ残量バーを終了する -->
+                                        <div
+                                            class="home-treat-bar-fill home-treat-bar-{{ item.treat_stock.level }}"
+                                            style="width: {{ item.treat_stock.percent }}%;"
+                                        ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
 
-                                <span class="home-treat-days home-treat-days-{{ item.treat_level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
+                                    </div> <!-- おやつ残量バーを終了する -->
 
-                                    あと{{ item.treat_days_left }}日分 <!-- おやつがなくなるまでの残り日数を表示する -->
+                                    <span class="home-treat-days home-treat-days-{{ item.treat_stock.level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
 
-                                </span> <!-- 残り日数表示を終了する -->
+                                        あと{{ item.treat_stock.days_left }}日分 <!-- おやつがなくなるまでの残り日数を表示する -->
 
-                            </div> <!-- おやつ残量の行を終了する -->
+                                    </span> <!-- 残り日数表示を終了する -->
+
+                                </div> <!-- おやつ残量の行を終了する -->
+
+                            {% else %} <!-- まだ一度も補充が記録されていない場合 -->
+
+                                <p class="home-stock-empty-text">まだ補充が記録されていません。</p> <!-- 未登録であることを知らせる -->
+
+                            {% endif %} <!-- 補充記録の有無による表示切り替えを終了する -->
+
+                            <details class="home-stock-form"> <!-- タップすると補充記録フォームを開閉できる領域を作る -->
+
+                                <summary>＋ 補充を記録</summary> <!-- 閉じている間に表示する開閉用の文字 -->
+
+                                <form action="{{ url_for('update_pet_stock') }}" method="POST" class="stock-form"> <!-- 補充情報をFlaskへ送信するフォームを開始する -->
+
+                                    <input type="hidden" name="pet_id" value="{{ item.pet['id'] }}"> <!-- 対象のペットIDを非表示で保持する -->
+
+                                    <input type="hidden" name="stock_type" value="treat"> <!-- 対象の種類がおやつであることを非表示で保持する -->
+
+                                    <div class="stock-form-group"> <!-- 袋の重量入力欄をまとめる -->
+
+                                        <label for="treat-weight-{{ item.pet['id'] }}">袋の重量(g)</label> <!-- 重量入力欄の説明を表示する -->
+
+                                        <input id="treat-weight-{{ item.pet['id'] }}" name="package_weight_g" type="number" min="0" step="1" placeholder="200" required> <!-- 袋の総重量をgで入力する -->
+
+                                    </div> <!-- 重量入力欄グループを終了する -->
+
+                                    <div class="stock-form-group"> <!-- 1日あたりの給餌量入力欄をまとめる -->
+
+                                        <label for="treat-daily-{{ item.pet['id'] }}">1日の量(g)</label> <!-- 1日あたりの給餌量入力欄の説明を表示する -->
+
+                                        <input id="treat-daily-{{ item.pet['id'] }}" name="daily_amount_g" type="number" min="0" step="1" placeholder="20" required> <!-- 1日にあげる量をgで入力する -->
+
+                                    </div> <!-- 1日あたりの給餌量入力欄グループを終了する -->
+
+                                    <div class="stock-form-group"> <!-- 補充日入力欄をまとめる -->
+
+                                        <label for="treat-date-{{ item.pet['id'] }}">補充日</label> <!-- 補充日入力欄の説明を表示する -->
+
+                                        <input id="treat-date-{{ item.pet['id'] }}" name="refilled_date" type="date" value="{{ today }}"> <!-- 補充した日を選ぶ(未入力なら今日の日付として保存される) -->
+
+                                    </div> <!-- 補充日入力欄グループを終了する -->
+
+                                    <button class="stock-form-submit" type="submit">記録する</button> <!-- 入力した補充情報を保存するボタン -->
+
+                                </form> <!-- 補充記録フォームを終了する -->
+
+                            </details> <!-- 補充記録フォームの開閉領域を終了する -->
 
                         </div> <!-- おやつの残量領域を終了する -->
 
@@ -376,6 +490,30 @@
     </nav> <!-- 下部ナビゲーションを終了する -->
 
     <script src="{{ url_for('static', filename='js/nav.js') }}"></script> <!-- ナビゲーション背景を滑らかに動かすJavaScriptを読み込む -->
+
+    <script> <!-- フラッシュメッセージを一定時間後に自動で消すJavaScriptを開始する -->
+
+        setTimeout(() => { // 3秒待ってから中の処理を実行する
+
+            const flashMessages = document.querySelectorAll(".flash-message"); // ページ内に表示されているすべてのフラッシュメッセージを取得する
+
+            flashMessages.forEach((message) => { // 取得したメッセージを1つずつ順番に処理する
+
+                message.style.opacity = "0"; // メッセージを透明にして見えなくする
+
+                message.style.transition = "opacity 0.5s ease"; // 0.5秒かけてゆっくり透明になるようにする
+
+                setTimeout(() => { // フェードアウトが終わるまで0.5秒待つ
+
+                    message.remove(); // HTML上からフラッシュメッセージ自体を削除する
+
+                }, 500); // 0.5秒後に削除処理を実行する
+
+            }); // すべてのフラッシュメッセージへの処理を終了する
+
+        }, 3000); // ページ表示から3秒後にフェードアウトを開始する
+
+    </script> <!-- フラッシュメッセージ自動消去用JavaScriptを終了する -->
 
 </body> <!-- body部分を終了する -->
 
