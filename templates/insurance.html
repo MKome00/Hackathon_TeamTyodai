@@ -240,7 +240,7 @@
             <span>ホーム</span> <!-- ナビゲーションにホームと表示する -->
         </a>
 
-        <a href="{{ url_for('pets') }}" class="active" data-index="1"> <!-- 保険情報はペット管理の一部なので、ペットタブを選択中として扱うリンク -->
+        <a href="{{ url_for('pets') }}" data-index="1"> <!-- ペット画面へ移動するリンク -->
             <span>ペット</span> <!-- ナビゲーションにペットと表示する -->
         </a>
 
@@ -254,6 +254,10 @@
 
         <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンク -->
             <span>予約</span> <!-- ナビゲーションに予約と表示する -->
+        </a>
+
+        <a href="{{ url_for('insurance') }}" class="active" data-index="5"> <!-- 現在表示している保険情報画面へのリンク -->
+            <span>保険</span> <!-- ナビゲーションに保険と表示する -->
         </a>
 
     </nav> <!-- 下部ナビゲーションを終了する -->
