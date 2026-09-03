@@ -1654,6 +1654,8 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     width: 100%; /* 入力領域いっぱいまで横幅を広げる */
 
+    min-width: 0; /* 日付・時刻入力欄のネイティブUIが持つ最小幅を無視し、親の幅まで縮められるようにする */
+
     padding: 11px; /* 入力欄の内側に余白を作る */
 
     border: 1px solid #cccccc; /* 薄いグレーの枠線を付ける */
@@ -1663,6 +1665,15 @@ html { /* ページによってスクロールバーの有無が変わっても�
     font-size: 16px; /* スマホでも入力しやすい文字サイズにする */
 
     box-sizing: border-box; /* paddingを含めて横幅を計算する */
+
+}
+
+.event-input-group input[type="date"],
+.event-input-group input[type="time"] { /* 日付・時刻入力欄はスマホ標準の見た目をリセットする */
+
+    -webkit-appearance: none; /* iOSなどのスマホでブラウザ標準の見た目のまま描画され、指定した幅からはみ出すのを防ぐ */
+
+    appearance: none; /* 上記をブラウザ横断で効かせる */
 
 }
 
@@ -1678,13 +1689,19 @@ html { /* ページによってスクロールバーの有無が変わっても�
 
     display: flex; /* 2つの時間入力欄を横並びにする */
 
-    gap: 12px; /* 開始時間と終了時間の間に余白を作る */
-
 }
 
 .event-time-row .event-input-group { /* 時間入力欄それぞれの横幅を設定する */
 
     flex: 1; /* 開始時間と終了時間を同じ横幅にする */
+
+    min-width: 0; /* flexアイテムがネイティブUIの最小幅で突っ張らず、正しく半分ずつに縮むようにする(これが無いと2つの時間欄が重なって表示されることがある) */
+
+}
+
+.event-time-row .event-input-group + .event-input-group { /* 2つ目(終了時間)の入力欄グループにだけ適用する */
+
+    margin-left: 12px; /* flexのgapプロパティに対応していない古いブラウザでも、2つの枠の間に確実に余白を作る */
 
 }
 
