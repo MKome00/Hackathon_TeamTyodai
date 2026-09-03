@@ -1,0 +1,345 @@
+.insurance-page-note { /* 保険情報ページの目的を説明する文章を設定する */
+
+    margin: 8px 0 0; /* タイトルとの間に余白を作る */
+
+    font-size: 13px; /* 説明文の文字サイズを設定する */
+
+    color: #777777; /* 説明文の文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 2行になっても読みやすいよう行間を広げる */
+
+}
+
+.insurance-empty-text { /* ペット未登録・保険未加入などの案内文を設定する */
+
+    margin-top: 16px; /* 上の要素との間に余白を作る */
+
+    font-size: 14px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}
+
+.insurance-list { /* ペットごとの保険情報カードを並べる領域を設定する */
+
+    display: flex; /* カードを並べるためflexを使用する */
+
+    flex-direction: column; /* カードを縦方向に並べる */
+
+    gap: 12px; /* カード同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.insurance-card { /* 1匹分の保険情報カードを設定する */
+
+    padding: 16px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 16px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.insurance-card-header { /* カード上部の写真と名前をまとめる領域を設定する */
+
+    display: flex; /* 写真と名前を横並びにする */
+
+    align-items: center; /* 写真と名前を縦方向の中央に揃える */
+
+    gap: 12px; /* 写真と名前の間隔を作る */
+
+}
+
+.insurance-pet-photo { /* 保険情報カードに表示するペット写真の丸い枠を設定する */
+
+    width: 44px; /* 写真枠の横幅を設定する */
+
+    height: 44px; /* 写真枠の高さを設定する */
+
+    flex-shrink: 0; /* カード幅が狭くなっても写真枠が縮まないようにする */
+
+    display: flex; /* 写真や絵文字を中央配置できるようにする */
+
+    justify-content: center; /* 内容を横方向の中央に配置する */
+
+    align-items: center; /* 内容を縦方向の中央に配置する */
+
+    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
+
+    border-radius: 50%; /* 写真枠を丸く表示する */
+
+    overflow: hidden; /* 写真が枠からはみ出さないようにする */
+
+    font-size: 20px; /* 代わりに表示する絵文字の大きさを設定する */
+
+}
+
+.insurance-pet-photo img { /* 保険情報カードに表示するペット写真そのものを設定する */
+
+    width: 100%; /* 写真枠いっぱいの横幅で表示する */
+
+    height: 100%; /* 写真枠いっぱいの高さで表示する */
+
+    object-fit: cover; /* 写真の縦横比を保ちながら枠いっぱいに表示する */
+
+}
+
+.insurance-pet-name { /* 保険情報カードのペット名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 16px; /* ペット名を少し大きめに表示する */
+
+    font-weight: 700; /* ペット名を太字にする */
+
+    color: #333333; /* ペット名の文字色を濃いグレーにする */
+
+}
+
+.insurance-pet-type { /* 保険情報カードのペットの種類を設定する */
+
+    margin: 2px 0 0; /* ペット名との間に少しだけ余白を作る */
+
+    font-size: 12px; /* 種類の文字を少し小さく表示する */
+
+    color: #888888; /* 種類の文字色を薄いグレーにする */
+
+}
+
+.insurance-detail { /* 加入中の保険内容をまとめる領域を設定する */
+
+    margin-top: 12px; /* カードヘッダーとの間に余白を作る */
+
+    padding-top: 12px; /* 区切り線と本文の間に余白を作る */
+
+    border-top: 1px solid #eeeeee; /* ヘッダーとの間を薄い線で区切る */
+
+}
+
+.insurance-detail-row { /* 保険会社・プラン・更新日の1行分を設定する */
+
+    margin: 0 0 6px; /* 行同士の間に余白を作る */
+
+    font-size: 14px; /* 内容の文字サイズを設定する */
+
+    color: #333333; /* 内容の文字色を濃いグレーにする */
+
+}
+
+.insurance-detail-row:last-child { /* 最後の行(更新日)だけに適用する */
+
+    margin-bottom: 0; /* 最後の行の下には余分な余白を作らない */
+
+}
+
+.insurance-detail-label { /* 「保険会社」「プラン」「更新日」の見出し部分を設定する */
+
+    display: inline-block; /* 幅を指定できるようインラインブロックにする */
+
+    width: 72px; /* 見出しの幅をそろえて内容を縦に揃える */
+
+    font-size: 12px; /* 見出しを内容より小さく表示する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #888888; /* 見出しの文字色を薄いグレーにする */
+
+}
+
+.insurance-urgent-text { /* 更新日が近い・過ぎている場合に目立たせる文字を設定する */
+
+    color: #b83b3b; /* 注意を引く赤系の文字色にする */
+
+    font-weight: 700; /* 目立つよう文字を太字にする */
+
+}
+
+.insurance-edit-form { /* 保険情報の登録・更新フォームの開閉領域を設定する */
+
+    margin-top: 12px; /* 上の内容との間に余白を作る */
+
+}
+
+.insurance-edit-form summary { /* 保険情報フォームの開閉用文字を設定する */
+
+    font-size: 13px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字を青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.insurance-edit-form[open] summary { /* 保険情報フォームを開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 10px; /* 開いたあとのフォームとの間に余白を作る */
+
+}
+
+.insurance-form { /* 保険情報フォーム内の入力欄をまとめる領域を設定する */
+
+    display: flex; /* 入力欄を並べるためflexを使用する */
+
+    flex-direction: column; /* 入力欄を縦方向に並べる */
+
+    gap: 10px; /* 入力欄同士の間隔を作る */
+
+}
+
+.insurance-form-group { /* 保険情報フォーム内の1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+}
+
+.insurance-form-group label { /* 保険情報フォームの入力欄の上に表示する項目名を設定する */
+
+    font-size: 12px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+.insurance-form-group input { /* 保険情報フォームの入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.insurance-form-group input:focus { /* 保険情報フォームの入力欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.insurance-form-group textarea { /* プランの詳細メモを入力する複数行入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    min-height: 70px; /* 複数行入力できるよう最低限の高さを確保する */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    resize: vertical; /* 縦方向にだけサイズ変更できるようにする */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.insurance-form-group textarea:focus { /* プランの詳細メモを選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.insurance-detail-note { /* 加入中プランの詳細メモの表示を設定する */
+
+    margin: 8px 0 0; /* 更新日の行との間に余白を作る */
+
+    padding-top: 8px; /* 区切り線と本文の間に余白を作る */
+
+    border-top: 1px dashed #eeeeee; /* 更新日との間を薄い破線で区切る */
+
+    font-size: 13px; /* 詳細メモの文字サイズを設定する */
+
+    color: #666666; /* 詳細メモの文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 複数行になっても読みやすいよう行間を広げる */
+
+    white-space: pre-wrap; /* 入力時の改行をそのまま表示に反映する */
+
+}
+
+.insurance-form-submit { /* 保険情報を保存するボタンを設定する */
+
+    padding: 10px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 14px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.insurance-form-submit:active { /* 保険情報保存ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
+
+.insurance-delete-form { /* 保険の解約(削除)フォームの配置を設定する */
+
+    margin-top: 10px; /* 登録・更新フォームとの間に余白を作る */
+
+    display: flex; /* 削除ボタンの位置をflexで調整できるようにする */
+
+    justify-content: flex-end; /* 削除ボタンを右側へ配置する */
+
+}
+
+.insurance-delete-button { /* 保険を解約(削除)するボタンを設定する */
+
+    padding: 8px 14px; /* ボタンの内側に余白を作る */
+
+    background-color: #ffffff; /* ボタンの背景を白色にする */
+
+    border: 1px solid #d9534f; /* 削除操作であることが分かるよう赤系の枠線を付ける */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 12px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    color: #d9534f; /* ボタンの文字色を赤系にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}

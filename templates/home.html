@@ -213,6 +213,38 @@
 
                         </div> <!-- 体重の変化領域を終了する -->
 
+                        <div class="home-section"> <!-- 保険情報を表示する領域を作る -->
+
+                            <p class="home-section-title">保険</p> <!-- 見出しを表示する -->
+
+                            {% if item.insurance %} <!-- このペットが保険に加入している場合 -->
+
+                                <p>{{ item.insurance.company_name }}・{{ item.insurance.plan_name }}</p> <!-- 保険会社名とプラン名を表示する -->
+
+                                <p class="{% if item.insurance.urgent %}home-urgent-text{% endif %}"> <!-- 更新日が近い場合は文字色で目立たせる -->
+
+                                    更新日 {{ item.insurance.renewal_date.strftime('%Y/%m/%d') }} <!-- 更新日を表示する -->
+
+                                    {% if item.insurance.days_until_renewal < 0 %} <!-- 更新日をすでに過ぎている場合 -->
+
+                                        (過ぎています) <!-- 期限切れであることを表示する -->
+
+                                    {% elif item.insurance.days_until_renewal <= 30 %} <!-- 更新日まで30日以内の場合 -->
+
+                                        (あと{{ item.insurance.days_until_renewal }}日) <!-- 更新日までの残り日数を表示する -->
+
+                                    {% endif %} <!-- 更新日の状態による表示切り替えを終了する -->
+
+                                </p> <!-- 更新日の表示を終了する -->
+
+                            {% else %} <!-- このペットがまだ保険に加入していない場合 -->
+
+                                <p class="home-empty-text">未加入</p> <!-- 未加入であることを知らせる -->
+
+                            {% endif %} <!-- 保険加入状況による表示切り替えを終了する -->
+
+                        </div> <!-- 保険情報領域を終了する -->
+
                     </section> <!-- 1匹分のカードを終了する -->
 
                 {% endfor %} <!-- 登録済みペットすべての表示処理を終了する -->
@@ -277,6 +309,10 @@
 
         <a href="{{ url_for('reservation') }}" data-index="4"> <!-- 予約画面へ移動するリンク -->
             <span>予約</span> <!-- ナビゲーションに予約と表示する -->
+        </a>
+
+        <a href="{{ url_for('insurance') }}" data-index="5"> <!-- 保険情報画面へ移動するリンク -->
+            <span>保険</span> <!-- ナビゲーションに保険と表示する -->
         </a>
 
     </nav> <!-- 下部ナビゲーションを終了する -->

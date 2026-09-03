@@ -107,6 +107,34 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
     )  # favoritesテーブル作成処理を終了する
 
+    connection.execute(  # insurance_policiesテーブルが存在しない場合に新しく作成する
+
+        """
+        CREATE TABLE IF NOT EXISTS insurance_policies (
+            pet_id INTEGER PRIMARY KEY,
+            company_name TEXT NOT NULL,
+            plan_name TEXT NOT NULL,
+            renewal_date TEXT NOT NULL,
+            detail TEXT,
+            premium_amount INTEGER,
+            FOREIGN KEY (pet_id) REFERENCES pets (id)
+        )
+        """  # ペットごとの現在加入中のペット保険(保険会社・プラン・更新日・プランの詳細・金額)を1件だけ保存するテーブルを定義する
+
+    )  # insurance_policiesテーブル作成処理を終了する
+
+    insurance_columns = connection.execute("PRAGMA table_info(insurance_policies)").fetchall()  # 現在のinsurance_policiesテーブルに存在する列情報を取得する
+
+    insurance_column_names = [column["name"] for column in insurance_columns]  # 取得した列情報から列名だけを一覧として取り出す
+
+    if "detail" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにdetail列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE insurance_policies ADD COLUMN detail TEXT")  # 既存テーブルにプラン詳細保存用のdetail列を追加する
+
+    if "premium_amount" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにpremium_amount列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE insurance_policies ADD COLUMN premium_amount INTEGER")  # 既存テーブルに金額保存用のpremium_amount列を追加する
+
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
     connection.close()  # データベースとの接続を終了する
@@ -440,6 +468,8 @@ def home():  # ホーム画面を表示する関数を定義する
 
     home_pets = []  # ホーム画面に表示するペットごとの情報を追加していくリストを用意する
 
+    insurance_by_pet_id = fetch_all_insurance()  # ペットごとの保険情報をまとめて取得する
+
     for pet in pet_list:  # 登録済みペットを1匹ずつ処理する
 
         home_pet = build_home_dummy_data(pet)  # フード残量などの表示用ダミー情報を組み立てる
@@ -466,6 +496,8 @@ def home():  # ホーム画面を表示する関数を定義する
         else:  # 今後の予定が1件も無い場合
 
             home_pet["next_event"] = None  # 次の予定が無いことをホーム画面へ伝える
+
+        home_pet["insurance"] = insurance_by_pet_id.get(pet["id"])  # このペットの保険情報を追加する(未加入ならNone)
 
         home_pets.append(home_pet)  # 組み立てた1匹分の情報をリストへ追加する
 
@@ -793,6 +825,189 @@ def delete_pet(pet_id):  # ペット削除処理を行う関数を定義する
         return redirect(url_for("pets", pet_id=next_pet["id"]))  # 直後のペットを表示する
 
     return redirect(url_for("pets", mode="new"))  # ペットが1匹も残っていない場合は新規登録画面を表示する
+
+INSURANCE_URGENT_DAYS = 30  # 更新日までこの日数を切ったら目立たせるしきい値を設定する
+
+def fetch_all_insurance():  # 登録されているすべてのペットの保険情報を、ペットIDをキーにした対応表として取得する関数を定義する
+
+    connection = get_db_connection()  # insurance_policiesテーブルを読み取るためSQLiteへ接続する
+
+    rows = connection.execute(  # 保険情報をすべて取得する
+
+        """
+        SELECT pet_id, company_name, plan_name, renewal_date, detail, premium_amount
+        FROM insurance_policies
+        """  # 登録されているすべてのペット保険情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    insurance_by_pet_id = {}  # ペットIDをキーにした保険情報の対応表を用意する
+
+    for row in rows:  # 取得した保険情報を1件ずつ処理する
+
+        renewal_date = date.fromisoformat(row["renewal_date"])  # 保存されている更新日の文字列をdate型に変換する
+
+        days_until_renewal = (renewal_date - date.today()).days  # 更新日までの残り日数を計算する
+
+        insurance_by_pet_id[row["pet_id"]] = {  # このペットの保険情報を表示用の形にまとめる
+
+            "company_name": row["company_name"],  # 保険会社名
+            "plan_name": row["plan_name"],  # プラン名
+            "renewal_date": renewal_date,  # 更新日
+            "detail": row["detail"],  # プランの詳細メモ(未入力ならNone)
+            "premium_amount": row["premium_amount"],  # 保険料の金額(円、未入力ならNone)
+            "days_until_renewal": days_until_renewal,  # 更新日までの残り日数
+            "urgent": days_until_renewal <= INSURANCE_URGENT_DAYS,  # 更新日が近く目立たせるべきかどうか
+
+        }  # このペットの保険情報の組み立てを終了する
+
+    return insurance_by_pet_id  # ペットIDをキーにした保険情報の対応表を返す
+
+@app.route("/insurance", methods=["GET", "POST"])  # 保険情報画面の表示と登録・更新の両方を受け付ける
+def insurance():  # ペットごとの保険情報を一覧表示し、登録・更新する関数を定義する
+
+    if request.method == "POST":  # 保険情報フォームからPOSTで送信された場合
+
+        pet_id = request.form.get("pet_id", "")  # フォームから対象のペットIDを取得する
+
+        company_name = request.form.get("company_name", "").strip()  # 保険会社名を取得し、前後の余分な空白を削除する
+
+        plan_name = request.form.get("plan_name", "").strip()  # プラン名を取得し、前後の余分な空白を削除する
+
+        renewal_date_text = request.form.get("renewal_date", "").strip()  # 更新日を文字列として取得する
+
+        detail = request.form.get("detail", "").strip()  # プランの詳細メモを取得し、前後の余分な空白を削除する
+
+        premium_amount_text = request.form.get("premium_amount", "").strip()  # 金額をまず文字列として取得する
+
+        error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
+
+        if not pet_id:  # 対象のペットが選ばれていない場合
+
+            error_message = "ペットを選択してください。"  # ペット選択を促す
+
+        elif not company_name:  # 保険会社名が入力されていない場合
+
+            error_message = "保険会社名を入力してください。"  # 保険会社名の入力を促す
+
+        elif len(company_name) > 50:  # 保険会社名が50文字を超えている場合
+
+            error_message = "保険会社名は50文字以内で入力してください。"  # 文字数制限を知らせる
+
+        elif not plan_name:  # プラン名が入力されていない場合
+
+            error_message = "プラン名を入力してください。"  # プラン名の入力を促す
+
+        elif len(plan_name) > 50:  # プラン名が50文字を超えている場合
+
+            error_message = "プラン名は50文字以内で入力してください。"  # 文字数制限を知らせる
+
+        elif not renewal_date_text:  # 更新日が入力されていない場合
+
+            error_message = "更新日を選択してください。"  # 更新日の入力を促す
+
+        elif len(detail) > 500:  # プランの詳細メモが500文字を超えている場合
+
+            error_message = "プランの詳細は500文字以内で入力してください。"  # 文字数制限を知らせる
+
+        if not error_message:  # ここまでエラーが無い場合
+
+            try:  # 更新日を日付として解釈できるか確認する
+
+                date.fromisoformat(renewal_date_text)  # 入力された更新日を日付型に変換できるか確認する
+
+            except ValueError:  # 日付として解釈できない値が入力されていた場合
+
+                error_message = "更新日を正しく選択してください。"  # 更新日の入力形式が不正であることを知らせる
+
+        premium_amount = None  # 金額が未入力の場合はデータベースへNULLとして保存するためNoneを初期値にする
+
+        if not error_message and premium_amount_text:  # ここまでエラーが無く、金額が入力されている場合
+
+            try:  # 金額を整数へ変換できるか確認する
+
+                premium_amount = int(premium_amount_text)  # 入力された金額を整数へ変換する
+
+            except ValueError:  # 整数へ変換できない値が入力されていた場合
+
+                error_message = "金額は整数で入力してください。"  # 金額の入力形式が不正であることを知らせる
+
+            if error_message is None and premium_amount < 0:  # 変換できた金額が0円未満だった場合
+
+                error_message = "金額は0円以上で入力してください。"  # 金額の範囲を知らせる
+
+        if error_message:  # 入力内容に何らかのエラーが存在する場合
+
+            flash(error_message, "error")  # エラーメッセージを一時保存する
+
+            return redirect(url_for("insurance"))  # 保存せず保険情報画面へ戻る
+
+        connection = get_db_connection()  # 保険情報を保存するためSQLiteへ接続する
+
+        connection.execute(  # 同じペットの保険情報がすでにあれば置き換え、無ければ新しく登録する
+
+            """
+            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail, premium_amount)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT (pet_id) DO UPDATE SET
+                company_name = excluded.company_name,
+                plan_name = excluded.plan_name,
+                renewal_date = excluded.renewal_date,
+                detail = excluded.detail,
+                premium_amount = excluded.premium_amount
+            """,  # ペットIDが同じなら上書き更新するSQLを書く(1匹につき現在の契約1件だけを保持する)
+
+            (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None, premium_amount)  # 入力された保険情報をSQLへ渡す(詳細メモ・金額が未入力ならNULLにする)
+
+        )  # 保険情報の登録・更新処理を終了する
+
+        connection.commit()  # 保険情報の変更をSQLiteへ確定する
+
+        connection.close()  # SQLiteとの接続を終了する
+
+        flash("保険情報を保存しました。", "success")  # 保存完了メッセージを一時保存する
+
+        return redirect(url_for("insurance"))  # 保険情報画面へ戻る
+
+    connection = get_db_connection()  # 登録済みのペット情報を取得するためSQLiteへ接続する
+
+    pet_list = connection.execute(  # petsテーブルから登録されているすべてのペットを取得する
+
+        """
+        SELECT id, name, type, photo
+        FROM pets
+        ORDER BY id
+        """  # 登録された順番でペット情報を取得するSQLを書く
+
+    ).fetchall()  # SQLの検索結果をすべて取得する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    insurance_by_pet_id = fetch_all_insurance()  # ペットごとの保険情報を取得する
+
+    return render_template(
+        "insurance.html",  # templatesフォルダ内のinsurance.htmlを表示する
+        pets=pet_list,  # 登録済みペット一覧をHTMLへ渡す
+        insurance_by_pet_id=insurance_by_pet_id,  # ペットIDをキーにした保険情報の対応表をHTMLへ渡す
+        today=date.today().isoformat()  # 更新日入力欄の初期値に使う今日の日付をHTMLへ渡す
+    )  # 保険情報画面の表示処理を終了する
+
+@app.route("/insurance/delete/<int:pet_id>", methods=["POST"])  # 指定されたペットの保険情報を解約(削除)するPOST専用URLを設定する
+def delete_insurance(pet_id):  # 保険情報を削除する関数を定義する
+
+    connection = get_db_connection()  # 保険情報を削除するためSQLiteへ接続する
+
+    connection.execute("DELETE FROM insurance_policies WHERE pet_id = ?", (pet_id,))  # 指定されたペットの保険情報を削除する
+
+    connection.commit()  # 削除をSQLiteへ確定する
+
+    connection.close()  # SQLiteとの接続を終了する
+
+    flash("保険情報を削除しました。", "success")  # 削除完了メッセージを一時保存する
+
+    return redirect(url_for("insurance"))  # 保険情報画面へ戻る
 
 @app.route("/calendar", methods=["GET", "POST"])  # カレンダー画面の表示と予定保存の両方を受け付ける
 def calendar():  # カレンダー画面の表示と予定追加を行う関数を定義する
