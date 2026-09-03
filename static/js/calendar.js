@@ -230,6 +230,8 @@ document.addEventListener("DOMContentLoaded", () => { // HTML全体の読み込�
 
         firstDay: 0, // 1週間の最初を日曜日にする
 
+        showNonCurrentDates: false, // 前月・翌月にはみ出す日付のマス自体を表示せず、その月の日付だけを表示する
+
         height: 650, // カレンダーの高さを内容に合わせて自動調整する
 
         events: calendarEvents,
