@@ -224,19 +224,47 @@
 
                                     <div class="reservation-form-group"> <!-- 予約日の入力欄をまとめる -->
 
-                                        <label for="facility-{{ facility.id }}-date">予約日</label> <!-- 予約日入力欄の説明を表示する -->
+                                        <label for="facility-{{ facility.id }}-date">
 
-                                        <input id="facility-{{ facility.id }}-date" name="event_date" type="date" min="{{ today }}" required> <!-- 予約日を選ぶ -->
+                                            {% if facility.category == 'hotel' %}チェックイン日(お預かり){% else %}予約日{% endif %}
+
+                                        </label> <!-- ホテルの場合はラベルをチェックイン日に変更する -->
+
+                                        <input id="facility-{{ facility.id }}-date" name="event_date" type="date" min="{{ today }}" required>
 
                                     </div> <!-- 予約日の入力欄グループを終了する -->
 
                                     <div class="reservation-form-group"> <!-- 希望時間の入力欄をまとめる -->
 
-                                        <label for="facility-{{ facility.id }}-time">希望時間(任意)</label> <!-- 希望時間入力欄の説明を表示する -->
+                                        <label for="facility-{{ facility.id }}-time">
 
-                                        <input id="facility-{{ facility.id }}-time" name="start_time" type="time"> <!-- 希望時間を選ぶ -->
+                                            {% if facility.category == 'hotel' %}チェックイン時間(任意){% else %}希望時間(任意){% endif %}
+
+                                        </label> <!-- ホテルの場合はラベルをチェックイン時間に変更する -->
+                                        
+                                        <input id="facility-{{ facility.id }}-time" name="start_time" type="time">
 
                                     </div> <!-- 希望時間の入力欄グループを終了する -->
+
+                                    {% if facility.category == 'hotel' %} <!-- 施設がホテルの場合だけ以下を表示する -->
+
+                                    <div class="reservation-form-group"> <!-- チェックアウト日の入力欄をまとめる -->
+
+                                        <label for="facility-{{ facility.id }}-end-date">チェックアウト日(お迎え)</label>
+
+                                        <input id="facility-{{ facility.id }}-end-date" name="end_date" type="date" min="{{ today }}" required>
+                
+                                    </div> <!-- チェックアウト日の入力欄グループを終了する -->
+
+                                    <div class="reservation-form-group"> <!-- チェックアウト時間の入力欄をまとめる -->
+                                        
+                                        <label for="facility-{{ facility.id }}-end-time">チェックアウト時間(任意)</label>
+                                       
+                                        <input id="facility-{{ facility.id }}-end-time" name="end_time" type="time">
+                               
+                                    </div> <!-- チェックアウト時間の入力欄グループを終了する -->
+                               
+                                    {% endif %} <!-- ホテル専用入力欄の分岐を終了する -->
 
                                     <div class="reservation-form-group"> <!-- ご要望の入力欄をまとめる -->
 
