@@ -177,6 +177,38 @@
 
                         </div> <!-- フードの残量領域を終了する -->
 
+                        <div class="home-section"> <!-- おやつの期限・在庫を表示する領域を作る -->
+
+                            <p class="home-section-title">おやつの残量</p> <!-- 見出しを表示する -->
+
+                            <div class="home-treat-row"> <!-- 残量バーと日数表示を横に並べる領域を作る -->
+
+                                <div
+                                    class="home-treat-bar"
+                                    role="progressbar"
+                                    aria-valuenow="{{ item.treat_days_left }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="{{ item.treat_max_days }}"
+                                    aria-label="{{ item.pet['name'] }}のおやつ残量"
+                                > <!-- おやつ残量の外枠と目盛りを持つバーを作り、支援技術にも残量を伝える -->
+
+                                    <div
+                                        class="home-treat-bar-fill home-treat-bar-{{ item.treat_level }}"
+                                        style="width: {{ item.treat_percent }}%;"
+                                    ></div> <!-- 残り日数に応じた割合・色でバーを塗りつぶす -->
+
+                                </div> <!-- おやつ残量バーを終了する -->
+
+                                <span class="home-treat-days home-treat-days-{{ item.treat_level }}"> <!-- 残量の段階に応じて日数の文字色も変える -->
+
+                                    あと{{ item.treat_days_left }}日分 <!-- おやつがなくなるまでの残り日数を表示する -->
+
+                                </span> <!-- 残り日数表示を終了する -->
+
+                            </div> <!-- おやつ残量の行を終了する -->
+
+                        </div> <!-- おやつの残量領域を終了する -->
+
                         <div class="home-section"> <!-- 次の予定を表示する領域を作る -->
 
                             <p class="home-section-title">次の予定</p> <!-- 見出しを表示する -->
