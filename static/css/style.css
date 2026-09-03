@@ -1798,3 +1798,94 @@ html { /* ページによってスクロールバーの有無が変わっても�
     background-color: #bbbbbb !important; /* 前月・翌月のマスを薄いグレーにする */
 
 }
+
+/* 共有UI */
+.home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.home-header h1 {
+    margin: 0;
+}
+
+.share-button {
+    border: none;
+    background: #ff9fbc;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.share-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.35);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.share-modal-content {
+    position: relative;
+    width: min(100%, 360px);
+    background: #fff;
+    border-radius: 24px;
+    padding: 28px 22px 24px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
+    text-align: center;
+}
+
+.share-modal-content h2 {
+    margin: 0 0 10px;
+}
+
+.share-modal-content p {
+    margin: 0 0 16px;
+}
+
+.share-modal-content input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-bottom: 14px;
+}
+
+.share-submit {
+    width: 100%;
+    border: none;
+    background: #ff9fbc;
+    color: #fff;
+    padding: 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.share-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    color: #888;
+    cursor: pointer;
+}
+
+#share-message {
+    margin-top: 12px;
+    color: #e27a9b;
+    font-weight: 700;
+}
