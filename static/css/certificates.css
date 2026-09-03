@@ -20,19 +20,19 @@
 
 }
 
-.certificate-pet-list { /* ペットごとの証明書カードを並べる領域を設定する */
+.certificate-section-title { /* ペットプロフィール画面に統合した証明書セクションの見出しを設定する */
 
-    display: flex; /* カードを並べるためflexを使用する */
+    margin: 0 0 4px; /* 見出しの下に少しだけ余白を作る */
 
-    flex-direction: column; /* カードを縦方向に並べる */
+    font-size: 16px; /* 見出しの文字サイズを設定する */
 
-    gap: 12px; /* カード同士の間隔を作る */
+    font-weight: 700; /* 見出しを太字にする */
 
-    margin-top: 16px; /* ページ上部との間に余白を作る */
+    color: #333333; /* 見出しの文字色を濃いグレーにする */
 
 }
 
-.certificate-pet-card { /* 1匹分の証明書カードを設定する */
+.certificate-pet-card { /* 証明書の一覧・登録フォームをまとめるカードを設定する */
 
     padding: 16px; /* カード内側に余白を作る */
 
@@ -44,61 +44,7 @@
 
     box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
 
-}
-
-.certificate-pet-header { /* カード上部の写真と名前をまとめる領域を設定する */
-
-    display: flex; /* 写真と名前を横並びにする */
-
-    align-items: center; /* 写真と名前を縦方向の中央に揃える */
-
-    gap: 12px; /* 写真と名前の間隔を作る */
-
-}
-
-.certificate-pet-photo { /* 証明書カードに表示するペット写真の丸い枠を設定する */
-
-    width: 44px; /* 写真枠の横幅を設定する */
-
-    height: 44px; /* 写真枠の高さを設定する */
-
-    flex-shrink: 0; /* カード幅が狭くなっても写真枠が縮まないようにする */
-
-    display: flex; /* 写真や絵文字を中央配置できるようにする */
-
-    justify-content: center; /* 内容を横方向の中央に配置する */
-
-    align-items: center; /* 内容を縦方向の中央に配置する */
-
-    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
-
-    border-radius: 50%; /* 写真枠を丸く表示する */
-
-    overflow: hidden; /* 写真が枠からはみ出さないようにする */
-
-    font-size: 20px; /* 代わりに表示する絵文字の大きさを設定する */
-
-}
-
-.certificate-pet-photo img { /* 証明書カードに表示するペット写真そのものを設定する */
-
-    width: 100%; /* 写真枠いっぱいの横幅で表示する */
-
-    height: 100%; /* 写真枠いっぱいの高さで表示する */
-
-    object-fit: cover; /* 写真の縦横比を保ちながら枠いっぱいに表示する */
-
-}
-
-.certificate-pet-name { /* 証明書カードのペット名を設定する */
-
-    margin: 0; /* 段落が持つ余白をなくす */
-
-    font-size: 16px; /* ペット名を少し大きめに表示する */
-
-    font-weight: 700; /* ペット名を太字にする */
-
-    color: #333333; /* ペット名の文字色を濃いグレーにする */
+    margin-top: 16px; /* 上の要素との間に余白を作る */
 
 }
 
