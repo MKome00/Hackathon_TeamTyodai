@@ -240,6 +240,54 @@
 
 }
 
+.insurance-form-group textarea { /* プランの詳細メモを入力する複数行入力欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    min-height: 70px; /* 複数行入力できるよう最低限の高さを確保する */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    resize: vertical; /* 縦方向にだけサイズ変更できるようにする */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+}
+
+.insurance-form-group textarea:focus { /* プランの詳細メモを選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.insurance-detail-note { /* 加入中プランの詳細メモの表示を設定する */
+
+    margin: 8px 0 0; /* 更新日の行との間に余白を作る */
+
+    padding-top: 8px; /* 区切り線と本文の間に余白を作る */
+
+    border-top: 1px dashed #eeeeee; /* 更新日との間を薄い破線で区切る */
+
+    font-size: 13px; /* 詳細メモの文字サイズを設定する */
+
+    color: #666666; /* 詳細メモの文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 複数行になっても読みやすいよう行間を広げる */
+
+    white-space: pre-wrap; /* 入力時の改行をそのまま表示に反映する */
+
+}
+
 .insurance-form-submit { /* 保険情報を保存するボタンを設定する */
 
     padding: 10px; /* ボタンの内側に余白を作る */

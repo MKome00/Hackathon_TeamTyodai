@@ -111,6 +111,12 @@
 
                                 </p> <!-- 更新日の行を終了する -->
 
+                                {% if policy.detail %} <!-- プランの詳細メモが入力されている場合 -->
+
+                                    <p class="insurance-detail-note">{{ policy.detail }}</p> <!-- プランの詳細メモを表示する -->
+
+                                {% endif %} <!-- 詳細メモの有無による表示切り替えを終了する -->
+
                             </div> <!-- 加入中の保険内容領域を終了する -->
 
                         {% else %} <!-- このペットがまだ保険に加入していない場合 -->
@@ -172,6 +178,19 @@
                                     > <!-- 保険の更新日を選ぶ -->
 
                                 </div> <!-- 更新日の入力欄グループを終了する -->
+
+                                <div class="insurance-form-group"> <!-- プランの詳細メモの入力欄をまとめる -->
+
+                                    <label for="insurance-{{ pet['id'] }}-detail">プランの詳細(任意)</label> <!-- プラン詳細入力欄の説明を表示する -->
+
+                                    <textarea
+                                        id="insurance-{{ pet['id'] }}-detail"
+                                        name="detail"
+                                        maxlength="500"
+                                        placeholder="例: 通院・入院・手術を補償率70%でカバー。免責金額は1回5,000円。"
+                                    >{{ policy.detail if policy and policy.detail else '' }}</textarea> <!-- プランの詳細を最大500文字で入力する -->
+
+                                </div> <!-- プランの詳細メモの入力欄グループを終了する -->
 
                                 <button class="insurance-form-submit" type="submit">保存する</button> <!-- 入力した保険情報を保存するボタン -->
 

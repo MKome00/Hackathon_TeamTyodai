@@ -114,11 +114,20 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
             company_name TEXT NOT NULL,
             plan_name TEXT NOT NULL,
             renewal_date TEXT NOT NULL,
+            detail TEXT,
             FOREIGN KEY (pet_id) REFERENCES pets (id)
         )
-        """  # ペットごとの現在加入中のペット保険(保険会社・プラン・更新日)を1件だけ保存するテーブルを定義する
+        """  # ペットごとの現在加入中のペット保険(保険会社・プラン・更新日・プランの詳細)を1件だけ保存するテーブルを定義する
 
     )  # insurance_policiesテーブル作成処理を終了する
+
+    insurance_columns = connection.execute("PRAGMA table_info(insurance_policies)").fetchall()  # 現在のinsurance_policiesテーブルに存在する列情報を取得する
+
+    insurance_column_names = [column["name"] for column in insurance_columns]  # 取得した列情報から列名だけを一覧として取り出す
+
+    if "detail" not in insurance_column_names:  # 既存のinsurance_policiesテーブルにdetail列がまだ存在しない場合
+
+        connection.execute("ALTER TABLE insurance_policies ADD COLUMN detail TEXT")  # 既存テーブルにプラン詳細保存用のdetail列を追加する
 
     connection.commit()  # テーブル作成や列追加の変更内容をSQLiteへ確定する
 
@@ -820,7 +829,7 @@ def fetch_all_insurance():  # 登録されているすべてのペットの保�
     rows = connection.execute(  # 保険情報をすべて取得する
 
         """
-        SELECT pet_id, company_name, plan_name, renewal_date
+        SELECT pet_id, company_name, plan_name, renewal_date, detail
         FROM insurance_policies
         """  # 登録されているすべてのペット保険情報を取得するSQLを書く
 
@@ -841,6 +850,7 @@ def fetch_all_insurance():  # 登録されているすべてのペットの保�
             "company_name": row["company_name"],  # 保険会社名
             "plan_name": row["plan_name"],  # プラン名
             "renewal_date": renewal_date,  # 更新日
+            "detail": row["detail"],  # プランの詳細メモ(未入力ならNone)
             "days_until_renewal": days_until_renewal,  # 更新日までの残り日数
             "urgent": days_until_renewal <= INSURANCE_URGENT_DAYS,  # 更新日が近く目立たせるべきかどうか
 
@@ -860,6 +870,8 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
         plan_name = request.form.get("plan_name", "").strip()  # プラン名を取得し、前後の余分な空白を削除する
 
         renewal_date_text = request.form.get("renewal_date", "").strip()  # 更新日を文字列として取得する
+
+        detail = request.form.get("detail", "").strip()  # プランの詳細メモを取得し、前後の余分な空白を削除する
 
         error_message = None  # 入力内容に問題があった場合のエラーメッセージを保存する変数を用意する
 
@@ -887,6 +899,10 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
 
             error_message = "更新日を選択してください。"  # 更新日の入力を促す
 
+        elif len(detail) > 500:  # プランの詳細メモが500文字を超えている場合
+
+            error_message = "プランの詳細は500文字以内で入力してください。"  # 文字数制限を知らせる
+
         if not error_message:  # ここまでエラーが無い場合
 
             try:  # 更新日を日付として解釈できるか確認する
@@ -908,15 +924,16 @@ def insurance():  # ペットごとの保険情報を一覧表示し、登録・
         connection.execute(  # 同じペットの保険情報がすでにあれば置き換え、無ければ新しく登録する
 
             """
-            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO insurance_policies (pet_id, company_name, plan_name, renewal_date, detail)
+            VALUES (?, ?, ?, ?, ?)
             ON CONFLICT (pet_id) DO UPDATE SET
                 company_name = excluded.company_name,
                 plan_name = excluded.plan_name,
-                renewal_date = excluded.renewal_date
+                renewal_date = excluded.renewal_date,
+                detail = excluded.detail
             """,  # ペットIDが同じなら上書き更新するSQLを書く(1匹につき現在の契約1件だけを保持する)
 
-            (pet_id, company_name, plan_name, renewal_date_text)  # 入力された保険情報をSQLへ渡す
+            (pet_id, company_name, plan_name, renewal_date_text, detail if detail else None)  # 入力された保険情報をSQLへ渡す(詳細メモが未入力ならNULLにする)
 
         )  # 保険情報の登録・更新処理を終了する
 
