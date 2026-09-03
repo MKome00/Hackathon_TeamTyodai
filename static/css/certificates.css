@@ -1,0 +1,373 @@
+.certificate-page-note { /* 証明書管理ページの目的を説明する文章を設定する */
+
+    margin: 8px 0 0; /* タイトルとの間に余白を作る */
+
+    font-size: 13px; /* 説明文の文字サイズを設定する */
+
+    color: #777777; /* 説明文の文字色を控えめなグレーにする */
+
+    line-height: 1.6; /* 2行になっても読みやすいよう行間を広げる */
+
+}
+
+.certificate-empty-text { /* ペット未登録・証明書未登録などの案内文を設定する */
+
+    margin-top: 16px; /* 上の要素との間に余白を作る */
+
+    font-size: 14px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}
+
+.certificate-pet-list { /* ペットごとの証明書カードを並べる領域を設定する */
+
+    display: flex; /* カードを並べるためflexを使用する */
+
+    flex-direction: column; /* カードを縦方向に並べる */
+
+    gap: 12px; /* カード同士の間隔を作る */
+
+    margin-top: 16px; /* ページ上部との間に余白を作る */
+
+}
+
+.certificate-pet-card { /* 1匹分の証明書カードを設定する */
+
+    padding: 16px; /* カード内側に余白を作る */
+
+    background-color: #ffffff; /* カードの背景を白色にする */
+
+    border: 1px solid #dddddd; /* カードの周囲に薄いグレーの線を付ける */
+
+    border-radius: 16px; /* カードの角を丸くする */
+
+    box-sizing: border-box; /* paddingとborderを含めてサイズを計算する */
+
+}
+
+.certificate-pet-header { /* カード上部の写真と名前をまとめる領域を設定する */
+
+    display: flex; /* 写真と名前を横並びにする */
+
+    align-items: center; /* 写真と名前を縦方向の中央に揃える */
+
+    gap: 12px; /* 写真と名前の間隔を作る */
+
+}
+
+.certificate-pet-photo { /* 証明書カードに表示するペット写真の丸い枠を設定する */
+
+    width: 44px; /* 写真枠の横幅を設定する */
+
+    height: 44px; /* 写真枠の高さを設定する */
+
+    flex-shrink: 0; /* カード幅が狭くなっても写真枠が縮まないようにする */
+
+    display: flex; /* 写真や絵文字を中央配置できるようにする */
+
+    justify-content: center; /* 内容を横方向の中央に配置する */
+
+    align-items: center; /* 内容を縦方向の中央に配置する */
+
+    background-color: #f3f3f3; /* 写真がないときの背景を薄いグレーにする */
+
+    border-radius: 50%; /* 写真枠を丸く表示する */
+
+    overflow: hidden; /* 写真が枠からはみ出さないようにする */
+
+    font-size: 20px; /* 代わりに表示する絵文字の大きさを設定する */
+
+}
+
+.certificate-pet-photo img { /* 証明書カードに表示するペット写真そのものを設定する */
+
+    width: 100%; /* 写真枠いっぱいの横幅で表示する */
+
+    height: 100%; /* 写真枠いっぱいの高さで表示する */
+
+    object-fit: cover; /* 写真の縦横比を保ちながら枠いっぱいに表示する */
+
+}
+
+.certificate-pet-name { /* 証明書カードのペット名を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 16px; /* ペット名を少し大きめに表示する */
+
+    font-weight: 700; /* ペット名を太字にする */
+
+    color: #333333; /* ペット名の文字色を濃いグレーにする */
+
+}
+
+.certificate-list { /* 登録済みの証明書を並べる領域を設定する */
+
+    display: flex; /* 証明書を並べるためflexを使用する */
+
+    flex-direction: column; /* 証明書を縦方向に並べる */
+
+    gap: 10px; /* 証明書同士の間隔を作る */
+
+    margin-top: 12px; /* カードヘッダーとの間に余白を作る */
+
+}
+
+.certificate-item { /* 1件分の証明書を表示する領域を設定する */
+
+    padding-top: 10px; /* 上の要素との間に余白を作る */
+
+    border-top: 1px solid #eeeeee; /* 証明書同士を薄い線で区切る */
+
+}
+
+.certificate-item:first-child { /* 一覧の中で最初の証明書だけに適用する */
+
+    padding-top: 0; /* 最初の証明書には上の区切り線と余白を作らない */
+
+    border-top: none; /* 最初の証明書には区切り線を付けない */
+
+}
+
+.certificate-item-header { /* 証明書の名前と削除ボタンを横に並べる領域を設定する */
+
+    display: flex; /* 名前とボタンを横並びにする */
+
+    justify-content: space-between; /* 名前を左、ボタンを右に配置する */
+
+    align-items: center; /* 名前とボタンを縦方向の中央に揃える */
+
+    gap: 8px; /* 名前とボタンの間隔を作る */
+
+}
+
+.certificate-name { /* 証明書の名前を設定する */
+
+    margin: 0; /* 段落が持つ余白をなくす */
+
+    font-size: 14px; /* 証明書名の文字サイズを設定する */
+
+    font-weight: 700; /* 証明書名を太字にする */
+
+    color: #333333; /* 証明書名の文字色を濃いグレーにする */
+
+}
+
+.certificate-delete-button { /* 証明書を削除するボタンを設定する */
+
+    padding: 6px 12px; /* ボタンの内側に余白を作る */
+
+    background-color: #ffffff; /* ボタンの背景を白色にする */
+
+    border: 1px solid #d9534f; /* 削除操作であることが分かるよう赤系の枠線を付ける */
+
+    border-radius: 8px; /* ボタンの角を丸くする */
+
+    font-size: 12px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタンの文字を太字にする */
+
+    color: #d9534f; /* ボタンの文字色を赤系にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.certificate-detail-row { /* 取得日・有効期限の1行分を設定する */
+
+    margin: 6px 0 0; /* 上の行との間に余白を作る */
+
+    font-size: 13px; /* 内容の文字サイズを設定する */
+
+    color: #555555; /* 内容の文字色を控えめなグレーにする */
+
+}
+
+.certificate-detail-label { /* 「取得日」「有効期限」の見出し部分を設定する */
+
+    display: inline-block; /* 幅を指定できるようインラインブロックにする */
+
+    width: 64px; /* 見出しの幅をそろえて内容を縦に揃える */
+
+    font-size: 12px; /* 見出しを内容より小さく表示する */
+
+    font-weight: 700; /* 見出しを太字にする */
+
+    color: #888888; /* 見出しの文字色を薄いグレーにする */
+
+}
+
+.certificate-urgent-text { /* 有効期限が近い・過ぎている場合に目立たせる文字を設定する */
+
+    color: #b83b3b; /* 注意を引く赤系の文字色にする */
+
+    font-weight: 700; /* 目立つよう文字を太字にする */
+
+}
+
+.certificate-file-preview { /* 登録済みファイルの表示領域を設定する */
+
+    margin-top: 8px; /* 有効期限の行との間に余白を作る */
+
+}
+
+.certificate-file-image { /* アップロードされた証明書画像のサムネイルを設定する */
+
+    max-width: 140px; /* サムネイルの横幅を小さく抑える */
+
+    max-height: 140px; /* サムネイルの高さを小さく抑える */
+
+    border: 1px solid #dddddd; /* サムネイルの周囲に薄いグレーの線を付ける */
+
+    border-radius: 10px; /* サムネイルの角を丸くする */
+
+    object-fit: cover; /* 画像の縦横比を保ちながら枠内に収める */
+
+}
+
+.certificate-file-link { /* アップロードされたPDFを開くリンクを設定する */
+
+    display: inline-block; /* 余白を持たせられるようインラインブロックにする */
+
+    padding: 6px 12px; /* リンクの内側に余白を作る */
+
+    background-color: #f3f3f3; /* リンクの背景を薄いグレーにする */
+
+    border-radius: 8px; /* リンクの角を丸くする */
+
+    font-size: 13px; /* リンクの文字サイズを設定する */
+
+    font-weight: 700; /* リンクの文字を太字にする */
+
+    color: #4a5fc1; /* リンクの文字色を青系にする */
+
+    text-decoration: none; /* 下線を消してボタンのように見せる */
+
+}
+
+.certificate-no-file-text { /* ファイルが未登録であることを知らせる文章を設定する */
+
+    margin: 8px 0 0; /* 有効期限の行との間に余白を作る */
+
+    font-size: 12px; /* 案内文の文字サイズを設定する */
+
+    color: #aaaaaa; /* 案内文の文字色を薄いグレーにする */
+
+}
+
+.certificate-add-form { /* 証明書追加フォームの開閉領域を設定する */
+
+    margin-top: 12px; /* 上の内容との間に余白を作る */
+
+}
+
+.certificate-add-form summary { /* 証明書追加フォームの開閉用文字を設定する */
+
+    font-size: 13px; /* 開閉用文字のサイズを設定する */
+
+    font-weight: 700; /* 開閉用文字を太字にする */
+
+    color: #4a5fc1; /* 開閉用文字を青系にする */
+
+    cursor: pointer; /* クリックできることが分かるようにする */
+
+}
+
+.certificate-add-form[open] summary { /* 証明書追加フォームを開いたあとの開閉用文字を設定する */
+
+    margin-bottom: 10px; /* 開いたあとのフォームとの間に余白を作る */
+
+}
+
+.certificate-form { /* 証明書追加フォーム内の入力欄をまとめる領域を設定する */
+
+    display: flex; /* 入力欄を並べるためflexを使用する */
+
+    flex-direction: column; /* 入力欄を縦方向に並べる */
+
+    gap: 10px; /* 入力欄同士の間隔を作る */
+
+}
+
+.certificate-form-group { /* 証明書追加フォーム内の1つの入力項目をまとめる領域を設定する */
+
+    display: flex; /* ラベルと入力欄をflexで配置する */
+
+    flex-direction: column; /* ラベルと入力欄を縦方向に並べる */
+
+    gap: 4px; /* ラベルと入力欄の間隔を狭くする */
+
+}
+
+.certificate-form-group[hidden] { /* 「その他」以外を選んでいる間は名前入力欄を非表示にする */
+
+    display: none; /* JavaScriptでhidden属性を付けたときに確実に隠す(displayをflexにする指定より優先させる) */
+
+}
+
+.certificate-form-group label { /* 証明書追加フォームの入力欄の上に表示する項目名を設定する */
+
+    font-size: 12px; /* 項目名の文字サイズを設定する */
+
+    font-weight: 700; /* 項目名を太字にする */
+
+    color: #333333; /* 項目名の文字色を濃いグレーにする */
+
+}
+
+.certificate-form-group input,
+.certificate-form-group select { /* 証明書追加フォームの入力欄・選択欄を設定する */
+
+    width: 100%; /* 使用できる横幅いっぱいまで広げる */
+
+    padding: 10px; /* 入力欄の内側に余白を作る */
+
+    border: 1px solid #cccccc; /* 入力欄の周囲に薄いグレーの線を付ける */
+
+    border-radius: 8px; /* 入力欄の角を丸くする */
+
+    font-size: 14px; /* 入力欄の文字サイズを設定する */
+
+    font-family: inherit; /* ページ全体と同じフォントを使用する */
+
+    box-sizing: border-box; /* paddingとborderを含めて横幅を計算する */
+
+    outline: none; /* 選択時にブラウザ標準の外枠が表示されないようにする */
+
+    background-color: #ffffff; /* 選択欄の背景を白色にする */
+
+}
+
+.certificate-form-group input:focus,
+.certificate-form-group select:focus { /* 証明書追加フォームの入力欄・選択欄を選択しているときの見た目を設定する */
+
+    border-color: #777777; /* 選択中の入力欄の枠線を少し濃くする */
+
+}
+
+.certificate-form-submit { /* 証明書を保存するボタンを設定する */
+
+    padding: 10px; /* ボタンの内側に余白を作る */
+
+    border: none; /* ブラウザ標準の枠線を消す */
+
+    border-radius: 10px; /* ボタンの角を丸くする */
+
+    background-color: #819aff; /* ボタンの背景をアプリの基調色にする */
+
+    color: #ffffff; /* ボタンの文字を白色にする */
+
+    font-size: 14px; /* ボタンの文字サイズを設定する */
+
+    font-weight: 700; /* ボタン文字を太字にする */
+
+    cursor: pointer; /* マウスを重ねたときにクリック可能であることを示す */
+
+}
+
+.certificate-form-submit:active { /* 証明書保存ボタンを押している間だけ適用する */
+
+    transform: scale(0.98); /* ボタンを少しだけ縮めて押し込んだように見せる */
+
+}
