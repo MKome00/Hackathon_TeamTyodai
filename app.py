@@ -229,23 +229,21 @@ def init_db():  # ペット情報を保存するテーブルを準備する関�
 
     connection.close()  # データベースとの接続を終了する
 
-CALENDAR_CATEGORY_LABELS = {  # calendar_eventsテーブルの英語カテゴリを画面表示用の日本語へ変換する
-
+CALENDAR_CATEGORY_LABELS = {
     "hospital": "病院",
     "trimming": "トリミング",
-    "hotel": "ホテル",
+    "medication": "薬",
+    "vaccine": "ワクチン",
     "other": "その他",
+}
 
-}  # カレンダー種類名の変換表を終了する
-
-CALENDAR_CATEGORY_ICONS = {  # calendar_eventsテーブルの英語カテゴリに対応する絵文字を用意する
-
+CALENDAR_CATEGORY_ICONS = {
     "hospital": "🏥",
     "trimming": "✂️",
-    "hotel": "🏡",
+    "medication": "💊",
+    "vaccine": "💉",
     "other": "📝",
-
-}  # カレンダー種類の絵文字の定義を終了する
+}
 
 def fetch_today_calendar_events(pet_id):  # 指定したペットの「今日」が予定日のカレンダー予定をすべて取得する関数を定義する
 

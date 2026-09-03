@@ -234,6 +234,25 @@ document.addEventListener("DOMContentLoaded", () => { // HTML全体の読み込�
 
         events: calendarEvents,
 
+        eventContent: (arg) => {
+            const icon = document.createElement("span");
+            icon.className = "calendar-event-icon";
+
+            const category = arg.event.extendedProps.category;
+
+            const icons = {
+                hospital: "🏥",
+                trimming: "✂️",
+                medication: "💊",
+                vaccine: "💉",
+                other: "📝"
+            };
+
+            icon.textContent = icons[category] || "📝";
+
+            return { domNodes: [icon] };
+        },
+
 
         headerToolbar: {
 
